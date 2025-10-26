@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Amazon's Choice</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root{
+            --brand:#ff9900;
+            --dark:#232f3e;
+            --muted:#6b7280;
+            --card-radius:12px;
+        }
+
+        body{
+            font-family:'Open Sans',sans-serif;
+            background:#f5f7fb;
+            color:#263238;
+            margin:0;
+            -webkit-font-smoothing:antialiased;
+        }
+
+        /* NAV */
+        .navbar{ background:var(--dark); padding:10px 0; box-shadow:0 2px 18px rgba(0,0,0,0.06); }
+        .navbar-brand{ color:#fff; font-weight:700; }
+        .gymkhana-text{ color:var(--brand) !important; }
+        .nav-link{ color:rgba(255,255,255,0.95) !important; }
+        .nav-link.active, .nav-link:hover{ color:var(--brand) !important; }
+
+        /* Page header */
+        .products-container{ max-width:1400px; margin:36px auto; padding:0 16px; }
+        .section-title{ font-size:1.9rem; font-weight:700; text-align:left; margin-bottom:6px; }
+        .section-sub{ color:var(--muted); margin-bottom:18px; }
+
+        /* Category filter */
+        .categories { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+        .category-btn{ border-radius:999px; padding:8px 14px; border:1px solid rgba(0,0,0,0.06); background:#fff; cursor:pointer; font-weight:600; color:#333; }
+        .category-btn.active{ background:var(--brand); color:#fff; box-shadow:0 6px 18px rgba(255,153,0,0.12); transform:translateY(-2px); }
+
+        /* Grid/layout */
+        #products-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap:16px; }
+
+        /* Product card - Smaller size */
+        .product-card{
+            background:#fff;
+            border-radius:var(--card-radius);
+            overflow:hidden;
+            position:relative;
+            box-shadow:0 4px 12px rgba(16,24,40,0.06);
+            transition:transform .18s ease, box-shadow .18s ease;
+            display:flex; flex-direction:column;
+        }
+        .product-card:hover{ transform:translateY(-4px); box-shadow:0 8px 24px rgba(16,24,40,0.09); }
+
+        .product-image-container{ position:relative; height:140px; overflow:hidden; }
+        .product-image { width:100%; height:100%; object-fit:cover; display:block; }
+
+        .product-badge{
+            position:absolute; left:8px; top:8px; background:var(--brand); color:#fff; font-weight:700; font-size:10px;
+            padding:4px 6px; border-radius:6px; box-shadow:0 4px 10px rgba(255,153,0,0.12);
+        }
+
+        .add-to-cart-btn{
+            position:absolute; right:8px; bottom:8px; background:rgba(255,255,255,0.95); border:none; width:32px; height:32px;
+            display:inline-flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 4px 12px rgba(0,0,0,0.08);
+            cursor:pointer; transition:transform .12s ease; font-size:12px;
+        }
+        .add-to-cart-btn:hover{ transform:scale(1.06); background:var(--brand); color:#fff; }
+
+        .product-info{ padding:10px 12px; display:flex; flex-direction:column; gap:6px; flex:1; }
+        .product-title{ font-size:13px; font-weight:700; margin:0; line-height:1.3; color:#143642; height:34px; overflow:hidden; }
+        .rating-container{ display:flex; justify-content:space-between; align-items:center; gap:6px; }
+        .rating-stars i{ color:#f6b042; margin-right:2px; font-size:10px; }
+        .rating-count{ font-weight:700; color:#374151; margin-left:4px; font-size:11px; }
+        .customer-avatars .avatar{ display:inline-block; background:#eef2f7; color:#334155; padding:4px 6px; border-radius:6px; font-weight:700; font-size:10px; }
+
+        .price{ font-weight:800; font-size:14px; color:#0b3b2e; }
+        .markup-info{ color:var(--muted); font-size:10px; }
+        
+        /* Product status indicators */
+        .product-status {
+            display: flex;
+            align-items: center;
+            margin-top: 4px;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .status-indicator {
+            margin-right: 8px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 10px;
+        }
+        
+        .status-best-seller {
+            background-color: #ffd700;
+            color: #333;
+        }
+        
+        .status-selling-fast {
+            background-color: #ff6b6b;
+            color: white;
+        }
+        
+        .status-basket {
+            background-color: #4ecdc4;
+            color: white;
+        }
+        
+        .blink {
+            animation: blink 2s infinite;
+        }
+        
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Footer */
+        .footer{ background:linear-gradient(135deg,#232f3e,#1a202c); color:#fff; padding:36px 0; margin-top:36px; }
+        .footer h5:after{ background:var(--brand); height:3px; width:40px; content:''; display:block; margin-top:8px; border-radius:2px; }
+
+        /* Avatar animation */
+        .avatar.visible{ transform:translateY(0); opacity:1; }
+        .avatar{ transition:all .35s ease; opacity:0; transform:translateY(8px); }
+
+        /* Best Wholesale Products Section */
+        .wholesale-section {
+            margin: 50px 0;
+            padding: 30px 0;
+            background: linear-gradient(135deg, #ff9900, #ff6600);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .wholesale-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23ffffff" opacity="0.1"><polygon points="50,0 100,50 50,100 0,50"/></svg>');
+            background-size: 80px;
+            animation: patternMove 30s linear infinite;
+        }
+        
+        @keyframes patternMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 80px 80px; }
+        }
+        
+        .wholesale-header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .wholesale-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+        
+        .wholesale-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.9);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .wholesale-products {
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            padding: 20px 0;
+        }
+        
+        .wholesale-scroll {
+            display: flex;
+            animation: scrollWholesale 30s linear infinite;
+        }
+        
+        .wholesale-scroll:hover {
+            animation-play-state: paused;
+        }
+        
+        @keyframes scrollWholesale {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        
+        .wholesale-item {
+            flex: 0 0 auto;
+            width: 240px;
+            margin: 0 12px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+        }
+        
+        .wholesale-item:hover {
+            transform: translateY(-8px);
+        }
+        
+        .wholesale-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: #ff3333;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            z-index: 3;
+        }
+        
+        .wholesale-image {
+            height: 160px;
+            overflow: hidden;
+        }
+        
+        .wholesale-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .wholesale-content {
+            padding: 12px;
+        }
+        
+        .wholesale-name {
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        
+        .wholesale-price {
+            font-weight: 800;
+            color: #ff9900;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+        
+        .wholesale-markup {
+            background: #28a745;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 768px){
+            .product-image-container{ height:120px; }
+            .product-title{ font-size:12px; }
+            .wholesale-title { font-size: 2rem; }
+            .wholesale-item { width: 200px; }
+            #products-grid { grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); }
+        }
+        
+        @media (max-width: 576px){
+            #products-grid { grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); }
+        }
+    </style>
+</head>
+<body>
+    <!-- WhatsApp Floating Button -->
+    <a href="https://wa.me/923001234567" class="whatsapp-float" target="_blank" style="position:fixed;right:18px;bottom:18px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;z-index:1100;color:#fff;text-decoration:none;box-shadow:0 10px 30px rgba(18,140,126,0.18);">
+        <i class="fab fa-whatsapp" style="font-size:20px;"></i>
+    </a>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">Amazon <span class="gymkhana-text">Gymkhana</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navMain">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="Amazon's Choice.html">Amazon's Choice</a></li>
+                    <li class="nav-item"><a class="nav-link" href="categories.html">Categories</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+                <div class="d-flex gap-2">
+                    <a href="login.html" class="btn btn-outline-light btn-sm">Login</a>
+                    <a href="register.html" class="btn btn-light btn-sm" style="background:var(--brand);border:0;color:#fff;">Register</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Products Section -->
+    <div class="container products-container">
+        <div class="d-flex justify-content-between align-items-end mb-2">
+            <div>
+                <h2 class="section-title">Amazon's Choice — Fast Selling Products</h2>
+                <div class="section-sub">Hand-picked haul-style items across categories — fashion, home, electronics, beauty & more.</div>
+            </div>
+            <div>
+                <small style="color:var(--muted);">Showing <span id="shown-count">0</span> products</small>
+            </div>
+        </div>
+
+        <!-- Category filters -->
+        <div class="categories mb-3" role="tablist" aria-label="Categories">
+            <button class="category-btn active" data-cat="all">All</button>
+            <button class="category-btn" data-cat="fashion">Fashion</button>
+            <button class="category-btn" data-cat="home">Home & Decor</button>
+            <button class="category-btn" data-cat="electronics">Electronics</button>
+            <button class="category-btn" data-cat="beauty">Beauty</button>
+            <button class="category-btn" data-cat="fitness">Fitness</button>
+            <button class="category-btn" data-cat="kitchen">Kitchen</button>
+            <button class="category-btn" data-cat="kids">Kids</button>
+            <button class="category-btn" data-cat="outdoor">Outdoor</button>
+        </div>
+
+        <!-- Grid -->
+        <div id="products-grid" aria-live="polite">
+            <!-- Products will be populated by JavaScript -->
+        </div>
+
+    </div>
+
+    <!-- Best Wholesale Products Section -->
+    <div class="container">
+        <div class="wholesale-section">
+            <div class="wholesale-header">
+                <h2 class="wholesale-title">Amazon Gymkhana Best Seller's Choice</h2>
+                <p class="wholesale-subtitle">High-margin products with proven sales performance. Perfect for resellers and retailers.</p>
+            </div>
+            <div class="wholesale-products">
+                <div class="wholesale-scroll">
+                    <!-- Wholesale items will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row gy-4">
+                <div class="col-lg-4 col-md-6">
+                    <h5>About Amazon Choice</h5>
+                    <p style="color:rgba(255,255,255,0.85)">Connecting Pakistan's Amazon sellers, suppliers, and service providers under one platform to foster growth and collaboration.</p>
+                    <div class="social-icons mt-3">
+                        <a href="#" style="display:inline-flex;width:36px;height:36px;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border-radius:50%;color:#fff;margin-right:8px;text-decoration:none;"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" style="display:inline-flex;width:36px;height:36px;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border-radius:50%;color:#fff;margin-right:8px;text-decoration:none;"><i class="fab fa-twitter"></i></a>
+                        <a href="#" style="display:inline-flex;width:36px;height:36px;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border-radius:50%;color:#fff;margin-right:8px;text-decoration:none;"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h5>Quick Links</h5>
+                    <ul style="list-style:none;padding:0;margin:0;color:rgba(255,255,255,0.8)">
+                        <li style="margin-bottom:8px;"><a href="index.html" style="color:inherit;text-decoration:none">Home</a></li>
+                        <li style="margin-bottom:8px;"><a href="marketplace.html" style="color:inherit;text-decoration:none">Marketplace</a></li>
+                        <li style="margin-bottom:8px;"><a href="categories.html" style="color:inherit;text-decoration:none">Categories</a></li>
+                        <li style="margin-bottom:8px;"><a href="suppliers.html" style="color:inherit;text-decoration:none">Suppliers</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5>Important Links</h5>
+                    <ul style="list-style:none;padding:0;margin:0;color:rgba(255,255,255,0.8)">
+                        <li style="margin-bottom:8px;"><a href="#" style="color:inherit;text-decoration:none">Terms of Service</a></li>
+                        <li style="margin-bottom:8px;"><a href="#" style="color:inherit;text-decoration:none">Privacy Policy</a></li>
+                        <li style="margin-bottom:8px;"><a href="#" style="color:inherit;text-decoration:none">Help Center</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5>Contact Info</h5>
+                    <ul style="list-style:none;padding:0;margin:0;color:rgba(255,255,255,0.9)">
+                        <li style="margin-bottom:8px;"><i class="fas fa-map-marker-alt me-2"></i> Islamabad, Pakistan</li>
+                        <li style="margin-bottom:8px;"><i class="fas fa-envelope me-2"></i> info@amazonchoice.pk</li>
+                        <li style="margin-bottom:8px;"><i class="fas fa-phone me-2"></i> +92 300 1234567</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;margin-top:18px;text-align:center;color:rgba(255,255,255,0.72);">
+                &copy; <span id="year"></span> Amazon Choice. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Product data
+        const products = [
+            // FASHION CATEGORY (20 products)
+            { id: 1, category: "fashion", name: "Premium Leather Handbag", price: "£39.99", rating: 4.5, reviews: 128, markup: "315%", image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 105 },
+            { id: 2, category: "fashion", name: "Traditional Jewelry Set", price: "£24.99", rating: 4.0, reviews: 94, markup: "280%", image: "https://images.unsplash.com/photo-1520975910468-3c8d35f9ff2e?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 87 },
+            { id: 3, category: "fashion", name: "Running Shoes", price: "£79.99", rating: 4.0, reviews: 7, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 42 },
+            { id: 4, category: "fashion", name: "Laptop Backpack", price: "£39.99", rating: 4.5, reviews: 11, image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 56 },
+            { id: 5, category: "fashion", name: "Sunglasses", price: "£29.99", rating: 5.0, reviews: 14, image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 78 },
+            { id: 6, category: "fashion", name: "Men's Winter Jacket", price: "£24.99", rating: 4.0, reviews: 42, image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 63 },
+            { id: 7, category: "fashion", name: "Genuine Leather Wallet", price: "£19.99", rating: 4.6, reviews: 72, image: "https://images.unsplash.com/photo-1556742044-3c734c641e49?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 91 },
+            { id: 8, category: "fashion", name: "Men's Leather Belt", price: "£14.99", rating: 4.2, reviews: 58, image: "https://images.unsplash.com/photo-1601924994980-3a5a0f7e8e3f?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 47 },
+            { id: 9, category: "fashion", name: "Women's Fashion Handbag", price: "£34.99", rating: 4.7, reviews: 93, markup: "290%", image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 112 },
+            { id: 10, category: "fashion", name: "Men's Stainless Steel Watch", price: "£49.99", rating: 4.5, reviews: 124, image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 88 },
+            { id: 11, category: "fashion", name: "Women's Elegant Watch", price: "£39.99", rating: 4.6, reviews: 87, image: "https://images.unsplash.com/photo-1547996160-81dfd58739cc?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 74 },
+            { id: 12, category: "fashion", name: "Casual Sneakers", price: "£34.99", rating: 4.3, reviews: 56, image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 69 },
+            { id: 13, category: "fashion", name: "Designer Handbag", price: "£59.99", rating: 4.8, reviews: 132, markup: "320%", image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 95 },
+            { id: 14, category: "fashion", name: "Leather Jacket", price: "£89.99", rating: 4.4, reviews: 78, image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 51 },
+            { id: 15, category: "fashion", name: "Summer Dress", price: "£29.99", rating: 4.7, reviews: 103, image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 127 },
+            { id: 16, category: "fashion", name: "Formal Shirt", price: "£24.99", rating: 4.2, reviews: 67, image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 58 },
+            { id: 17, category: "fashion", name: "Denim Jeans", price: "£34.99", rating: 4.5, reviews: 89, image: "https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 76 },
+            { id: 18, category: "fashion", name: "Sports T-shirt", price: "£14.99", rating: 4.1, reviews: 45, image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 82 },
+            { id: 19, category: "fashion", name: "Winter Scarf", price: "£12.99", rating: 4.6, reviews: 71, image: "https://images.unsplash.com/photo-1601924582970-9238bcb495d9?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 93 },
+            { id: 20, category: "fashion", name: "Designer Sunglasses", price: "£44.99", rating: 4.8, reviews: 118, image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 64 },
+
+            // HOME & DECOR CATEGORY (15 products)
+            { id: 21, category: "home", name: "Handmade Pakistani Carpet", price: "£129.99", rating: 5.0, reviews: 67, markup: "340%", image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 42 },
+            { id: 22, category: "home", name: "Hand Carved Wooden Decor", price: "£24.99", rating: 4.5, reviews: 156, markup: "295%", image: "https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 87 },
+            { id: 23, category: "home", name: "Embroidered Fabric (Per Meter)", price: "£7.99", rating: 4.0, reviews: 203, markup: "320%", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 105 },
+            { id: 24, category: "home", name: "Smart Home Speaker", price: "£89.99", rating: 4.5, reviews: 13, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 28 },
+            { id: 25, category: "home", name: "Minimalist Wall Art", price: "£4.99", rating: 3.8, reviews: 14, image: "https://images.unsplash.com/photo-1505691723518-36a4a382a3b9?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 19 },
+            { id: 26, category: "home", name: "Decorative Throw Pillows (Set of 4)", price: "£12.99", rating: 4.6, reviews: 87, image: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 63 },
+            { id: 27, category: "home", name: "Modern Table Lamp", price: "£24.99", rating: 4.3, reviews: 42, image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 37 },
+            { id: 28, category: "home", name: "Decorative Wall Clock", price: "£18.99", rating: 4.4, reviews: 56, image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 44 },
+            { id: 29, category: "home", name: "Ceramic Vase Set (3pcs)", price: "£22.99", rating: 4.1, reviews: 38, image: "https://images.unsplash.com/photo-1578500494191-56d6d7e1c0be?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 29 },
+            { id: 30, category: "home", name: "Photo Frame Set (5pcs)", price: "£16.99", rating: 4.5, reviews: 67, image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 52 },
+            { id: 31, category: "home", name: "Decorative Cushion Covers (4pcs)", price: "£19.99", rating: 4.2, reviews: 49, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 41 },
+            { id: 32, category: "home", name: "Bedding Set", price: "£34.99", rating: 4.7, reviews: 92, image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 68 },
+            { id: 33, category: "home", name: "Curtains Set", price: "£29.99", rating: 4.3, reviews: 57, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 39 },
+            { id: 34, category: "home", name: "Area Rug", price: "£49.99", rating: 4.6, reviews: 78, image: "https://images.unsplash.com/photo-1541839546-4c352f42b101?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 55 },
+            { id: 35, category: "home", name: "Wall Mirror", price: "£27.99", rating: 4.4, reviews: 63, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 46 },
+
+            // ELECTRONICS CATEGORY (20 products)
+            { id: 36, category: "electronics", name: "Wireless Bluetooth Headphones", price: "£89.99", rating: 4.5, reviews: 5, markup: "250%", image: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 32 },
+            { id: 37, category: "electronics", name: "Premium Wireless Earbuds", price: "£129.99", rating: 5.0, reviews: 12, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 18 },
+            { id: 38, category: "electronics", name: "Smart Watch", price: "£199.99", rating: 4.5, reviews: 15, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 27 },
+            { id: 39, category: "electronics", name: "Bluetooth Speaker", price: "£59.99", rating: 4.5, reviews: 10, image: "https://images.unsplash.com/photo-1504274066651-8d31a536b11a?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 41 },
+            { id: 40, category: "electronics", name: "Gaming Mouse", price: "£34.99", rating: 4.0, reviews: 9, image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 23 },
+            { id: 41, category: "electronics", name: "Wireless Charging Pad", price: "£24.99", rating: 5.0, reviews: 6, image: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 35 },
+            { id: 42, category: "electronics", name: "Camera Lens", price: "£149.99", rating: 4.0, reviews: 4, image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 14 },
+            { id: 43, category: "electronics", name: "Smartphone Case", price: "£12.99", rating: 4.5, reviews: 8, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 67 },
+            { id: 44, category: "electronics", name: "Smartphone", price: "£599.99", rating: 4.5, reviews: 22, image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 19 },
+            { id: 45, category: "electronics", name: "Tablet", price: "£299.99", rating: 4.0, reviews: 17, image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 24 },
+            { id: 46, category: "electronics", name: "Gaming Headset", price: "£69.99", rating: 4.0, reviews: 9, image: "https://images.unsplash.com/photo-1504274066651-8d31a536b11a?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 31 },
+            { id: 47, category: "electronics", name: "27\" 4K Monitor", price: "£329.99", rating: 4.6, reviews: 39, image: "https://images.unsplash.com/photo-1512251984722-1fdbd7b2a1e2?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 22 },
+            { id: 48, category: "electronics", name: "20000mAh Power Bank", price: "£24.99", rating: 4.6, reviews: 112, image: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 85 },
+            { id: 49, category: "electronics", name: "Fast Charging USB Cable (3pcs)", price: "£9.99", rating: 4.4, reviews: 89, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 127 },
+            { id: 50, category: "electronics", name: "Adjustable Phone Stand", price: "£7.99", rating: 4.3, reviews: 47, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 93 },
+            { id: 51, category: "electronics", name: "Aluminum Laptop Stand", price: "£19.99", rating: 4.5, reviews: 63, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 58 },
+            { id: 52, category: "electronics", name: "HD Webcam with Microphone", price: "£34.99", rating: 4.2, reviews: 58, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 41 },
+            { id: 53, category: "electronics", name: "Wireless Keyboard", price: "£49.99", rating: 4.4, reviews: 72, image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 36 },
+            { id: 54, category: "electronics", name: "Wireless Mouse", price: "£29.99", rating: 4.3, reviews: 54, image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 62 },
+            { id: 55, category: "electronics", name: "Portable SSD 1TB", price: "£89.99", rating: 4.7, reviews: 38, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 29 },
+
+            // BEAUTY CATEGORY (15 products)
+            { id: 56, category: "beauty", name: "Premium Skincare Set", price: "£19.99", rating: 4.3, reviews: 45, image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 67 },
+            { id: 57, category: "beauty", name: "Designer Perfume", price: "£29.99", rating: 4.6, reviews: 81, image: "https://images.unsplash.com/photo-1533777324565-a040eb52fac2?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 52 },
+            { id: 58, category: "beauty", name: "Professional Makeup Kit", price: "£25.99", rating: 4.7, reviews: 63, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 48 },
+            { id: 59, category: "beauty", name: "Professional Hair Dryer", price: "£17.99", rating: 4.0, reviews: 38, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 31 },
+            { id: 60, category: "beauty", name: "Anti-Aging Face Cream", price: "£24.99", rating: 4.6, reviews: 72, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 59 },
+            { id: 61, category: "beauty", name: "Matte Lipstick Set (6 Colors)", price: "£18.99", rating: 4.7, reviews: 89, image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 76 },
+            { id: 62, category: "beauty", name: "Charcoal Face Mask (5pcs)", price: "£12.99", rating: 4.3, reviews: 56, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 44 },
+            { id: 63, category: "beauty", name: "Argan Oil Hair Serum", price: "£14.99", rating: 4.5, reviews: 67, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 53 },
+            { id: 64, category: "beauty", name: "Gel Nail Polish Set (12 Colors)", price: "£22.99", rating: 4.6, reviews: 78, image: "https://images.unsplash.com/photo-1608248549165-8f2eef4f3233?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 61 },
+            { id: 65, category: "beauty", name: "Makeup Brushes Set", price: "£16.99", rating: 4.4, reviews: 92, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 78 },
+            { id: 66, category: "beauty", name: "Facial Cleanser", price: "£9.99", rating: 4.2, reviews: 47, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 85 },
+            { id: 67, category: "beauty", name: "Body Lotion", price: "£11.99", rating: 4.5, reviews: 63, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 72 },
+            { id: 68, category: "beauty", name: "Hair Styling Tool", price: "£34.99", rating: 4.3, reviews: 58, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 39 },
+            { id: 69, category: "beauty", name: "Sunscreen SPF 50", price: "£14.99", rating: 4.6, reviews: 84, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 67 },
+            { id: 70, category: "beauty", name: "Beauty Gift Set", price: "£39.99", rating: 4.8, reviews: 96, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 45 },
+
+            // FITNESS CATEGORY (10 products)
+            { id: 71, category: "fitness", name: "Smart Fitness Tracker", price: "£45.99", rating: 4.0, reviews: 8, image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 37 },
+            { id: 72, category: "fitness", name: "Premium Yoga Mat", price: "£8.99", rating: 4.2, reviews: 26, image: "https://images.unsplash.com/photo-1549576490-b0b4831ef60a?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 63 },
+            { id: 73, category: "fitness", name: "Adjustable Dumbbells Set", price: "£44.99", rating: 4.1, reviews: 31, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 28 },
+            { id: 74, category: "fitness", name: "Resistance Bands Set (5pcs)", price: "£14.99", rating: 4.5, reviews: 93, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 79 },
+            { id: 75, category: "fitness", name: "Adjustable Speed Jump Rope", price: "£9.99", rating: 4.3, reviews: 47, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 52 },
+            { id: 76, category: "fitness", name: "High-Density Foam Roller", price: "£16.99", rating: 4.4, reviews: 58, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 41 },
+            { id: 77, category: "fitness", name: "1L Insulated Water Bottle", price: "£12.99", rating: 4.6, reviews: 72, image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 88 },
+            { id: 78, category: "fitness", name: "Extra Thick Exercise Mat", price: "£19.99", rating: 4.2, reviews: 49, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 34 },
+            { id: 79, category: "fitness", name: "Fitness Gloves", price: "£11.99", rating: 4.3, reviews: 63, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 57 },
+            { id: 80, category: "fitness", name: "Yoga Block (2pcs)", price: "£7.99", rating: 4.5, reviews: 38, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 46 },
+
+            // KITCHEN CATEGORY (10 products)
+            { id: 81, category: "kitchen", name: "High-Speed Blender", price: "£44.99", rating: 4.0, reviews: 21, image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 32 },
+            { id: 82, category: "kitchen", name: "Non-stick Cookware Set", price: "£25.99", rating: 4.0, reviews: 28, image: "https://images.unsplash.com/photo-1514996937319-344454492b37?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 41 },
+            { id: 83, category: "kitchen", name: "Automatic Coffee Maker", price: "£34.99", rating: 4.5, reviews: 52, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 38 },
+            { id: 84, category: "kitchen", name: "Professional Knife Set (6pcs)", price: "£34.99", rating: 4.5, reviews: 83, image: "https://images.unsplash.com/photo-1598373180885-85c8f6b7c8ce?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 57 },
+            { id: 85, category: "kitchen", name: "Bamboo Cutting Board Set (3pcs)", price: "£18.99", rating: 4.4, reviews: 67, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 49 },
+            { id: 86, category: "kitchen", name: "Glass Food Container Set (10pcs)", price: "£29.99", rating: 4.6, reviews: 92, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 63 },
+            { id: 87, category: "kitchen", name: "Stainless Steel Utensil Set (15pcs)", price: "£24.99", rating: 4.5, reviews: 78, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 44 },
+            { id: 88, category: "kitchen", name: "Bamboo Spice Rack with 12 Jars", price: "£22.99", rating: 4.3, reviews: 54, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 36 },
+            { id: 89, category: "kitchen", name: "Electric Kettle", price: "£19.99", rating: 4.4, reviews: 72, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 58 },
+            { id: 90, category: "kitchen", name: "Air Fryer", price: "£49.99", rating: 4.7, reviews: 88, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 42 },
+
+            // KIDS CATEGORY (10 products)
+            { id: 91, category: "kids", name: "Educational Kids Toy", price: "£8.99", rating: 4.1, reviews: 33, image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 47 },
+            { id: 92, category: "kids", name: "Building Blocks Set (200pcs)", price: "£6.99", rating: 4.6, reviews: 47, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 63 },
+            { id: 93, category: "kids", name: "Plush Stuffed Animal (Bear)", price: "£12.99", rating: 4.7, reviews: 112, image: "https://images.unsplash.com/photo-1536623975707-c4b3b2af565d?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 78 },
+            { id: 94, category: "kids", name: "Children's Puzzle Set (4 Puzzles)", price: "£14.99", rating: 4.5, reviews: 67, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 52 },
+            { id: 95, category: "kids", name: "Kids Art Set (65 Pieces)", price: "£18.99", rating: 4.6, reviews: 89, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 61 },
+            { id: 96, category: "kids", name: "Children's Play Tent", price: "£24.99", rating: 4.3, reviews: 54, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 39 },
+            { id: 97, category: "kids", name: "Kids Balance Bike (2-5 Years)", price: "£39.99", rating: 4.5, reviews: 72, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 28 },
+            { id: 98, category: "kids", name: "Remote Control Car", price: "£19.99", rating: 4.4, reviews: 58, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 45 },
+            { id: 99, category: "kids", name: "Kids Tablet", price: "£69.99", rating: 4.3, reviews: 47, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 33 },
+            { id: 100, category: "kids", name: "Kids Smartwatch", price: "£29.99", rating: 4.5, reviews: 63, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 41 },
+
+            // OUTDOOR CATEGORY (10 products)
+            { id: 101, category: "outdoor", name: "2-Person Camping Tent", price: "£34.99", rating: 4.3, reviews: 19, image: "https://images.unsplash.com/photo-1472396961693-142e6e269027?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 27 },
+            { id: 102, category: "outdoor", name: "Hiking Boots", price: "£27.99", rating: 4.3, reviews: 21, image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 34 },
+            { id: 103, category: "outdoor", name: "4-Season Sleeping Bag", price: "£44.99", rating: 4.5, reviews: 83, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 29 },
+            { id: 104, category: "outdoor", name: "Portable Camping Stove", price: "£29.99", rating: 4.4, reviews: 67, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 38 },
+            { id: 105, category: "outdoor", name: "50L Hiking Backpack", price: "£49.99", rating: 4.6, reviews: 78, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 42 },
+            { id: 106, category: "outdoor", name: "LED Camping Lantern", price: "£14.99", rating: 4.3, reviews: 54, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 63 },
+            { id: 107, category: "outdoor", name: "Portable Folding Chair", price: "£19.99", rating: 4.5, reviews: 72, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 51 },
+            { id: 108, category: "outdoor", name: "Waterproof Jacket", price: "£39.99", rating: 4.4, reviews: 58, image: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 46 },
+            { id: 109, category: "outdoor", name: "Fishing Rod Set", price: "£34.99", rating: 4.3, reviews: 47, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 32 },
+            { id: 110, category: "outdoor", name: "Portable Grill", price: "£44.99", rating: 4.6, reviews: 63, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 37 }
+        ];
+
+        // Wholesale products data
+        const wholesaleProducts = [
+            { name: "Premium Leather Handbag", price: "£39.99", markup: "315%", image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=400&auto=format&fit=crop", badge: "Hot Deal" },
+            { name: "Handmade Pakistani Carpet", price: "£129.99", markup: "340%", image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", badge: "Best Seller" },
+            { name: "Wireless Bluetooth Headphones", price: "£89.99", markup: "250%", image: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=400&auto=format&fit=crop", badge: "Hot Deal" },
+            { name: "Premium Skincare Set", price: "£19.99", markup: "280%", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop", badge: "Best Seller" },
+            { name: "Smart Fitness Tracker", price: "£45.99", markup: "220%", image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=400&auto=format&fit=crop", badge: "Hot Deal" },
+            { name: "High-Speed Blender", price: "£44.99", markup: "270%", image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=400&auto=format&fit=crop", badge: "Best Seller" }
+        ];
+
+        // Function to generate star rating HTML
+        function generateStars(rating) {
+            let stars = '';
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 !== 0;
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star"></i>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            }
+            
+            const emptyStars = 5 - Math.ceil(rating);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="far fa-star"></i>';
+            }
+            
+            return stars;
+        }
+
+        // Function to generate status HTML with blinking effect
+        function generateStatus(status, basket) {
+            let statusHTML = '';
+            
+            if (status === "best-seller") {
+                statusHTML = `<span class="status-indicator status-best-seller blink">Best Seller</span>`;
+            } else if (status === "selling-fast") {
+                statusHTML = `<span class="status-indicator status-selling-fast blink">Selling Fast</span>`;
+            }
+            
+            statusHTML += `<span class="status-indicator status-basket">${basket} in basket</span>`;
+            
+            return statusHTML;
+        }
+
+        // Function to render products
+        function renderProducts() {
+            const productsGrid = document.getElementById('products-grid');
+            productsGrid.innerHTML = '';
+            
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.setAttribute('data-cat', product.category);
+                
+                productCard.innerHTML = `
+                    <div class="product-image-container">
+                        <img class="product-image" src="${product.image}" alt="${product.name}">
+                        <span class="product-badge">Amazon's Choice</span>
+                        <button class="add-to-cart-btn" title="Add">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h4 class="product-title">${product.name}</h4>
+                        <div class="rating-container">
+                            <div class="rating-stars">${generateStars(product.rating)}<span class="rating-count">${product.rating}</span></div>
+                            <div class="customer-avatars"><div class="avatar">+${product.reviews}</div></div>
+                        </div>
+                        <div class="price">${product.price}</div>
+                        ${product.markup ? `<div class="markup-info">${product.markup} Markup</div>` : ''}
+                        <div class="product-status">
+                            ${generateStatus(product.status, product.basket)}
+                        </div>
+                    </div>
+                `;
+                
+                productsGrid.appendChild(productCard);
+            });
+            
+            updateShownCount();
+        }
+
+        // Function to render wholesale products
+        function renderWholesaleProducts() {
+            const wholesaleScroll = document.querySelector('.wholesale-scroll');
+            wholesaleScroll.innerHTML = '';
+            
+            // Create two sets of products for seamless scrolling
+            for (let i = 0; i < 2; i++) {
+                wholesaleProducts.forEach(product => {
+                    const wholesaleItem = document.createElement('div');
+                    wholesaleItem.className = 'wholesale-item';
+                    
+                    wholesaleItem.innerHTML = `
+                        <div class="wholesale-badge">${product.badge}</div>
+                        <div class="wholesale-image">
+                            <img src="${product.image}" alt="${product.name}">
+                        </div>
+                        <div class="wholesale-content">
+                            <h4 class="wholesale-name">${product.name}</h4>
+                            <div class="wholesale-price">${product.price}</div>
+                            <div class="wholesale-markup">${product.markup} Markup</div>
+                        </div>
+                    `;
+                    
+                    wholesaleScroll.appendChild(wholesaleItem);
+                });
+            }
+        }
+
+        // Update shown count
+        function updateShownCount(){
+            const visible = Array.from(document.querySelectorAll('#products-grid > .product-card')).filter(el => el.style.display !== 'none');
+            document.getElementById('shown-count').textContent = visible.length;
+        }
+
+        // Category filter behavior
+        function setupCategoryFilters() {
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', function(){
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const cat = this.getAttribute('data-cat');
+                    const cards = document.querySelectorAll('#products-grid > .product-card');
+                    cards.forEach(card => {
+                        if(cat === 'all' || card.getAttribute('data-cat') === cat){
+                            card.style.display = '';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                    updateShownCount();
+                });
+            });
+        }
+
+        // Avatar animation + randomize counts
+        function setupAvatarAnimation() {
+            const avatars = document.querySelectorAll('.avatar');
+            function animateAvatars(){
+                avatars.forEach((a,i) => {
+                    setTimeout(() => a.classList.add('visible'), i * 80);
+                });
+                setTimeout(() => avatars.forEach(a => a.classList.remove('visible')), avatars.length * 80 + 2000);
+            }
+            animateAvatars();
+            setInterval(animateAvatars, 6000);
+
+            setInterval(() => {
+                avatars.forEach(a => {
+                    const n = Math.max(3, Math.floor(Math.random()*160)+1);
+                    a.textContent = '+' + n;
+                });
+            }, 4000);
+        }
+
+        // Add-to-cart button simple feedback (can be replaced with real cart logic)
+        function setupAddToCartButtons() {
+            document.addEventListener('click', function(e){
+                if(e.target.closest('.add-to-cart-btn')){
+                    const btn = e.target.closest('.add-to-cart-btn');
+                    btn.disabled = true;
+                    btn.style.transform = 'scale(.96)';
+                    const icon = btn.querySelector('i');
+                    const old = icon.className;
+                    icon.className = 'fas fa-check';
+                    setTimeout(() => { 
+                        icon.className = old; 
+                        btn.disabled = false; 
+                        btn.style.transform = ''; 
+                    }, 900);
+                }
+            });
+        }
+
+        // Accessibility: keyboard filter with Enter/Space
+        function setupKeyboardAccessibility() {
+            document.querySelectorAll('.category-btn').forEach(b => {
+                b.setAttribute('tabindex','0');
+                b.addEventListener('keydown', function(e){
+                    if(e.key === 'Enter' || e.key === ' '){
+                        e.preventDefault();
+                        this.click();
+                    }
+                });
+            });
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function(){
+            renderProducts();
+            renderWholesaleProducts();
+            setupCategoryFilters();
+            setupAvatarAnimation();
+            setupAddToCartButtons();
+            setupKeyboardAccessibility();
+            
+            document.getElementById('year').textContent = new Date().getFullYear();
+        });
+    </script>
+</body>
+</html>
