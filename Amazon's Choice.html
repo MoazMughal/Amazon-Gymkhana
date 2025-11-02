@@ -37,6 +37,15 @@
         .gymkhana-text{ color:var(--brand) !important; }
         .nav-link{ color:rgba(255,255,255,0.95) !important; }
         .nav-link.active, .nav-link:hover{ color:var(--brand) !important; }
+        /* Active underline */
+        .navbar-nav .nav-link{
+            position: relative;
+        }
+        .navbar-nav .nav-link.active::after{
+            content: '';
+            position: absolute; left: 10px; right: 10px; bottom: -6px;
+            height: 3px; background: var(--brand); border-radius: 2px;
+        }
 
         /* Page header */
         .products-container{ max-width:1400px; margin:36px auto; padding:0 16px; }
@@ -60,11 +69,25 @@
             box-shadow:0 4px 12px rgba(16,24,40,0.06);
             transition:transform .18s ease, box-shadow .18s ease;
             display:flex; flex-direction:column;
+            cursor: pointer;
         }
         .product-card:hover{ transform:translateY(-4px); box-shadow:0 8px 24px rgba(16,24,40,0.09); }
 
-        .product-image-container{ position:relative; height:140px; overflow:hidden; }
-        .product-image { width:100%; height:100%; object-fit:cover; display:block; }
+        .product-image-container{ 
+            position:relative; 
+            height:140px; 
+            overflow:hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .product-image { 
+            width:100%; 
+            height:100%; 
+            object-fit: contain; 
+            display:block;
+            padding: 10px;
+        }
 
         .product-badge{
             position:absolute; left:8px; top:8px; background:var(--brand); color:#fff; font-weight:700; font-size:10px;
@@ -88,21 +111,41 @@
         .price{ font-weight:800; font-size:14px; color:#0b3b2e; }
         .markup-info{ color:var(--muted); font-size:10px; }
         
+        /* Product details */
+        .product-details {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        
+        .product-details span {
+            display: block;
+            margin-bottom: 2px;
+        }
+        
         /* Product status indicators */
         .product-status {
             display: flex;
-            align-items: center;
-            margin-top: 4px;
-            font-size: 11px;
-            color: #666;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            height: 20px;
+            overflow: hidden;
+            position: relative;
         }
         
         .status-indicator {
-            margin-right: 8px;
-            padding: 2px 6px;
+            padding: 3px 6px;
             border-radius: 4px;
             font-weight: 600;
-            font-size: 10px;
+            font-size: 0.65rem;
+            display: inline-block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
         
         .status-best-seller {
@@ -118,6 +161,20 @@
         .status-basket {
             background-color: #4ecdc4;
             color: white;
+        }
+        
+        .status-amazon-choice {
+            background-color: var(--brand);
+            color: white;
+        }
+        
+        .status-trending {
+            background-color: #9c27b0;
+            color: white;
+        }
+        
+        .status-indicator.active {
+            opacity: 1;
         }
         
         .blink {
@@ -239,12 +296,16 @@
         .wholesale-image {
             height: 160px;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .wholesale-image img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            padding: 10px;
         }
         
         .wholesale-content {
@@ -273,6 +334,82 @@
             font-weight: 600;
             display: inline-block;
         }
+        
+        /* Verify on Amazon button */
+        .verify-amazon-btn {
+            background: #232f3e;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 8px;
+            width: 100%;
+        }
+        
+        .verify-amazon-btn:hover {
+            background: #37475a;
+            transform: translateY(-2px);
+        }
+        
+        /* Pagination */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            padding: 20px 0;
+        }
+        
+        .pagination {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .page-item {
+            display: inline-block;
+        }
+        
+        .page-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
+        }
+        
+        .page-link:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+        
+        .page-item.active .page-link {
+            background: var(--brand);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255,153,0,0.2);
+        }
+        
+        .page-item.disabled .page-link {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
         /* Responsive tweaks */
         @media (max-width: 768px){
@@ -285,6 +422,14 @@
         
         @media (max-width: 576px){
             #products-grid { grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); }
+            .pagination {
+                gap: 4px;
+            }
+            .page-link {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
         }
     </style>
 </head>
@@ -305,7 +450,8 @@
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
                     <li class="nav-item"><a class="nav-link active" href="Amazon's Choice.html">Amazon's Choice</a></li>
-                    <li class="nav-item"><a class="nav-link" href="categories.html">Categories</a></li>
+                    <li class="nav-item"><a class="nav-link" href="categories.html">Best Sellers Categories</a></li>
+                    <li class="nav-item"><a class="nav-link" href="latest-deals.html">Latest Deals</a></li>
                     <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
                 </ul>
                 <div class="d-flex gap-2">
@@ -322,28 +468,40 @@
             <div>
                 <h2 class="section-title">Amazon's Choice — Fast Selling Products</h2>
                 <div class="section-sub">Hand-picked haul-style items across categories — fashion, home, electronics, beauty & more.</div>
+                <div class="mt-2">
+                    <a href="categories.html" class="btn btn-sm btn-outline-secondary me-2">Best Sellers Categories</a>
+                    <a href="latest-deals.html" class="btn btn-sm btn-outline-secondary">Today's Deals</a>
+                </div>
             </div>
             <div>
-                <small style="color:var(--muted);">Showing <span id="shown-count">0</span> products</small>
+                <small style="color:var(--muted);">Showing <span id="shown-count">0</span> of <span id="total-count">0</span> products</small>
             </div>
         </div>
 
         <!-- Category filters -->
         <div class="categories mb-3" role="tablist" aria-label="Categories">
             <button class="category-btn active" data-cat="all">All</button>
-            <button class="category-btn" data-cat="fashion">Fashion</button>
-            <button class="category-btn" data-cat="home">Home & Decor</button>
-            <button class="category-btn" data-cat="electronics">Electronics</button>
-            <button class="category-btn" data-cat="beauty">Beauty</button>
-            <button class="category-btn" data-cat="fitness">Fitness</button>
+            <button class="category-btn" data-cat="strap">Watch Straps</button>
+            <button class="category-btn" data-cat="tape">Tape</button>
+            <button class="category-btn" data-cat="lampshade">Lampshades</button>
+            <button class="category-btn" data-cat="party">Party Supplies</button>
             <button class="category-btn" data-cat="kitchen">Kitchen</button>
-            <button class="category-btn" data-cat="kids">Kids</button>
-            <button class="category-btn" data-cat="outdoor">Outdoor</button>
+            <button class="category-btn" data-cat="electronics">Electronics</button>
+            <button class="category-btn" data-cat="jewelry">Jewelry</button>
+            <button class="category-btn" data-cat="home">Home & Decor</button>
+            <button class="category-btn" data-cat="automotive">Automotive</button>
         </div>
 
         <!-- Grid -->
         <div id="products-grid" aria-live="polite">
             <!-- Products will be populated by JavaScript -->
+        </div>
+        
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <ul class="pagination" id="pagination">
+                <!-- Pagination will be populated by JavaScript -->
+            </ul>
         </div>
 
     </div>
@@ -380,9 +538,10 @@
                     <h5>Quick Links</h5>
                     <ul style="list-style:none;padding:0;margin:0;color:rgba(255,255,255,0.8)">
                         <li style="margin-bottom:8px;"><a href="index.html" style="color:inherit;text-decoration:none">Home</a></li>
-                        <li style="margin-bottom:8px;"><a href="marketplace.html" style="color:inherit;text-decoration:none">Marketplace</a></li>
-                        <li style="margin-bottom:8px;"><a href="categories.html" style="color:inherit;text-decoration:none">Categories</a></li>
-                        <li style="margin-bottom:8px;"><a href="suppliers.html" style="color:inherit;text-decoration:none">Suppliers</a></li>
+                        <li style="margin-bottom:8px;"><a href="Amazon's Choice.html" style="color:inherit;text-decoration:none">Amazon's Choice</a></li>
+                        <li style="margin-bottom:8px;"><a href="categories.html" style="color:inherit;text-decoration:none">Best Seller Categories</a></li>
+                        <li style="margin-bottom:8px;"><a href="latest-deals.html" style="color:inherit;text-decoration:none">Today's deals</a></li>
+                        <li style="margin-bottom:8px;"><a href="contact.html" style="color:inherit;text-decoration:none">Contact Us</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6">
@@ -412,144 +571,401 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Product data
+        // Product data - Updated with unique IDs and moved watch products to watch strap category
         const products = [
-            // FASHION CATEGORY (20 products)
-            { id: 1, category: "fashion", name: "Premium Leather Handbag", price: "£39.99", rating: 4.5, reviews: 128, markup: "315%", image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 105 },
-            { id: 2, category: "fashion", name: "Traditional Jewelry Set", price: "£24.99", rating: 4.0, reviews: 94, markup: "280%", image: "https://images.unsplash.com/photo-1520975910468-3c8d35f9ff2e?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 87 },
-            { id: 3, category: "fashion", name: "Running Shoes", price: "£79.99", rating: 4.0, reviews: 7, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 42 },
-            { id: 4, category: "fashion", name: "Laptop Backpack", price: "£39.99", rating: 4.5, reviews: 11, image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 56 },
-            { id: 5, category: "fashion", name: "Sunglasses", price: "£29.99", rating: 5.0, reviews: 14, image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 78 },
-            { id: 6, category: "fashion", name: "Men's Winter Jacket", price: "£24.99", rating: 4.0, reviews: 42, image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 63 },
-            { id: 7, category: "fashion", name: "Genuine Leather Wallet", price: "£19.99", rating: 4.6, reviews: 72, image: "https://images.unsplash.com/photo-1556742044-3c734c641e49?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 91 },
-            { id: 8, category: "fashion", name: "Men's Leather Belt", price: "£14.99", rating: 4.2, reviews: 58, image: "https://images.unsplash.com/photo-1601924994980-3a5a0f7e8e3f?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 47 },
-            { id: 9, category: "fashion", name: "Women's Fashion Handbag", price: "£34.99", rating: 4.7, reviews: 93, markup: "290%", image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 112 },
-            { id: 10, category: "fashion", name: "Men's Stainless Steel Watch", price: "£49.99", rating: 4.5, reviews: 124, image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 88 },
-            { id: 11, category: "fashion", name: "Women's Elegant Watch", price: "£39.99", rating: 4.6, reviews: 87, image: "https://images.unsplash.com/photo-1547996160-81dfd58739cc?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 74 },
-            { id: 12, category: "fashion", name: "Casual Sneakers", price: "£34.99", rating: 4.3, reviews: 56, image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 69 },
-            { id: 13, category: "fashion", name: "Designer Handbag", price: "£59.99", rating: 4.8, reviews: 132, markup: "320%", image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 95 },
-            { id: 14, category: "fashion", name: "Leather Jacket", price: "£89.99", rating: 4.4, reviews: 78, image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 51 },
-            { id: 15, category: "fashion", name: "Summer Dress", price: "£29.99", rating: 4.7, reviews: 103, image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 127 },
-            { id: 16, category: "fashion", name: "Formal Shirt", price: "£24.99", rating: 4.2, reviews: 67, image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 58 },
-            { id: 17, category: "fashion", name: "Denim Jeans", price: "£34.99", rating: 4.5, reviews: 89, image: "https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 76 },
-            { id: 18, category: "fashion", name: "Sports T-shirt", price: "£14.99", rating: 4.1, reviews: 45, image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 82 },
-            { id: 19, category: "fashion", name: "Winter Scarf", price: "£12.99", rating: 4.6, reviews: 71, image: "https://images.unsplash.com/photo-1601924582970-9238bcb495d9?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 93 },
-            { id: 20, category: "fashion", name: "Designer Sunglasses", price: "£44.99", rating: 4.8, reviews: 118, image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 64 },
+            // PARTY CATEGORY
+            { id: 'prod-001', category: "party", name: "Large White Glitter Fairy Wings", price: "£19.89", rating: 4.6, reviews: 72, image: "main-pics/whiteFairy.jpg", basket: 91, monthlyOrders: "3.2K",
+                statuses: ["Selling Fast", "91 in basket", "Amazon's Choice"] },
+            { id: 'prod-002', category: "kitchen", name: "150 Clear Reusable Forks", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/forks.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 'prod-003', category: "kitchen", name: "50 Heavy Duty Clear Plastic Spoons", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/spoons.jpg", basket: 74, monthlyOrders: "3.8K",
+                statuses: ["Amazon's Choice", "74 in basket", "Selling Fast"] },
+            { id: 'prod-004', category: "home", name: "Flat Neon Shoe Laces", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/laces.jpg", basket: 42, monthlyOrders: "1.2K",
+                statuses: ["Best Seller", "42 in basket", "Limited Stock"] },
+            
+            { id: 'prod-005', category: "jewelry", name: "Extra Thin Small Nose Ring", price: "£19.89", rating: 4.5, reviews: 67, image: "main-pics/nose ring.jpg", basket: 52, monthlyOrders: "2.1K",
+                statuses: ["Selling Fast", "52 in basket", "Amazon's Choice"] },
+            { id: 'prod-006', category: "electronics", name: "1M Charger Cable", price: "£19.89", rating: 4.5, reviews: 13, image: "main-pics/Charger Cable.jpg", basket: 28, monthlyOrders: "1.1K",
+                statuses: ["Selling Fast", "28 in basket", "Amazon's Choice"] },
+            { id: 'prod-007', category: "kitchen", name: "Clear Reusable Knives", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/Knife.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 'prod-008', category: "home", name: "Professional Comb", price: "£19.89", rating: 4.4, reviews: 63, image: "main-pics/Comb.jpg", basket: 46, monthlyOrders: "1.8K",
+                statuses: ["Best Seller", "46 in basket", "Limited Stock"] },
+            { id: 'prod-009', category: "electronics", name: "Samsung Charging Cable", price: "£19.89", rating: 3.8, reviews: 14, image: "main-pics/Charging Cable.jpg", basket: 19, monthlyOrders: "900",
+                statuses: ["Amazon's Choice", "19 in basket", "Selling Fast"] },
+            { id: 'prod-010', category: "party", name: "Adult Dancewear Princess Tutu Skirt", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Tutu Skirt.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 'prod-011', category: "party", name: "Paper Drinking Straws", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Straws.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 'prod-012', category: "kitchen", name: "1L Plastic Measuring Jug", price: "£19.89", rating: 5.0, reviews: 67, markup: "340%", image: "main-pics/Measuring Jug.jpg", basket: 42, monthlyOrders: "1.6K",
+                statuses: ["Best Seller", "42 in basket", "Limited Stock"] },
+            { id: 'prod-013', category: "home", name: "Retro Vintage Sunglasses", price: "£19.89", rating: 4.5, reviews: 63, image: "main-pics/Sunglasses.jpg", basket: 41, monthlyOrders: "1.6K",
+                statuses: ["Selling Fast", "41 in basket", "Amazon's Choice"] },
+            { id: 'prod-014', category: "home", name: "Billiard Snooker Pool Cue Tip Shaper", price: "£19.89", rating: 4.2, reviews: 47, image: "main-pics/Corrector.jpg", basket: 32, monthlyOrders: "1.3K",
+                statuses: ["Amazon's Choice", "32 in basket", "Selling Fast"] },
+            { id: 'prod-015', category: "automotive", name: "Car Seat Catcher Magic Box", price: "£19.89", rating: 4.4, reviews: 72, image: "main-pics/Magic.jpg", basket: 58, monthlyOrders: "2.3K",
+                statuses: ["Best Seller", "58 in basket", "Limited Stock"] },
+            { id: 'prod-016', category: "home", name: "Cotton Mop Head", price: "£19.89", rating: 4.3, reviews: 47, image: "main-pics/Mop head.jpg", basket: 62, monthlyOrders: "2.4K",
+                statuses: ["Amazon's Choice", "62 in basket", "Selling Fast"] },
+            { id: 'prod-017', category: "home", name: "Satin Ribbon 25m", price: "£19.89", rating: 4.7, reviews: 38, image: "main-pics/Ribbon.jpg", basket: 29, monthlyOrders: "1.1K",
+                statuses: ["Best Seller", "29 in basket", "Limited Stock"] },
+            { id: 'prod-018', category: "home", name: "Retro Plain Glasses", price: "£19.89", rating: 4.5, reviews: 63, image: "main-pics/Eyeglasses.jpg", basket: 41, monthlyOrders: "1.6K",
+                statuses: ["Selling Fast", "41 in basket", "Amazon's Choice"] },
+            { id: 'prod-019', category: "home", name: "Ankle Support Compression Sleeve", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Ankle Support.jpg", basket: 36, monthlyOrders: "1.4K",
+                statuses: ["Amazon's Choice", "36 in basket", "Selling Fast"] },
+            { id: 'prod-020', category: "electronics", name: "10 Pieces G4 Halogen Bulbs", price: "£19.89", rating: 4.3, reviews: 42, image: "main-pics/Bulb.jpg", basket: 37, monthlyOrders: "1.4K",
+                statuses: ["Selling Fast", "37 in basket", "Amazon's Choice"] },
+            { id: 'prod-021', category: "home", name: "Funny Toilet Entrance Sign", price: "£19.89", rating: 4.6, reviews: 63, image: "main-pics/Toilet Sign.jpg", basket: 37, monthlyOrders: "1.5K",
+                statuses: ["Selling Fast", "37 in basket", "Amazon's Choice"] },
+            { id: 'prod-022', category: "home", name: "Security Stickers Signs", price: "£19.89", rating: 4.3, reviews: 47, image: "main-pics/Security Stickers.jpg", basket: 32, monthlyOrders: "1.3K",
+                statuses: ["Best Seller", "32 in basket", "Limited Stock"] },
+            { id: 'prod-023', category: "party", name: "Silver Grey Chiffon Flower Fascinator", price: "£19.89", rating: 4.5, reviews: 72, image: "main-pics/chiffon flower.jpg", basket: 58, monthlyOrders: "2.3K",
+                statuses: ["Amazon's Choice", "58 in basket", "Selling Fast"] },
+            { id: 'prod-024', category: "party", name: "Cake Topper Happy Birthday", price: "£19.89", rating: 4.7, reviews: 88, image: "main-pics/Cake Topper.jpg", basket: 42, monthlyOrders: "1.7K",
+                statuses: ["Selling Fast", "42 in basket", "Amazon's Choice"] },
+            { id: 'prod-025', category: "home", name: "French Curve Metric Sewing Ruler", price: "£19.89", rating: 4.4, reviews: 58, image: "main-pics/Sewing Ruler.jpg", basket: 46, monthlyOrders: "1.8K",
+                statuses: ["Amazon's Choice", "46 in basket", "Selling Fast"] },
+            { id: 'prod-026', category: "home", name: "200 Disposable Clear Gloves", price: "£19.89", rating: 4.3, reviews: 47, image: "main-pics/Gloves.jpg", basket: 32, monthlyOrders: "1.3K",
+                statuses: ["Best Seller", "32 in basket", "Limited Stock"] },
+            { id: 'prod-027', category: "kitchen", name: "Pack of 50 Heavy Duty Clear Plastic Fork", price: "£19.89", rating: 4.6, reviews: 63, image: "main-pics/Spoon.jpg", basket: 37, monthlyOrders: "1.5K",
+                statuses: ["Selling Fast", "37 in basket", "Amazon's Choice"] },
+            { id: 'prod-028', category: "kitchen", name: "50 Heavy Duty Clear Plastic Knives", price: "£19.89", rating: 4.3, reviews: 67, markup: "290%", image: "main-pics/Knives.jpg", basket: 58, monthlyOrders: "2.7K",
+                statuses: ["Best Seller", "58 in basket", "Limited Stock"] },
+            { id: 'prod-029', category: "kitchen", name: "Clear Reusable Cutlery Set of 150 Pieces", price: "£19.89", rating: 4.5, reviews: 89, markup: "280%", image: "main-pics/Cutlery Set.jpg", basket: 73, monthlyOrders: "3.5K",
+                statuses: ["Amazon's Choice", "73 in basket", "Selling Fast"] },
+            { id: 'prod-030', category: "kitchen", name: "50 Black Plastic Knife", price: "£19.89", rating: 4.4, reviews: 92, markup: "275%", image: "main-pics/Black Knifes.jpg", basket: 81, monthlyOrders: "3.9K",
+                statuses: ["Selling Fast", "81 in basket", "Amazon's Choice"] },
+            { id: 'prod-031', category: "kitchen", name: "Black Plastic Spoons", price: "£19.89", rating: 4.4, reviews: 92, markup: "275%", image: "main-pics/Black Spoons.jpg", basket: 81, monthlyOrders: "3.9K",
+                statuses: ["Selling Fast", "81 in basket", "Amazon's Choice"] },
+            { id: 'prod-032', category: "kitchen", name: "200PCS Mini Dessert Spoons", price: "£19.89", rating: 4.7, reviews: 103, image: "main-pics/Mini Spoons.jpg", basket: 127, monthlyOrders: "5.5K",
+                statuses: ["Best Seller", "127 in basket", "Trending Now"] },
+            { id: 'prod-033', category: "electronics", name: "Multi Socket Plug Adaptor", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/Plug Adaptor.jpg", basket: 63, monthlyOrders: "2.5K",
+                statuses: ["Best Seller", "63 in basket", "Limited Stock"] },
+            { id: 'prod-034', category: "party", name: "Latex Helium Green Balloons", price: "£19.89", rating: 4.2, reviews: 67, image: "main-pics/Balloons.jpg", basket: 58, monthlyOrders: "2.1K",
+                statuses: ["Selling Fast", "58 in basket", "Amazon's Choice"] },
+            { id: 'prod-035', category: "party", name: "Metallic Red Curling Balloon Ribbon", price: "£19.89", rating: 4.5, reviews: 89, image: "main-pics/Balloon Ribbon.jpg", basket: 76, monthlyOrders: "2.9K",
+                statuses: ["Amazon's Choice", "76 in basket", "Selling Fast"] },
+            { id: 'prod-036', category: "home", name: "Water Soluble Laundry Bags", price: "£19.89", rating: 4.3, reviews: 47, image: "main-pics/Washing Bags.jpg", basket: 32, monthlyOrders: "1.3K",
+                statuses: ["Best Seller", "32 in basket", "Limited Stock"] },
+            { id: 'prod-037', category: "home", name: "Shredded Tissue Paper", price: "£19.89", rating: 4.6, reviews: 63, image: "main-pics/Kraft Paper.jpg", basket: 37, monthlyOrders: "1.5K",
+                statuses: ["Selling Fast", "37 in basket", "Amazon's Choice"] },
+            { id: 'prod-038', category: "kitchen", name: "Wooden Chip Fork", price: "£19.89", rating: 4.5, reviews: 156, markup: "295%", image: "main-pics/Chip Fork.jpg", basket: 87, monthlyOrders: "4.8K",
+                statuses: ["Amazon's Choice", "87 in basket", "Selling Fast"] },
+            { id: 'prod-039', category: "home", name: "Adult Incontinence Nappy Bags", price: "£19.89", rating: 4.3, reviews: 47, image: "main-pics/Nappy Bags.jpg", basket: 32, monthlyOrders: "1.3K",
+                statuses: ["Best Seller", "32 in basket", "Limited Stock"] },
+            { id: 'prod-041', category: "automotive", name: "Head Light Bulbs H15", price: "£19.89", rating: 4.7, reviews: 88, image: "main-pics/Head Light Bulbs.jpg", basket: 42, monthlyOrders: "1.7K",
+                statuses: ["Selling Fast", "42 in basket", "Amazon's Choice"] },
+            { id: 'prod-042', category: "automotive", name: "Headlight Bulbs 4x H7", price: "£19.89", rating: 4.4, reviews: 58, image: "main-pics/Headlight Bulb.jpg", basket: 46, monthlyOrders: "1.8K",
+                statuses: ["Amazon's Choice", "46 in basket", "Selling Fast"] },
+            { id: 'prod-043', category: "automotive", name: "Car Bulbs 2x P21W BA15s", price: "£19.89", rating: 4.3, reviews: 47, image: "main-pics/Car Bulbs.jpg", basket: 32, monthlyOrders: "1.3K",
+                statuses: ["Best Seller", "32 in basket", "Limited Stock"] },
+            { id: 'prod-044', category: "home", name: "Hose Nozzles 2Pack", price: "£19.89", rating: 4.6, reviews: 63, image: "main-pics/Hose Nozzles.jpg", basket: 37, monthlyOrders: "1.5K",
+                statuses: ["Selling Fast", "37 in basket", "Amazon's Choice"] },
+            { id: 'prod-045', category: "home", name: "Red Paper Lampshade", price: "£19.89", rating: 4.5, reviews: 72, image: "main-pics/Red-Lampshade.jpg", basket: 58, monthlyOrders: "2.3K",
+                statuses: ["Selling Fast", "58 in basket", "Amazon's Choice"] },
+            { id: 'prod-046', category: "party", name: "Inflatable Dolphin", price: "£19.89", rating: 4.1, reviews: 45, image: "main-pics/Inflatable Dolphin.jpg", basket: 82, monthlyOrders: "1.8K",
+                statuses: ["Best Seller", "82 in basket", "Limited Stock"] },
+            { id: 'prod-047', category: "party", name: "Inflatable Giraffe", price: "£19.89", rating: 4.6, reviews: 71, image: "main-pics/Inflatable Giraffe.jpg", basket: 93, monthlyOrders: "3.1K",
+                statuses: ["Selling Fast", "93 in basket", "Amazon's Choice"] },
+            { id: 'prod-048', category: "party", name: "Inflatable Tiger", price: "£19.89", rating: 4.8, reviews: 118, image: "main-pics/Inflatable Tiger.jpg", basket: 64, monthlyOrders: "2.4K",
+                statuses: ["Amazon's Choice", "64 in basket", "Selling Fast"] },
+            { id: 'prod-049', category: "party", name: "Inflatable Blue Aeroplane", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/Inflatable Aeroplane.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 'prod-050', category: "party", name: "Inflatable Red Aeroplane", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/Red Aeroplane.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 'prod-051', category: "party", name: "Inflatable Spiderman", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/Inflatable Spiderman.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 'prod-052', category: "party", name: "Inflatable Parrot", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Inflatable Parrot.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 'prod-053', category: "party", name: "Inflatable Horse", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Inflatable Horse.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 'prod-054', category: "party", name: "Inflatable Dinosaur", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/Inflatable Dinosaur.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 'prod-055', category: "party", name: "Inflatable Walking Zimmer Frame", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/Walking Zimmer.jpg", basket: 74, monthlyOrders: "3.8K",
+                statuses: ["Amazon's Choice", "74 in basket", "Selling Fast"] },
+            { id: 'prod-056', category: "party", name: "Inflatable Glitter Beach Ball", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/Beach Ball.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 'prod-057', category: "party", name: "Inflatable Knight Sword", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/Knight Sword.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 'prod-058', category: "party", name: "Inflatable Tiger", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Tiger.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 'prod-059', category: "party", name: "Inflatable Airplane", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Airplane.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 'prod-060', category: "party", name: "Inflatable Rooster", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/Rooster.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 'prod-061', category: "party", name: "Inflatable Rainbow Beach Ball", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/Rainbow Beach Ball.jpg", basket: 74, monthlyOrders: "3.8K",
+                statuses: ["Amazon's Choice", "74 in basket", "Selling Fast"] },
+            { id: 'prod-062', category: "party", name: "Inflatable Duck", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/Inflatable Duck.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 'prod-063', category: "party", name: "Inflatable Pink Unicorn", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/Unicorn.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 'prod-064', category: "party", name: "Inflatable Chicks", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Inflatable Chicks.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 'prod-065', category: "party", name: "Inflatable Dalmatian Dog", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Dalmatian Dog.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 'prod-066', category: "party", name: "Inflatable Easter Bunny", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/Easter Bunny.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 'prod-067', category: "party", name: "Inflatable Japanese Super Hero", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/Japanese SuperHero.jpg", basket: 74, monthlyOrders: "3.8K",
+                statuses: ["Amazon's Choice", "74 in basket", "Selling Fast"] },
+            { id: 'prod-068', category: "party", name: "Inflatable Yellow Turtle", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/Turtle.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 'prod-069', category: "party", name: "Inflatable Rabbit Stick", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/Rabbit-Stick.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 'prod-070', category: "party", name: "Inflatable Beach Ball", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Beach Balls.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 'prod-071', category: "party", name: "Inflatable T-Rex Dinosaur", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Dinosaur.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 'prod-072', category: "party", name: "Inflatable Beach Ball Multicolor", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/Inflatable Beach Ball.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 'prod-073', category: "party", name: "Inflatable Giraffe Toy", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/Giraffe Toy.jpg", basket: 74, monthlyOrders: "3.8K",
+                statuses: ["Amazon's Choice", "74 in basket", "Selling Fast"] },
+            { id: 'prod-074', category: "party", name: "Blue Happy Birthday Foil Balloons Banner", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/Balloons Banner.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 'prod-075', category: "party", name: "Rainbow Happy Birthday Foil Balloons Banner", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/Balloon Banner.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 'prod-076', category: "party", name: "Pink Happy Birthday Foil Balloons Banner", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Foil-Balloons.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 'prod-077', category: "party", name: "Black Happy Birthday Foil Balloons Banner", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Foil Balloon.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 'prod-078', category: "party", name: "Gold Happy Birthday Balloons Banner", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/Birthday Balloon.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 'prod-079', category: "party", name: "Silver Happy Birthday Foil Balloons Banner", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/Birthday Foils.jpg", basket: 74, monthlyOrders: "3.8K",
+                statuses: ["Amazon's Choice", "74 in basket", "Selling Fast"] },
+            { id: 'prod-080', category: "jewelry", name: "Extra Thin Small Nose Ring", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/Nose Rings.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 'prod-081', category: "jewelry", name: "Gold Nose Ring", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/Gold Nose.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 'prod-082', category: "jewelry", name: "Gold Nose Ring", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Ring Diameter.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 'prod-083', category: "jewelry", name: "Gold Nose Ring", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Ring Diameters.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 'prod-084', category: "jewelry", name: "Gold Nose Ring", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/Nose Ringss.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 'prod-085', category: "jewelry", name: "Gold Nose Ring", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/m Nose Ring.jpg", basket: 74, monthlyOrders: "3.8K",
+                statuses: ["Amazon's Choice", "74 in basket", "Selling Fast"] },
+            { id: 'prod-086', category: "jewelry", name: "Gold Nose Ring", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/mm Nose Ring.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 'prod-087', category: "jewelry", name: "Gold Nose Ring", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/Small Ring.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 'prod-088', category: "jewelry", name: "Gold Nose Ring", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/L Nose.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 'prod-089', category: "jewelry", name: "Gold Nose Ring", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Gold L.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 'prod-090', category: "jewelry", name: "Gold Nose Ring", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/Rose.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 'prod-091', category: "jewelry", name: "Silver Nose Ring", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/Silver L.jpg", basket: 74, monthlyOrders: "3.8K",
+                statuses: ["Amazon's Choice", "74 in basket", "Selling Fast"] },
+            { id: 'prod-092', category: "jewelry", name: "Double Hoop Nose Ring", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/Double Hoop.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 'prod-093', category: "jewelry", name: "Gold Double Hoop Nose Ring", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/Gold Double.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 'prod-094', category: "jewelry", name: "Rose Gold Nose Ring", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Rose Gold.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 'prod-095', category: "jewelry", name: "Silver Double Hoop Nose Ring", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Silver Double.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 'prod-096', category: "jewelry", name: "Black Single Nose Ring", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/Black Single.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 'prod-097', category: "jewelry", name: "Gold Single Nose Ring", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/Gold Single.jpg", basket: 74, monthlyOrders: "3.8K",
+                statuses: ["Amazon's Choice", "74 in basket", "Selling Fast"] },
+            { id: 'prod-098', category: "jewelry", name: "Rose Gold Single Nose Ring", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/Rose Gold Single.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 'prod-099', category: "jewelry", name: "Silver Single Nose Ring", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/Silver Single.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 'prod-100', category: "jewelry", name: "Black C Shape Nose Ring", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Black C.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 'prod-101', category: "jewelry", name: "Gold C Shape Nose Ring", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Gold C.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 'prod-102', category: "jewelry", name: "Silver Twisted Nose Ring", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/Silver Twisted.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 'prod-103', category: "jewelry", name: "Silver Twisted Nose Ring", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/ilver Twisted.jpg", basket: 74, monthlyOrders: "3.8K",
+                statuses: ["Amazon's Choice", "74 in basket", "Selling Fast"] },
+            { id: 'prod-104', category: "jewelry", name: "Silver Twisted Nose Ring", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/Silvers Twisted.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 'prod-105', category: "jewelry", name: "Silver Straight Nose Ring", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/Silver Straight.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 'prod-106', category: "jewelry", name: "Straight Shape Nose Ring", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/traight Shape.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 'prod-107', category: "jewelry", name: "Diamond Stud Nose Ring", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Diamond Stud.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 'prod-108', category: "jewelry", name: "Assorted Hoop Nose Ring", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/Assorted Hoop.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 'prod-109', category: "jewelry", name: "Blue Hoop Nose Ring", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/Blue Hoop.jpg", basket: 74, monthlyOrders: "3.8K",
+                statuses: ["Amazon's Choice", "74 in basket", "Selling Fast"] },
+            { id: 'prod-110', category: "jewelry", name: "Black Hoop Nose Ring", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/Black Hoop.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 'prod-111', category: "jewelry", name: "Assorted C Shape Nose Ring", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/Assorted C.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 'prod-112', category: "jewelry", name: "Blue C Shape Nose Ring", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Blue C.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 'prod-113', category: "jewelry", name: "Silver C Shape Nose Ring", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Silver C.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 'prod-114', category: "jewelry", name: "C Shape Nose Ring", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/C Shape.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 'prod-115', category: "electronics", name: "Light Bulb Holder", price: "£19.89", rating: 4.3, reviews: 42, image: "main-pics/Bulb Holder.jpg", basket: 37, monthlyOrders: "1.4K",
+                statuses: ["Selling Fast", "37 in basket", "Amazon's Choice"] },
+            
+            // WATCH STRAP PRODUCTS (moved from watch category)
+            { id: 'prod-116', category: "strap", name: "Sorrento Italian Padded Calf Leather XL Extra Long Watch Strap Band - Black", price: "£14.99", rating: 4.4, reviews: 89, markup: "280%", image: "main-pics/Black.jpg", basket: 67, monthlyOrders: "1.8K",
+                statuses: ["Amazon's Choice", "67 in basket", "Selling Fast"] },
+            { id: 'prod-117', category: "strap", name: "Generisk Italian Padded Calf Leather XL Extra Long Watch Strap Light brown", price: "£14.99", rating: 4.3, reviews: 76, markup: "275%", image: "main-pics/Light brown.jpg", basket: 58, monthlyOrders: "1.6K",
+                statuses: ["Selling Fast", "58 in basket", "Amazon's Choice"] },
+            { id: 'prod-118', category: "strap", name: "Generisk Italian Padded Calf Leather XL Extra Long Watch Strap Band - Light Grey", price: "£14.99", rating: 4.2, reviews: 63, markup: "270%", image: "main-pics/Gray.jpg", basket: 52, monthlyOrders: "1.4K",
+                statuses: ["Amazon's Choice", "52 in basket", "Selling Fast"] },
+            { id: 'prod-119', category: "strap", name: "Generisk Italian Padded Calf Leather XL Extra Long Watch Strap Band - White", price: "£14.99", rating: 4.5, reviews: 94, markup: "285%", image: "main-pics/White.jpg", basket: 73, monthlyOrders: "2.1K",
+                statuses: ["Best Seller", "73 in basket", "Limited Stock"] },
+            { id: 'prod-120', category: "strap", name: "Generisk Italian Padded Calf Leather XL Extra Long Watch Strap Band - Chesnut Brown", price: "£14.99", rating: 4.4, reviews: 82, markup: "280%", image: "main-pics/Chesnut Brown.jpg", basket: 68, monthlyOrders: "1.9K",
+                statuses: ["Selling Fast", "68 in basket", "Amazon's Choice"] },
+            { id: 'prod-121', category: "strap", name: "Generisk Italian Padded Calf Leather XL Extra Long Watch Strap Band - Red", price: "£14.99", rating: 4.1, reviews: 57, markup: "265%", image: "main-pics/Green.jpg", basket: 46, monthlyOrders: "1.3K",
+                statuses: ["Amazon's Choice", "46 in basket", "Selling Fast"] },
+            { id: 'prod-122', category: "strap", name: "Generisk Ladies Soft Genuine Leather Watch Strap Band 12mm, Orange", price: "£12.99", rating: 4.3, reviews: 71, markup: "260%", image: "main-pics/Orange.jpg", basket: 59, monthlyOrders: "1.7K",
+                statuses: ["Selling Fast", "59 in basket", "Amazon's Choice"] },
+            { id: 'prod-123', category: "strap", name: "Generisk Ladies Soft Genuine Leather Watch Strap Band 12mm, Green", price: "£12.99", rating: 4.2, reviews: 65, markup: "255%", image: "main-pics/Green.jpg", basket: 54, monthlyOrders: "1.5K",
+                statuses: ["Amazon's Choice", "54 in basket", "Selling Fast"] },
+            { id: 'prod-124', category: "strap", name: "Generisk Ladies Soft Genuine Leather Watch Strap Band 12mm, Pink", price: "£12.99", rating: 4.6, reviews: 88, markup: "270%", image: "main-pics/Pink.jpg", basket: 72, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "72 in basket", "Limited Stock"] },
+            { id: 'prod-125', category: "strap", name: "Generisk Army Green 16mm Infantry Military MoD NATO Nylon Fabric G10 4 Rings Watch Strap", price: "£9.99", rating: 4.4, reviews: 79, markup: "240%", image: "main-pics/Army Green.jpg", basket: 65, monthlyOrders: "1.8K",
+                statuses: ["Selling Fast", "65 in basket", "Amazon's Choice"] },
+            { id: 'prod-126', category: "strap", name: "Black Infantry Military MoD NATO Nylon Fabric G10 4 Rings Watch Strap Band", price: "£9.99", rating: 4.5, reviews: 92, markup: "245%", image: "main-pics/Black Nato.jpg", basket: 76, monthlyOrders: "2.3K",
+                statuses: ["Best Seller", "76 in basket", "Limited Stock"] },
+            { id: 'prod-127', category: "strap", name: "Generisk Brown 16mm Infantry Military MoD NATO Nylon Fabric G10 4 Rings Watch Strap", price: "£9.99", rating: 4.3, reviews: 68, markup: "235%", image: "main-pics/Brown N.jpg", basket: 56, monthlyOrders: "1.6K",
+                statuses: ["Amazon's Choice", "56 in basket", "Selling Fast"] },
+            { id: 'prod-128', category: "strap", name: "Generisk Blue 16mm Infantry Military MoD NATO Nylon Fabric G10 4 Rings Watch Strap", price: "£9.99", rating: 4.4, reviews: 74, markup: "240%", image: "main-pics/Blue N.jpg", basket: 61, monthlyOrders: "1.7K",
+                statuses: ["Selling Fast", "61 in basket", "Amazon's Choice"] },
+            { id: 'prod-129', category: "strap", name: "Generisk Grey 16mm Infantry Military MoD NATO Nylon Fabric G10 4 Rings Watch Strap", price: "£9.99", rating: 4.2, reviews: 63, markup: "230%", image: "main-pics/Grey N.jpg", basket: 52, monthlyOrders: "1.4K",
+                statuses: ["Amazon's Choice", "52 in basket", "Selling Fast"] },
+            { id: 'prod-130', category: "strap", name: "Generisk Orange 16mm Infantry Military MoD NATO Nylon Fabric G10 4 Rings Watch Strap", price: "£9.99", rating: 4.1, reviews: 58, markup: "225%", image: "main-pics/Orange N.jpg", basket: 48, monthlyOrders: "1.3K",
+                statuses: ["Amazon's Choice", "48 in basket", "Selling Fast"] },
+            { id: 'prod-131', category: "strap", name: "Generisk Yellow 16mm Infantry Military MoD NATO Nylon Fabric G10 4 Rings Watch Strap", price: "£9.99", rating: 4.3, reviews: 71, markup: "235%", image: "main-pics/Yellow N.jpg", basket: 59, monthlyOrders: "1.7K",
+                statuses: ["Selling Fast", "59 in basket", "Amazon's Choice"] },
+            { id: 'prod-132', category: "strap", name: "Black NATO Watch Strap", price: "£19.89", rating: 4.0, reviews: 7, image: "main-pics/strap.jpg", basket: 42, monthlyOrders: "800",
+                statuses: ["Selling Fast", "42 in basket", "Amazon's Choice"] },
+            
+            // TAPE PRODUCTS
+            { id: 'prod-133', category: "tape", name: "Generisk Pack of 1 Waterproof Black Gaffer 50Mm X 50M Roll Duct Tape for Multi-Uses", price: "£8.99", rating: 4.5, reviews: 124, markup: "220%", image: "main-pics/Black-T.jpg", basket: 89, monthlyOrders: "2.8K",
+                statuses: ["Best Seller", "89 in basket", "Amazon's Choice"] },
+            { id: 'prod-134', category: "tape", name: "Generisk Pack of 1 Waterproof White Gaffer 50Mm X 50M Roll Duct Tape", price: "£8.99", rating: 4.4, reviews: 98, markup: "215%", image: "main-pics/White-T.jpg", basket: 76, monthlyOrders: "2.3K",
+                statuses: ["Selling Fast", "76 in basket", "Amazon's Choice"] },
+            { id: 'prod-135', category: "tape", name: "Generisk Pack of 1 Waterproof Silver Gaffer 50Mm X 50M Roll Duct Tape", price: "£8.99", rating: 4.3, reviews: 87, markup: "210%", image: "main-pics/Silver-T.jpg", basket: 68, monthlyOrders: "2.1K",
+                statuses: ["Amazon's Choice", "68 in basket", "Selling Fast"] },
+            { id: 'prod-136', category: "tape", name: "Generisk Pack of 1 Waterproof Blue Gaffer 50Mm X 50M Roll Duct Tape", price: "£8.99", rating: 4.6, reviews: 112, markup: "225%", image: "main-pics/Blue-T.jpg", basket: 92, monthlyOrders: "3.2K",
+                statuses: ["Best Seller", "92 in basket", "Limited Stock"] },
+            { id: 'prod-137', category: "tape", name: "Generisk Pack of 1 Waterproof Orange Gaffer 50Mm X 50M Roll Duct Tape", price: "£8.99", rating: 4.2, reviews: 79, markup: "205%", image: "main-pics/Orange-T.jpg", basket: 64, monthlyOrders: "1.9K",
+                statuses: ["Selling Fast", "64 in basket", "Amazon's Choice"] },
+            { id: 'prod-138', category: "tape", name: "Generisk Pack of 1 Waterproof Red Gaffer 100MM x 50M Roll Duct Tape", price: "£12.99", rating: 4.7, reviews: 135, markup: "240%", image: "main-pics/Red-T.jpg", basket: 108, monthlyOrders: "3.8K",
+                statuses: ["Best Seller", "108 in basket", "Trending Now"] },
+            
+            // LAMPSHADE PRODUCTS
+            { id: 'prod-139', category: "lampshade", name: "Generisk Red Paper Lampshades for Ceiling lights 40 cm Lamp Shades", price: "£14.99", rating: 4.4, reviews: 96, markup: "250%", image: "main-pics/Red-Lampshade.jpg", basket: 78, monthlyOrders: "2.4K",
+                statuses: ["Selling Fast", "78 in basket", "Amazon's Choice"] },
+            { id: 'prod-140', category: "lampshade", name: "Generisk Black Paper Lampshades for Ceiling lights 40 cm Lamp Shades", price: "£14.99", rating: 4.3, reviews: 84, markup: "245%", image: "main-pics/Black-Lampshade.jpg", basket: 69, monthlyOrders: "2.1K",
+                statuses: ["Amazon's Choice", "69 in basket", "Selling Fast"] },
+            { id: 'prod-141', category: "lampshade", name: "Generisk Green Paper Lampshades for Ceiling lights 40 cm Lamp Shades", price: "£14.99", rating: 4.5, reviews: 107, markup: "255%", image: "main-pics/Green-Lampshade.jpg", basket: 87, monthlyOrders: "2.9K",
+                statuses: ["Best Seller", "87 in basket", "Limited Stock"] },
+            { id: 'prod-142', category: "lampshade", name: "Generisk White Paper Lampshades for Ceiling lights 40 cm Lamp Shades", price: "£14.99", rating: 4.6, reviews: 118, markup: "260%", image: "main-pics/White-Lampshade.jpg", basket: 96, monthlyOrders: "3.3K",
+                statuses: ["Best Seller", "96 in basket", "Trending Now"] },
+            { id: 'prod-143', category: "lampshade", name: "Generisk Pink Paper Lampshades for Ceiling lights 40 cm Lamp Shades", price: "£14.99", rating: 4.2, reviews: 73, markup: "240%", image: "main-pics/Pink-Lampshade.jpg", basket: 59, monthlyOrders: "1.8K",
+                statuses: ["Selling Fast", "59 in basket", "Amazon's Choice"] },
+            { id: 'prod-144', category: "lampshade", name: "Generisk Blue Paper Lampshades for Ceiling lights 40 cm Lamp Shades", price: "£14.99", rating: 4.4, reviews: 89, markup: "250%", image: "main-pics/Blue-Lampshade.jpg", basket: 72, monthlyOrders: "2.5K",
+                statuses: ["Amazon's Choice", "72 in basket", "Selling Fast"] },
+            { id: 'prod-145', category: "lampshade", name: "Generisk Mint Paper Lampshades for Ceiling lights 40 cm Lamp Shades", price: "£14.99", rating: 4.1, reviews: 67, markup: "235%", image: "main-pics/Mint-Lampshade.jpg", basket: 54, monthlyOrders: "1.6K",
+                statuses: ["Amazon's Choice", "54 in basket", "Selling Fast"] },
+            { id: 'prod-146', category: "lampshade", name: "Generisk Round Ceiling Paper Light Lamp Shade Bamboo, 30 cm Orange", price: "£12.99", rating: 4.3, reviews: 82, markup: "230%", image: "main-pics/Orange-Lampshade.jpg", basket: 67, monthlyOrders: "2.2K",
+                statuses: ["Selling Fast", "67 in basket", "Amazon's Choice"] },
+            { id: 'prod-147', category: "lampshade", name: "Generisk Round Ceiling Paper Light Lamp Shade Bamboo, 30 cm Purple", price: "£12.99", rating: 4.5, reviews: 94, markup: "240%", image: "main-pics/Purple-Lampshade.jpg", basket: 77, monthlyOrders: "2.7K",
+                statuses: ["Best Seller", "77 in basket", "Limited Stock"] },
+            { id: 'prod-148', category: "lampshade", name: "Generisk Round Ceiling Paper Light Lamp Shade Bamboo, 30 cm Yellow", price: "£12.99", rating: 4.2, reviews: 76, markup: "225%", image: "main-pics/Yellow-Lampshade.jpg", basket: 62, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "62 in basket", "Selling Fast"] },
 
-            // HOME & DECOR CATEGORY (15 products)
-            { id: 21, category: "home", name: "Handmade Pakistani Carpet", price: "£129.99", rating: 5.0, reviews: 67, markup: "340%", image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 42 },
-            { id: 22, category: "home", name: "Hand Carved Wooden Decor", price: "£24.99", rating: 4.5, reviews: 156, markup: "295%", image: "https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 87 },
-            { id: 23, category: "home", name: "Embroidered Fabric (Per Meter)", price: "£7.99", rating: 4.0, reviews: 203, markup: "320%", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 105 },
-            { id: 24, category: "home", name: "Smart Home Speaker", price: "£89.99", rating: 4.5, reviews: 13, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 28 },
-            { id: 25, category: "home", name: "Minimalist Wall Art", price: "£4.99", rating: 3.8, reviews: 14, image: "https://images.unsplash.com/photo-1505691723518-36a4a382a3b9?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 19 },
-            { id: 26, category: "home", name: "Decorative Throw Pillows (Set of 4)", price: "£12.99", rating: 4.6, reviews: 87, image: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 63 },
-            { id: 27, category: "home", name: "Modern Table Lamp", price: "£24.99", rating: 4.3, reviews: 42, image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 37 },
-            { id: 28, category: "home", name: "Decorative Wall Clock", price: "£18.99", rating: 4.4, reviews: 56, image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 44 },
-            { id: 29, category: "home", name: "Ceramic Vase Set (3pcs)", price: "£22.99", rating: 4.1, reviews: 38, image: "https://images.unsplash.com/photo-1578500494191-56d6d7e1c0be?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 29 },
-            { id: 30, category: "home", name: "Photo Frame Set (5pcs)", price: "£16.99", rating: 4.5, reviews: 67, image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 52 },
-            { id: 31, category: "home", name: "Decorative Cushion Covers (4pcs)", price: "£19.99", rating: 4.2, reviews: 49, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 41 },
-            { id: 32, category: "home", name: "Bedding Set", price: "£34.99", rating: 4.7, reviews: 92, image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 68 },
-            { id: 33, category: "home", name: "Curtains Set", price: "£29.99", rating: 4.3, reviews: 57, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 39 },
-            { id: 34, category: "home", name: "Area Rug", price: "£49.99", rating: 4.6, reviews: 78, image: "https://images.unsplash.com/photo-1541839546-4c352f42b101?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 55 },
-            { id: 35, category: "home", name: "Wall Mirror", price: "£27.99", rating: 4.4, reviews: 63, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 46 },
+                // Add these to your products array in Amazon's Choice page
+{ id: 'prod-149', category: "automotive", name: "Amber Glass With Single Filament, 12V 21/5W Car Capless Brake Light Bulb, Amber Glass 580 Tail Push Bulb In Car, 1 Pair Brake Light Bulbs", price: "£19.89", rating: 4.4, reviews: 87, image: "main-pics/Amber-Single.jpg", basket: 42, monthlyOrders: "1.8K",
+    statuses: ["Amazon's Choice", "42 in basket", "Selling Fast"] },
 
-            // ELECTRONICS CATEGORY (20 products)
-            { id: 36, category: "electronics", name: "Wireless Bluetooth Headphones", price: "£89.99", rating: 4.5, reviews: 5, markup: "250%", image: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 32 },
-            { id: 37, category: "electronics", name: "Premium Wireless Earbuds", price: "£129.99", rating: 5.0, reviews: 12, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 18 },
-            { id: 38, category: "electronics", name: "Smart Watch", price: "£199.99", rating: 4.5, reviews: 15, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 27 },
-            { id: 39, category: "electronics", name: "Bluetooth Speaker", price: "£59.99", rating: 4.5, reviews: 10, image: "https://images.unsplash.com/photo-1504274066651-8d31a536b11a?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 41 },
-            { id: 40, category: "electronics", name: "Gaming Mouse", price: "£34.99", rating: 4.0, reviews: 9, image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 23 },
-            { id: 41, category: "electronics", name: "Wireless Charging Pad", price: "£24.99", rating: 5.0, reviews: 6, image: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 35 },
-            { id: 42, category: "electronics", name: "Camera Lens", price: "£149.99", rating: 4.0, reviews: 4, image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 14 },
-            { id: 43, category: "electronics", name: "Smartphone Case", price: "£12.99", rating: 4.5, reviews: 8, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 67 },
-            { id: 44, category: "electronics", name: "Smartphone", price: "£599.99", rating: 4.5, reviews: 22, image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 19 },
-            { id: 45, category: "electronics", name: "Tablet", price: "£299.99", rating: 4.0, reviews: 17, image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 24 },
-            { id: 46, category: "electronics", name: "Gaming Headset", price: "£69.99", rating: 4.0, reviews: 9, image: "https://images.unsplash.com/photo-1504274066651-8d31a536b11a?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 31 },
-            { id: 47, category: "electronics", name: "27\" 4K Monitor", price: "£329.99", rating: 4.6, reviews: 39, image: "https://images.unsplash.com/photo-1512251984722-1fdbd7b2a1e2?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 22 },
-            { id: 48, category: "electronics", name: "20000mAh Power Bank", price: "£24.99", rating: 4.6, reviews: 112, image: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 85 },
-            { id: 49, category: "electronics", name: "Fast Charging USB Cable (3pcs)", price: "£9.99", rating: 4.4, reviews: 89, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 127 },
-            { id: 50, category: "electronics", name: "Adjustable Phone Stand", price: "£7.99", rating: 4.3, reviews: 47, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 93 },
-            { id: 51, category: "electronics", name: "Aluminum Laptop Stand", price: "£19.99", rating: 4.5, reviews: 63, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 58 },
-            { id: 52, category: "electronics", name: "HD Webcam with Microphone", price: "£34.99", rating: 4.2, reviews: 58, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 41 },
-            { id: 53, category: "electronics", name: "Wireless Keyboard", price: "£49.99", rating: 4.4, reviews: 72, image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 36 },
-            { id: 54, category: "electronics", name: "Wireless Mouse", price: "£29.99", rating: 4.3, reviews: 54, image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 62 },
-            { id: 55, category: "electronics", name: "Portable SSD 1TB", price: "£89.99", rating: 4.7, reviews: 38, image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 29 },
+{ id: 'prod-153', category: "automotive", name: "Generisk Clear Glass Brake Light Bulb,Clear Brake Light Bulb, 12V 21/5W Car Capless Brake Bulb, Clear Glass 580 Tail Push Bulb In Car, 1 Pair Brake Light Bulb", price: "£19.89", rating: 4.4, reviews: 79, image: "main-pics/Glass-580.jpg", basket: 44, monthlyOrders: "1.9K",
+    statuses: ["Selling Fast", "44 in basket", "Amazon's Choice"] },
+{ id: 'prod-154', category: "automotive", name: "Amber Glass With Double Filament Brake Light Bulb, 12V 21/5W Car Capless Brake Light Bulb, Amber Glass 580 Tail Push Bulb In Car, 1 Pair Brake Light Bulb", price: "£19.89", rating: 4.3, reviews: 71, image: "main-pics/Glass-580-s.jpg", basket: 39, monthlyOrders: "1.7K",
+    statuses: ["Amazon's Choice", "39 in basket", "Selling Fast"] },
+{ id: 'prod-156', category: "automotive", name: "Generisk Number Plate & Interior Car Bulbs – Pair of 12V 5W C5W 239 Festoon Bulbs – Long Life Interior, Number Plate, Registration Plate Bulbs,Glass Car Bulb", price: "£19.89", rating: 4.4, reviews: 83, image: "main-pics/Clear-239.jpg", basket: 46, monthlyOrders: "2.0K",
+    statuses: ["Selling Fast", "46 in basket", "Amazon's Choice"] },
 
-            // BEAUTY CATEGORY (15 products)
-            { id: 56, category: "beauty", name: "Premium Skincare Set", price: "£19.99", rating: 4.3, reviews: 45, image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 67 },
-            { id: 57, category: "beauty", name: "Designer Perfume", price: "£29.99", rating: 4.6, reviews: 81, image: "https://images.unsplash.com/photo-1533777324565-a040eb52fac2?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 52 },
-            { id: 58, category: "beauty", name: "Professional Makeup Kit", price: "£25.99", rating: 4.7, reviews: 63, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 48 },
-            { id: 59, category: "beauty", name: "Professional Hair Dryer", price: "£17.99", rating: 4.0, reviews: 38, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 31 },
-            { id: 60, category: "beauty", name: "Anti-Aging Face Cream", price: "£24.99", rating: 4.6, reviews: 72, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 59 },
-            { id: 61, category: "beauty", name: "Matte Lipstick Set (6 Colors)", price: "£18.99", rating: 4.7, reviews: 89, image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 76 },
-            { id: 62, category: "beauty", name: "Charcoal Face Mask (5pcs)", price: "£12.99", rating: 4.3, reviews: 56, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 44 },
-            { id: 63, category: "beauty", name: "Argan Oil Hair Serum", price: "£14.99", rating: 4.5, reviews: 67, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 53 },
-            { id: 64, category: "beauty", name: "Gel Nail Polish Set (12 Colors)", price: "£22.99", rating: 4.6, reviews: 78, image: "https://images.unsplash.com/photo-1608248549165-8f2eef4f3233?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 61 },
-            { id: 65, category: "beauty", name: "Makeup Brushes Set", price: "£16.99", rating: 4.4, reviews: 92, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 78 },
-            { id: 66, category: "beauty", name: "Facial Cleanser", price: "£9.99", rating: 4.2, reviews: 47, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 85 },
-            { id: 67, category: "beauty", name: "Body Lotion", price: "£11.99", rating: 4.5, reviews: 63, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 72 },
-            { id: 68, category: "beauty", name: "Hair Styling Tool", price: "£34.99", rating: 4.3, reviews: 58, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 39 },
-            { id: 69, category: "beauty", name: "Sunscreen SPF 50", price: "£14.99", rating: 4.6, reviews: 84, image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 67 },
-            { id: 70, category: "beauty", name: "Beauty Gift Set", price: "£39.99", rating: 4.8, reviews: 96, image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 45 },
+{ id: 'prod-159', category: "electronics", name: "10 x 12v 10w G4 M91 Branded Lamps Long Life Halogen Capsule Light Bulbs Pack", price: "£19.89", rating: 4.4, reviews: 86, image: "main-pics/G4-M91.jpg", basket: 47, monthlyOrders: "2.1K",
+    statuses: ["Selling Fast", "47 in basket", "Amazon's Choice"] },
 
-            // FITNESS CATEGORY (10 products)
-            { id: 71, category: "fitness", name: "Smart Fitness Tracker", price: "£45.99", rating: 4.0, reviews: 8, image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 37 },
-            { id: 72, category: "fitness", name: "Premium Yoga Mat", price: "£8.99", rating: 4.2, reviews: 26, image: "https://images.unsplash.com/photo-1549576490-b0b4831ef60a?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 63 },
-            { id: 73, category: "fitness", name: "Adjustable Dumbbells Set", price: "£44.99", rating: 4.1, reviews: 31, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 28 },
-            { id: 74, category: "fitness", name: "Resistance Bands Set (5pcs)", price: "£14.99", rating: 4.5, reviews: 93, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 79 },
-            { id: 75, category: "fitness", name: "Adjustable Speed Jump Rope", price: "£9.99", rating: 4.3, reviews: 47, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 52 },
-            { id: 76, category: "fitness", name: "High-Density Foam Roller", price: "£16.99", rating: 4.4, reviews: 58, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 41 },
-            { id: 77, category: "fitness", name: "1L Insulated Water Bottle", price: "£12.99", rating: 4.6, reviews: 72, image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 88 },
-            { id: 78, category: "fitness", name: "Extra Thick Exercise Mat", price: "£19.99", rating: 4.2, reviews: 49, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 34 },
-            { id: 79, category: "fitness", name: "Fitness Gloves", price: "£11.99", rating: 4.3, reviews: 63, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 57 },
-            { id: 80, category: "fitness", name: "Yoga Block (2pcs)", price: "£7.99", rating: 4.5, reviews: 38, image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 46 },
+// Fuse products
+{ id: 'prod-160', category: "automotive", name: "40A Standard Car Auto Blade Fuse 40 Amp ATO - Pack of 10", price: "£19.89", rating: 4.6, reviews: 98, markup: "280%", image: "main-pics/40A.jpg", basket: 53, monthlyOrders: "2.3K",
+    statuses: ["Best Seller", "53 in basket", "Trending Now"] },
+{ id: 'prod-161', category: "automotive", name: "30A Standard Car Auto Blade Fuse 30 Amp ATO - Pack of 10", price: "£19.89", rating: 4.5, reviews: 91, markup: "275%", image: "main-pics/30A-S.jpg", basket: 50, monthlyOrders: "2.2K",
+    statuses: ["Selling Fast", "50 in basket", "Amazon's Choice"] },
+{ id: 'prod-162', category: "automotive", name: "25A Standard Car Auto Blade Fuse 25 Amp ATO - Pack of 10", price: "£19.89", rating: 4.4, reviews: 84, markup: "270%", image: "main-pics/25A-S.jpg", basket: 46, monthlyOrders: "2.0K",
+    statuses: ["Amazon's Choice", "46 in basket", "Selling Fast"] },
+{ id: 'prod-163', category: "automotive", name: "3A Standard Car Auto Blade Fuse 3 Amp ATO - Pack of 10", price: "£19.89", rating: 4.3, reviews: 77, markup: "265%", image: "main-pics/3A-S.jpg", basket: 42, monthlyOrders: "1.8K",
+    statuses: ["Selling Fast", "42 in basket", "Amazon's Choice"] },
+{ id: 'prod-164', category: "automotive", name: "5A Standard Car Auto Blade Fuse 5 Amp ATO - Pack of 10", price: "£19.89", rating: 4.4, reviews: 82, markup: "270%", image: "main-pics/5A-S.jpg", basket: 45, monthlyOrders: "1.9K",
+    statuses: ["Amazon's Choice", "45 in basket", "Selling Fast"] },
+{ id: 'prod-165', category: "automotive", name: "10A Zinc ATO Fuse, 10 Amp, RoHS, Pack of 10", price: "£19.89", rating: 4.5, reviews: 88, markup: "275%", image: "main-pics/10A-S.jpg", basket: 48, monthlyOrders: "2.1K",
+    statuses: ["Best Seller", "48 in basket", "Limited Stock"] },
+{ id: 'prod-166', category: "automotive", name: "15A Standard Car Auto Blade Fuse 15 Amp ATO - Pack of 10", price: "£19.89", rating: 4.4, reviews: 85, markup: "270%", image: "main-pics/15A-S.jpg", basket: 47, monthlyOrders: "2.0K",
+    statuses: ["Selling Fast", "47 in basket", "Amazon's Choice"] },
+{ id: 'prod-167', category: "automotive", name: "AutoPower 10 Pack 20 Amp Standard Blade Fuses for Leisure Vehicle, Caravan, Campervan", price: "£19.89", rating: 4.6, reviews: 96, markup: "280%", image: "main-pics/20A-S.jpg", basket: 52, monthlyOrders: "2.3K",
+    statuses: ["Best Seller", "52 in basket", "Trending Now"] },
+{ id: 'prod-168', category: "automotive", name: "7.5A Standard Car Auto Blade Fuse 7.5 Amp ATO - Pack of 10", price: "£19.89", rating: 4.3, reviews: 79, markup: "265%", image: "main-pics/7.5A-S.jpg", basket: 43, monthlyOrders: "1.8K",
+    statuses: ["Amazon's Choice", "43 in basket", "Selling Fast"] },
+{ id: 'prod-169', category: "automotive", name: "1A Grey Standard Blade Fuse Amp Auto Car Van Bike Pack of 10", price: "£19.89", rating: 4.4, reviews: 81, markup: "270%", image: "main-pics/1A-S.jpg", basket: 44, monthlyOrders: "1.9K",
+    statuses: ["Selling Fast", "44 in basket", "Amazon's Choice"] },
 
-            // KITCHEN CATEGORY (10 products)
-            { id: 81, category: "kitchen", name: "High-Speed Blender", price: "£44.99", rating: 4.0, reviews: 21, image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 32 },
-            { id: 82, category: "kitchen", name: "Non-stick Cookware Set", price: "£25.99", rating: 4.0, reviews: 28, image: "https://images.unsplash.com/photo-1514996937319-344454492b37?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 41 },
-            { id: 83, category: "kitchen", name: "Automatic Coffee Maker", price: "£34.99", rating: 4.5, reviews: 52, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 38 },
-            { id: 84, category: "kitchen", name: "Professional Knife Set (6pcs)", price: "£34.99", rating: 4.5, reviews: 83, image: "https://images.unsplash.com/photo-1598373180885-85c8f6b7c8ce?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 57 },
-            { id: 85, category: "kitchen", name: "Bamboo Cutting Board Set (3pcs)", price: "£18.99", rating: 4.4, reviews: 67, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 49 },
-            { id: 86, category: "kitchen", name: "Glass Food Container Set (10pcs)", price: "£29.99", rating: 4.6, reviews: 92, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 63 },
-            { id: 87, category: "kitchen", name: "Stainless Steel Utensil Set (15pcs)", price: "£24.99", rating: 4.5, reviews: 78, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 44 },
-            { id: 88, category: "kitchen", name: "Bamboo Spice Rack with 12 Jars", price: "£22.99", rating: 4.3, reviews: 54, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 36 },
-            { id: 89, category: "kitchen", name: "Electric Kettle", price: "£19.99", rating: 4.4, reviews: 72, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 58 },
-            { id: 90, category: "kitchen", name: "Air Fryer", price: "£49.99", rating: 4.7, reviews: 88, image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 42 },
-
-            // KIDS CATEGORY (10 products)
-            { id: 91, category: "kids", name: "Educational Kids Toy", price: "£8.99", rating: 4.1, reviews: 33, image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 47 },
-            { id: 92, category: "kids", name: "Building Blocks Set (200pcs)", price: "£6.99", rating: 4.6, reviews: 47, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 63 },
-            { id: 93, category: "kids", name: "Plush Stuffed Animal (Bear)", price: "£12.99", rating: 4.7, reviews: 112, image: "https://images.unsplash.com/photo-1536623975707-c4b3b2af565d?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 78 },
-            { id: 94, category: "kids", name: "Children's Puzzle Set (4 Puzzles)", price: "£14.99", rating: 4.5, reviews: 67, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 52 },
-            { id: 95, category: "kids", name: "Kids Art Set (65 Pieces)", price: "£18.99", rating: 4.6, reviews: 89, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 61 },
-            { id: 96, category: "kids", name: "Children's Play Tent", price: "£24.99", rating: 4.3, reviews: 54, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 39 },
-            { id: 97, category: "kids", name: "Kids Balance Bike (2-5 Years)", price: "£39.99", rating: 4.5, reviews: 72, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 28 },
-            { id: 98, category: "kids", name: "Remote Control Car", price: "£19.99", rating: 4.4, reviews: 58, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 45 },
-            { id: 99, category: "kids", name: "Kids Tablet", price: "£69.99", rating: 4.3, reviews: 47, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 33 },
-            { id: 100, category: "kids", name: "Kids Smartwatch", price: "£29.99", rating: 4.5, reviews: 63, image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 41 },
-
-            // OUTDOOR CATEGORY (10 products)
-            { id: 101, category: "outdoor", name: "2-Person Camping Tent", price: "£34.99", rating: 4.3, reviews: 19, image: "https://images.unsplash.com/photo-1472396961693-142e6e269027?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 27 },
-            { id: 102, category: "outdoor", name: "Hiking Boots", price: "£27.99", rating: 4.3, reviews: 21, image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 34 },
-            { id: 103, category: "outdoor", name: "4-Season Sleeping Bag", price: "£44.99", rating: 4.5, reviews: 83, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 29 },
-            { id: 104, category: "outdoor", name: "Portable Camping Stove", price: "£29.99", rating: 4.4, reviews: 67, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 38 },
-            { id: 105, category: "outdoor", name: "50L Hiking Backpack", price: "£49.99", rating: 4.6, reviews: 78, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 42 },
-            { id: 106, category: "outdoor", name: "LED Camping Lantern", price: "£14.99", rating: 4.3, reviews: 54, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 63 },
-            { id: 107, category: "outdoor", name: "Portable Folding Chair", price: "£19.99", rating: 4.5, reviews: 72, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 51 },
-            { id: 108, category: "outdoor", name: "Waterproof Jacket", price: "£39.99", rating: 4.4, reviews: 58, image: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 46 },
-            { id: 109, category: "outdoor", name: "Fishing Rod Set", price: "£34.99", rating: 4.3, reviews: 47, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "selling-fast", basket: 32 },
-            { id: 110, category: "outdoor", name: "Portable Grill", price: "£44.99", rating: 4.6, reviews: 63, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?q=80&w=400&auto=format&fit=crop", status: "best-seller", basket: 37 }
+// Mini Fuses
+{ id: 'prod-170', category: "automotive", name: "5A Car Auto Mini Blade Fuse 5 Amp ATM - Pack of 10", price: "£19.89", rating: 4.5, reviews: 87, markup: "275%", image: "main-pics/5A-mini.jpg", basket: 48, monthlyOrders: "2.1K",
+    statuses: ["Amazon's Choice", "48 in basket", "Selling Fast"] },
+{ id: 'prod-171', category: "automotive", name: "7.5A Car Auto Mini Blade Fuse 7.5 Amp ATM - Pack of 10", price: "£19.89", rating: 4.4, reviews: 83, markup: "270%", image: "main-pics/7.5A-mini.jpg", basket: 46, monthlyOrders: "2.0K",
+    statuses: ["Selling Fast", "46 in basket", "Amazon's Choice"] },
+{ id: 'prod-172', category: "automotive", name: "1A Mini Car Fuses 1Amp MINI Blade Fuse 1Ampere Automotive Auto Fusibles for RV Vehicle Motorcycle Truck", price: "£19.89", rating: 4.3, reviews: 78, markup: "265%", image: "main-pics/1A-Mini.jpg", basket: 42, monthlyOrders: "1.8K",
+    statuses: ["Amazon's Choice", "42 in basket", "Selling Fast"] },
+{ id: 'prod-173', category: "automotive", name: "2A Mini Car Fuses 2Amp MINI Blade Fuse 2Ampere Automotive Auto Fusibles for RV Vehicle Motorcycle Truck", price: "£19.89", rating: 4.4, reviews: 80, markup: "270%", image: "main-pics/2A-Mini.jpg", basket: 44, monthlyOrders: "1.9K",
+    statuses: ["Selling Fast", "44 in basket", "Amazon's Choice"] },
+{ id: 'prod-174', category: "automotive", name: "3A Mini Car Fuses 3Amp MINI Blade Fuse 3Ampere Automotive Auto Fusibles for RV Vehicle Motorcycle Truck", price: "£19.89", rating: 4.5, reviews: 86, markup: "275%", image: "main-pics/3A-Mini.jpg", basket: 47, monthlyOrders: "2.0K",
+    statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+{ id: 'prod-175', category: "automotive", name: "4A Mini Car Fuses 4Amp MINI Blade Fuse 4Ampere Automotive Auto Fusibles for RV Vehicle Motorcycle Truck", price: "£19.89", rating: 4.4, reviews: 82, markup: "270%", image: "main-pics/4A-Mini.jpg", basket: 45, monthlyOrders: "1.9K",
+    statuses: ["Selling Fast", "45 in basket", "Amazon's Choice"] },
+{ id: 'prod-176', category: "automotive", name: "10A Mini Car Fuses 10Amp MINI Blade Fuse 10Ampere Automotive Auto Fusibles for RV Vehicle Motorcycle Truck", price: "£19.89", rating: 4.6, reviews: 94, markup: "280%", image: "main-pics/10A-Mini.jpg", basket: 51, monthlyOrders: "2.2K",
+    statuses: ["Best Seller", "51 in basket", "Trending Now"] },
+{ id: 'prod-177', category: "automotive", name: "15A Mini Car Fuses 15Amp MINI Blade Fuse 15Ampere Automotive Auto Fusibles for RV Vehicle Motorcycle Truck", price: "£19.89", rating: 4.5, reviews: 89, markup: "275%", image: "main-pics/15A-Mini.jpg", basket: 49, monthlyOrders: "2.1K",
+    statuses: ["Amazon's Choice", "49 in basket", "Selling Fast"] },
+{ id: 'prod-178', category: "automotive", name: "20A Mini Car Fuses 20Amp MINI Blade Fuse 20Ampere Automotive Auto Fusibles for RV Vehicle Motorcycle Truck", price: "£19.89", rating: 4.4, reviews: 85, markup: "270%", image: "main-pics/20A-Mini.jpg", basket: 46, monthlyOrders: "2.0K",
+    statuses: ["Selling Fast", "46 in basket", "Amazon's Choice"] },
+{ id: 'prod-179', category: "automotive", name: "25A Mini Car Fuses 25Amp MINI Blade Fuse 25Ampere Automotive Auto Fusibles for RV Vehicle Motorcycle Truck", price: "£19.89", rating: 4.5, reviews: 88, markup: "275%", image: "main-pics/25A-Mini.jpg", basket: 48, monthlyOrders: "2.1K",
+    statuses: ["Amazon's Choice", "48 in basket", "Selling Fast"] },
+{ id: 'prod-180', category: "automotive", name: "30A Mini Car Fuses 30Amp MINI Blade Fuse 30Ampere Automotive Auto Fusibles for RV Vehicle Motorcycle Truck", price: "£19.89", rating: 4.6, reviews: 95, markup: "280%", image: "main-pics/30A-Mini.jpg", basket: 52, monthlyOrders: "2.3K",
+    statuses: ["Best Seller", "52 in basket", "Trending Now"] },
+{ id: 'prod-181', category: "automotive", name: "35A Mini Car Fuses 35Amp MINI Blade Fuse 35Ampere Automotive Auto Fusibles for RV Vehicle Motorcycle Truck", price: "£19.89", rating: 4.4, reviews: 84, markup: "270%", image: "main-pics/35A-Mini.jpg", basket: 46, monthlyOrders: "2.0K",
+    statuses: ["Selling Fast", "46 in basket", "Amazon's Choice"] },
+{ id: 'prod-182', category: "automotive", name: "40A Mini Car Fuses 40Amp MINI Blade Fuse 40Ampere Automotive Auto Fusibles for RV Vehicle Motorcycle Truck", price: "£19.89", rating: 4.5, reviews: 90, markup: "275%", image: "main-pics/40A-Mini.jpg", basket: 49, monthlyOrders: "2.1K",
+    statuses: ["Amazon's Choice", "49 in basket", "Selling Fast"] },
         ];
 
         // Wholesale products data
         const wholesaleProducts = [
-            { name: "Premium Leather Handbag", price: "£39.99", markup: "315%", image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=400&auto=format&fit=crop", badge: "Hot Deal" },
-            { name: "Handmade Pakistani Carpet", price: "£129.99", markup: "340%", image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", badge: "Best Seller" },
-            { name: "Wireless Bluetooth Headphones", price: "£89.99", markup: "250%", image: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=400&auto=format&fit=crop", badge: "Hot Deal" },
-            { name: "Premium Skincare Set", price: "£19.99", markup: "280%", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop", badge: "Best Seller" },
-            { name: "Smart Fitness Tracker", price: "£45.99", markup: "220%", image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=400&auto=format&fit=crop", badge: "Hot Deal" },
-            { name: "High-Speed Blender", price: "£44.99", markup: "270%", image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=400&auto=format&fit=crop", badge: "Best Seller" }
+        
+            { name: "Large White Glitter Fairy Wings", price: "£19.89", markup: "340%", image: "main-pics/whiteFairy.jpg", badge: "Best Seller" },
+            { name: "Clear Reusable Forks 150pcs", price: "£19.89", markup: "250%", image: "main-pics/forks.jpg", badge: "Hot Deal" },
+            { name: "1L Plastic Measuring Jug", price: "£19.89", markup: "280%", image: "main-pics/Measuring Jug.jpg", badge: "Best Seller" },
+            { name: "1M Charger Cable", price: "£19.89", markup: "220%", image: "main-pics/Charger Cable.jpg", badge: "Hot Deal" },
+            { name: "Extra Thin Nose Ring 0.5mm", price: "£19.89", markup: "270%", image: "main-pics/nose ring.jpg", badge: "Best Seller" }
         ];
+
+        // Pagination variables
+        let currentPage = 1;
+        const productsPerPage = 50; // Changed to 50 products per page
+        let filteredProducts = [];
+
+        // Function to generate random monthly orders
+        function generateMonthlyOrders() {
+            const orders = Math.floor(Math.random() * 4500) + 500; // Random between 500 and 5000
+            return orders.toLocaleString();
+        }
+
+        // Function to generate random reviews
+        function generateRandomReviews() {
+            return Math.floor(Math.random() * 200) + 10; // Random between 10 and 210
+        }
 
         // Function to generate star rating HTML
         function generateStars(rating) {
@@ -573,34 +989,49 @@
             return stars;
         }
 
-        // Function to generate status HTML with blinking effect
-        function generateStatus(status, basket) {
-            let statusHTML = '';
-            
-            if (status === "best-seller") {
-                statusHTML = `<span class="status-indicator status-best-seller blink">Best Seller</span>`;
-            } else if (status === "selling-fast") {
-                statusHTML = `<span class="status-indicator status-selling-fast blink">Selling Fast</span>`;
-            }
-            
-            statusHTML += `<span class="status-indicator status-basket">${basket} in basket</span>`;
-            
-            return statusHTML;
+        // Function to get status class based on text
+        function getStatusClass(status) {
+            if (status.includes("Best Seller")) return "status-best-seller";
+            if (status.includes("Selling Fast")) return "status-selling-fast";
+            if (status.includes("Amazon's Choice")) return "status-amazon-choice";
+            if (status.includes("Trending")) return "status-trending";
+            if (status.includes("in basket")) return "status-basket";
+            return "status-best-seller";
         }
 
-        // Function to render products
+        // Function to shuffle array randomly
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // Function to render products for current page
         function renderProducts() {
             const productsGrid = document.getElementById('products-grid');
             productsGrid.innerHTML = '';
             
-            products.forEach(product => {
+            // Calculate start and end index for current page
+            const startIndex = (currentPage - 1) * productsPerPage;
+            const endIndex = startIndex + productsPerPage;
+            const currentProducts = filteredProducts.slice(startIndex, endIndex);
+            
+            currentProducts.forEach(product => {
                 const productCard = document.createElement('div');
                 productCard.className = 'product-card';
                 productCard.setAttribute('data-cat', product.category);
+                productCard.setAttribute('data-product-id', product.id);
+                
+                // Generate random product details
+                const monthlyOrders = product.monthlyOrders || generateMonthlyOrders();
+                const randomReviews = product.reviews || generateRandomReviews();
                 
                 productCard.innerHTML = `
                     <div class="product-image-container">
-                        <img class="product-image" src="${product.image}" alt="${product.name}">
+                        <img class="product-image" src="${product.image}" alt="${product.name}" onerror="this.src='main-pics/placeholder.jpg'">
                         <span class="product-badge">Amazon's Choice</span>
                         <button class="add-to-cart-btn" title="Add">
                             <i class="fas fa-plus"></i>
@@ -610,20 +1041,96 @@
                         <h4 class="product-title">${product.name}</h4>
                         <div class="rating-container">
                             <div class="rating-stars">${generateStars(product.rating)}<span class="rating-count">${product.rating}</span></div>
-                            <div class="customer-avatars"><div class="avatar">+${product.reviews}</div></div>
+                            <div class="customer-avatars"><div class="avatar">+${randomReviews}</div></div>
                         </div>
                         <div class="price">${product.price}</div>
-                        ${product.markup ? `<div class="markup-info">${product.markup} Markup</div>` : ''}
-                        <div class="product-status">
-                            ${generateStatus(product.status, product.basket)}
+                        <div class="product-details">
+                            <span>Monthly Orders: ${monthlyOrders}</span>
+                            <span>Reviews: ${randomReviews}</span>
                         </div>
+                        ${product.markup ? `<div class="markup-info">${product.markup} Markup</div>` : ''}
+                        <div class="product-status" data-statuses='${JSON.stringify(product.statuses)}'>
+                            ${product.statuses.map((status, index) => 
+                                `<span class="status-indicator ${getStatusClass(status)} ${index === 0 ? 'active' : ''}">${status}</span>`
+                            ).join('')}
+                        </div>
+                        <button class="verify-amazon-btn">
+                            <i class="fab fa-amazon"></i> Verify on Amazon
+                        </button>
                     </div>
                 `;
                 
                 productsGrid.appendChild(productCard);
             });
             
+            // Add click event listeners to product cards
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // Don't trigger if clicked on a button or link
+                    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                        return;
+                    }
+                    
+                    const productId = this.getAttribute('data-product-id');
+                    const name = this.querySelector('.product-title')?.textContent || '';
+                    const img = this.querySelector('.product-image')?.getAttribute('src') || '';
+                    const u = new URL(window.location.origin + '/product.html');
+                    if (productId) u.searchParams.set('id', productId);
+                    if (name) u.searchParams.set('name', name);
+                    if (img) u.searchParams.set('img', img);
+                    window.open(u.toString(), '_blank');
+                });
+            });
+            
             updateShownCount();
+            renderPagination();
+        }
+
+        // Function to render pagination
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            
+            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+            
+            // Previous button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>`;
+            prevLi.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderProducts();
+                }
+            });
+            pagination.appendChild(prevLi);
+            
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLi = document.createElement('li');
+                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageLi.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                pageLi.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPage = i;
+                    renderProducts();
+                });
+                pagination.appendChild(pageLi);
+            }
+            
+            // Next button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>`;
+            nextLi.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderProducts();
+                }
+            });
+            pagination.appendChild(nextLi);
         }
 
         // Function to render wholesale products
@@ -640,7 +1147,7 @@
                     wholesaleItem.innerHTML = `
                         <div class="wholesale-badge">${product.badge}</div>
                         <div class="wholesale-image">
-                            <img src="${product.image}" alt="${product.name}">
+                            <img src="${product.image}" alt="${product.name}" onerror="this.src='main-pics/placeholder.jpg'">
                         </div>
                         <div class="wholesale-content">
                             <h4 class="wholesale-name">${product.name}</h4>
@@ -656,8 +1163,12 @@
 
         // Update shown count
         function updateShownCount(){
-            const visible = Array.from(document.querySelectorAll('#products-grid > .product-card')).filter(el => el.style.display !== 'none');
-            document.getElementById('shown-count').textContent = visible.length;
+            const totalProducts = filteredProducts.length;
+            const startIndex = (currentPage - 1) * productsPerPage + 1;
+            const endIndex = Math.min(currentPage * productsPerPage, totalProducts);
+            
+            document.getElementById('shown-count').textContent = `${startIndex}-${endIndex}`;
+            document.getElementById('total-count').textContent = totalProducts;
         }
 
         // Category filter behavior
@@ -667,15 +1178,15 @@
                     document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     const cat = this.getAttribute('data-cat');
-                    const cards = document.querySelectorAll('#products-grid > .product-card');
-                    cards.forEach(card => {
-                        if(cat === 'all' || card.getAttribute('data-cat') === cat){
-                            card.style.display = '';
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
-                    updateShownCount();
+                    
+                    if (cat === 'all') {
+                        filteredProducts = shuffleArray(products);
+                    } else {
+                        filteredProducts = shuffleArray(products.filter(product => product.category === cat));
+                    }
+                    
+                    currentPage = 1;
+                    renderProducts();
                 });
             });
         }
@@ -719,6 +1230,41 @@
             });
         }
 
+        // Function to rotate status indicators
+        function rotateStatusIndicators() {
+            const statusContainers = document.querySelectorAll('.product-status');
+            
+            statusContainers.forEach(container => {
+                const indicators = container.querySelectorAll('.status-indicator');
+                let currentIndex = 0;
+                
+                // Set initial active indicator
+                indicators.forEach((indicator, index) => {
+                    indicator.classList.toggle('active', index === 0);
+                });
+                
+                // Rotate indicators every 2 seconds
+                setInterval(() => {
+                    indicators[currentIndex].classList.remove('active');
+                    currentIndex = (currentIndex + 1) % indicators.length;
+                    indicators[currentIndex].classList.add('active');
+                }, 2000);
+            });
+        }
+
+        // Verify on Amazon button functionality
+        function setupVerifyButtons() {
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.verify-amazon-btn')) {
+                    const btn = e.target.closest('.verify-amazon-btn');
+                    const productCard = btn.closest('.product-card');
+                    const productName = productCard.querySelector('.product-title').textContent;
+                    const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(productName)}`;
+                    window.open(amazonUrl, '_blank');
+                }
+            });
+        }
+
         // Accessibility: keyboard filter with Enter/Space
         function setupKeyboardAccessibility() {
             document.querySelectorAll('.category-btn').forEach(b => {
@@ -734,14 +1280,29 @@
 
         // Initialize everything when DOM is loaded
         document.addEventListener('DOMContentLoaded', function(){
+            // Initialize with all products shuffled
+            filteredProducts = shuffleArray(products);
+            
             renderProducts();
             renderWholesaleProducts();
             setupCategoryFilters();
             setupAvatarAnimation();
             setupAddToCartButtons();
+            setupVerifyButtons();
             setupKeyboardAccessibility();
             
+            // Start rotating status indicators after a short delay
+            setTimeout(rotateStatusIndicators, 500);
+            
             document.getElementById('year').textContent = new Date().getFullYear();
+
+            // Apply category from URL if present
+            const params = new URLSearchParams(window.location.search);
+            const cat = params.get('cat');
+            if (cat) {
+                const btn = Array.from(document.querySelectorAll('.category-btn')).find(b => b.getAttribute('data-cat') === cat);
+                if (btn) btn.click();
+            }
         });
     </script>
 </body>

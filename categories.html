@@ -16,9 +16,283 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Customized Bootstrap Stylesheet -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --brand: #ff9900;
+            --dark: #232f3e;
+            --muted: #6b7280;
+            --card-radius: 12px;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: #f5f7fb;
+            color: #263238;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: var(--dark);
+            padding: 10px 0;
+            box-shadow: 0 2px 18px rgba(0,0,0,0.06);
+        }
+        
+        .navbar-brand {
+            color: #fff;
+            font-weight: 700;
+        }
+        
+        .gymkhana-text {
+            color: var(--brand) !important;
+        }
+        
+        .nav-link {
+            color: rgba(255,255,255,0.95) !important;
+        }
+        
+        .nav-link.active, .nav-link:hover {
+            color: var(--brand) !important;
+        }
+        
+        .navbar-nav .nav-link {
+            position: relative;
+        }
+        
+        .navbar-nav .nav-link.active::after {
+            content: '';
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            bottom: -6px;
+            height: 3px;
+            background: var(--brand);
+            border-radius: 2px;
+        }
+
+        /* Page header */
+        .section-padding {
+            padding: 60px 0;
+        }
+        
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        /* Category cards */
+        .category-card {
+            border-radius: var(--card-radius);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(16,24,40,0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            border: none;
+            position: relative;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 28px rgba(16,24,40,0.12);
+        }
+        
+        .category-card .card-img-top {
+            height: 200px;
+            object-fit: contain;
+            transition: transform 0.5s ease;
+            background: #f8f9fa;
+            padding: 15px;
+        }
+        
+        .category-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+        
+        .category-card .card-body {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .category-card .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--dark);
+        }
+        
+        .category-card .card-text {
+            color: var(--muted);
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+        
+        .category-card .btn {
+            background: var(--brand);
+            border: none;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+        
+        .category-card .btn:hover {
+            background: #e68900;
+            transform: translateY(-2px);
+        }
+
+        .verify-amazon-btn {
+            background: #232f3e;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+        }
+        
+        .verify-amazon-btn:hover {
+            background: #37475a;
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, #232f3e, #1a202c);
+            color: #fff;
+            padding: 60px 0 30px;
+        }
+        
+        .footer h5 {
+            font-weight: 700;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .footer h5:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 3px;
+            width: 40px;
+            background: var(--brand);
+            border-radius: 2px;
+        }
+        
+        .footer p, .footer ul {
+            color: rgba(255,255,255,0.85);
+        }
+        
+        .footer ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer ul li {
+            margin-bottom: 12px;
+        }
+        
+        .footer ul li a {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer ul li a:hover {
+            color: var(--brand);
+        }
+        
+        .social-icons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .social-icons a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .social-icons a:hover {
+            background: var(--brand);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+            margin-top: 40px;
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* WhatsApp Floating Button */
+        .whatsapp-float {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+            color: #fff;
+            text-decoration: none;
+            box-shadow: 0 10px 30px rgba(18,140,126,0.18);
+            transition: transform 0.3s ease;
+        }
+        
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+        }
+        
+        .whatsapp-float i {
+            font-size: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .section-padding {
+                padding: 40px 0;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .category-card .card-img-top {
+                height: 180px;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- WhatsApp Floating Button -->
@@ -27,7 +301,7 @@
     </a>
 
     <!-- Navbar -->
-     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container">
             <a class="navbar-brand" href="index.html">
                 <span class="brand-text">
@@ -40,132 +314,214 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.html">Home</a>
+                        <a class="nav-link" href="index.html">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="Amazon's Choice.html">Amazon's Choice</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="categories.html">Best Sellers Categories</a>
+                        <a class="nav-link active" href="categories.html">Best Sellers Categories</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="categories.html">Today's Deals</a>
+                        <a class="nav-link" href="latest-deals.html">Today's Deals</a>
                     </li>
-                
                     <li class="nav-item">
                         <a class="nav-link" href="contact.html">Contact</a>
                     </li>
                 </ul>
                 <div class="d-flex">
-                    <a href="login.html" class="btn btn-outline-primary me-2">Login</a>
-                    <a href="register.html" class="btn btn-primary">Register</a>
+                    <a href="login.html" class="btn btn-outline-light me-2">Login</a>
+                    <a href="register.html" class="btn btn-light" style="background:var(--brand);border:0;color:#fff;">Register</a>
                 </div>
             </div>
         </div>
     </nav>
+
     <!-- Categories Page -->
     <div class="section-padding">
         <div class="container">
             <h2 class="section-title">Product Categories</h2>
-            <p class="text-center mb-5">All categories are verified sellers/products. Listing requires Rs 1000 PKR and approval.</p>
+            <p class="text-center mb-5" style="color: var(--muted); max-width: 800px; margin: 0 auto;">
+                All categories are verified sellers/products. Browse our extensive collection of Amazon's Choice products across various categories.
+            </p>
             
             <div class="row">
-                <!-- Category Cards with Real Images -->
+                <!-- Watch Straps -->
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="card product-card category-card">
-                        <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="card-img-top" alt="Handbags & Accessories">
+                        <img src="main-pics/Watch Strap.jpg" class="card-img-top" alt="Watch Straps">
                         <div class="card-body text-center p-4">
-                            <h4 class="card-title">Handbags & Accessories</h4>
-                            <p class="card-text">Premium leather handbags, wallets, and fashion accessories</p>
-                            <a href="marketplace.html?category=handbags" class="btn btn-primary">Browse Products</a>
+                            <h4 class="card-title">Watch Straps</h4>
+                            <p class="card-text">Premium leather, nylon, and metal watch straps for all styles</p>
+                            <a href="Amazon's Choice.html?cat=strap" class="btn btn-primary">Browse Products</a>
+                            <button class="verify-amazon-btn" onclick="verifyOnAmazon('Watch Straps')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Tape Products -->
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="card product-card category-card">
-                        <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="card-img-top" alt="Jewelry">
+                        <img src="main-pics/Black-T.jpg" class="card-img-top" alt="Tape Products">
+                        <div class="card-body text-center p-4">
+                            <h4 class="card-title">Tape Products</h4>
+                            <p class="card-text">Duct tape, gaffer tape, and specialty tapes for various applications</p>
+                            <a href="Amazon's Choice.html?cat=tape" class="btn btn-primary">Browse Products</a>
+                            <button class="verify-amazon-btn" onclick="verifyOnAmazon('Tape Products')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lampshades -->
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card product-card category-card">
+                        <img src="main-pics/Red-Lampshade.jpg" class="card-img-top" alt="Lampshades">
+                        <div class="card-body text-center p-4">
+                            <h4 class="card-title">Lampshades</h4>
+                            <p class="card-text">Paper, fabric, and bamboo lampshades for home and office lighting</p>
+                            <a href="Amazon's Choice.html?cat=lampshade" class="btn btn-primary">Browse Products</a>
+                            <button class="verify-amazon-btn" onclick="verifyOnAmazon('Lampshades')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Party Supplies -->
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card product-card category-card">
+                        <img src="main-pics/whiteFairy.jpg" class="card-img-top" alt="Party Supplies">
+                        <div class="card-body text-center p-4">
+                            <h4 class="card-title">Party Supplies</h4>
+                            <p class="card-text">Balloons, inflatables, decorations, and party essentials</p>
+                            <a href="Amazon's Choice.html?cat=party" class="btn btn-primary">Browse Products</a>
+                            <button class="verify-amazon-btn" onclick="verifyOnAmazon('Party Supplies')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Kitchen -->
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card product-card category-card">
+                        <img src="main-pics/forks.jpg" class="card-img-top" alt="Kitchen">
+                        <div class="card-body text-center p-4">
+                            <h4 class="card-title">Kitchen</h4>
+                            <p class="card-text">Cutlery, utensils, measuring jugs, and kitchen accessories</p>
+                            <a href="Amazon's Choice.html?cat=kitchen" class="btn btn-primary">Browse Products</a>
+                            <button class="verify-amazon-btn" onclick="verifyOnAmazon('Kitchen Products')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Electronics -->
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card product-card category-card">
+                        <img src="main-pics/Charger Cable.jpg" class="card-img-top" alt="Electronics">
+                        <div class="card-body text-center p-4">
+                            <h4 class="card-title">Electronics</h4>
+                            <p class="card-text">Charging cables, adapters, bulbs, and electronic accessories</p>
+                            <a href="Amazon's Choice.html?cat=electronics" class="btn btn-primary">Browse Products</a>
+                            <button class="verify-amazon-btn" onclick="verifyOnAmazon('Electronics')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Jewelry -->
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card product-card category-card">
+                        <img src="main-pics/nose ring.jpg" class="card-img-top" alt="Jewelry">
                         <div class="card-body text-center p-4">
                             <h4 class="card-title">Jewelry</h4>
-                            <p class="card-text">Traditional and contemporary jewelry pieces</p>
-                            <a href="marketplace.html?category=jewelry" class="btn btn-primary">Browse Products</a>
+                            <p class="card-text">Nose rings, earrings, and fashion jewelry accessories</p>
+                            <a href="Amazon's Choice.html?cat=jewelry" class="btn btn-primary">Browse Products</a>
+                            <button class="verify-amazon-btn" onclick="verifyOnAmazon('Jewelry')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Home & Decor -->
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="card product-card category-card">
-                        <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="card-img-top" alt="Home Decor">
+                        <img src="main-pics/laces.jpg" class="card-img-top" alt="Home & Decor">
                         <div class="card-body text-center p-4">
-                            <h4 class="card-title">Home Decor</h4>
-                            <p class="card-text">Beautiful home decoration items and furnishings</p>
-                            <a href="marketplace.html?category=home-decor" class="btn btn-primary">Browse Products</a>
+                            <h4 class="card-title">Home & Decor</h4>
+                            <p class="card-text">Home accessories, decorations, and organizational items</p>
+                            <a href="Amazon's Choice.html?cat=home" class="btn btn-primary">Browse Products</a>
+                            <button class="verify-amazon-btn" onclick="verifyOnAmazon('Home Decor')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Automotive -->
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="card product-card category-card">
-                        <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="card-img-top" alt="Clothing">
+                        <img src="main-pics/Car Bulbs.jpg" class="card-img-top" alt="Automotive">
                         <div class="card-body text-center p-4">
-                            <h4 class="card-title">Clothing</h4>
-                            <p class="card-text">Traditional and modern Pakistani clothing</p>
-                            <a href="marketplace.html?category=clothing" class="btn btn-primary">Browse Products</a>
+                            <h4 class="card-title">Automotive</h4>
+                            <p class="card-text">Car accessories, bulbs, and automotive maintenance products</p>
+                            <a href="Amazon's Choice.html?cat=automotive" class="btn btn-primary">Browse Products</a>
+                            <button class="verify-amazon-btn" onclick="verifyOnAmazon('Automotive')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Handbags & Accessories -->
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="card product-card category-card">
-                        <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="card-img-top" alt="Textiles">
+                        <img src="main-pics/Sunglasses.jpg" class="card-img-top" alt="Handbags & Accessories">
                         <div class="card-body text-center p-4">
-                            <h4 class="card-title">Textiles</h4>
-                            <p class="card-text">High-quality fabrics, rugs, and textile products</p>
-                            <a href="marketplace.html?category=textiles" class="btn btn-primary">Browse Products</a>
+                            <h4 class="card-title">Fashion Accessories</h4>
+                            <p class="card-text">Sunglasses, combs, and fashion accessories</p>
+                            <a href="Amazon's Choice.html?cat=home" class="btn btn-primary">Browse Products</a>
+                            <button class="verify-amazon-btn" onclick="verifyOnAmazon('Fashion Accessories')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Party Decorations -->
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="card product-card category-card">
-                        <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="card-img-top" alt="Footwear">
+                        <img src="main-pics/Cake Topper.jpg" class="card-img-top" alt="Party Decorations">
                         <div class="card-body text-center p-4">
-                            <h4 class="card-title">Footwear</h4>
-                            <p class="card-text">Traditional and modern footwear options</p>
-                            <a href="marketplace.html?category=footwear" class="btn btn-primary">Browse Products</a>
+                            <h4 class="card-title">Party Decorations</h4>
+                            <p class="card-text">Cake toppers, banners, and party decoration items</p>
+                            <a href="Amazon's Choice.html?cat=party" class="btn btn-primary">Browse Products</a>
+                            <button class="verify-amazon-btn" onclick="verifyOnAmazon('Party Decorations')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Inflatables -->
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="card product-card category-card">
-                        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="card-img-top" alt="Sports Equipment">
+                        <img src="main-pics/Inflatable Dolphin.jpg" class="card-img-top" alt="Inflatables">
                         <div class="card-body text-center p-4">
-                            <h4 class="card-title">Sports Equipment</h4>
-                            <p class="card-text">Sports gear and fitness equipment</p>
-                            <a href="marketplace.html?category=sports" class="btn btn-primary">Browse Products</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card product-card category-card">
-                        <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="card-img-top" alt="Kitchenware">
-                        <div class="card-body text-center p-4">
-                            <h4 class="card-title">Kitchenware</h4>
-                            <p class="card-text">Traditional and modern kitchen utensils</p>
-                            <a href="marketplace.html?category=kitchenware" class="btn btn-primary">Browse Products</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card product-card category-card">
-                        <img src="https://images.unsplash.com/photo-1577937927131-a4c6be1f3ea9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="card-img-top" alt="Arts & Crafts">
-                        <div class="card-body text-center p-4">
-                            <h4 class="card-title">Arts & Crafts</h4>
-                            <p class="card-text">Handmade arts and craft items</p>
-                            <a href="marketplace.html?category=arts-crafts" class="btn btn-primary">Browse Products</a>
+                            <h4 class="card-title">Inflatables</h4>
+                            <p class="card-text">Inflatable toys, animals, and party inflatables</p>
+                            <a href="Amazon's Choice.html?cat=party" class="btn btn-primary">Browse Products</a>
+                            <button class="verify-amazon-btn" onclick="verifyOnAmazon('Inflatables')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -192,10 +548,10 @@
                     <h5>Quick Links</h5>
                     <ul>
                         <li><a href="index.html">Home</a></li>
-                        <li><a href="marketplace.html">Marketplace</a></li>
-                        <li><a href="categories.html">Categories</a></li>
-                        <li><a href="suppliers.html">Suppliers</a></li>
-                        <li><a href="retailers.html">Retailers</a></li>
+                        <li><a href="Amazon's Choice.html">Amazon's Choice</a></li>
+                        <li><a href="categories.html">Best Seller Categories</a></li>
+                        <li><a href="latest-deals.html">Today's deals</a></li>
+                        <li><a href="contact.html">Contact Us</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
@@ -219,13 +575,22 @@
                 </div>
             </div>
             <div class="copyright">
-                <p>&copy; 2023 Amazon Choice. All rights reserved.</p>
+                <p>&copy; <span id="currentYear"></span> Amazon Choice. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <!-- JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/main.js"></script>
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        
+        // Verify on Amazon functionality
+        function verifyOnAmazon(categoryName) {
+            const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(categoryName)}`;
+            window.open(amazonUrl, '_blank');
+        }
+    </script>
 </body>
 </html>

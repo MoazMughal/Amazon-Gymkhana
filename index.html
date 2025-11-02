@@ -82,8 +82,9 @@
         .grid-item img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             transition: transform 0.5s ease;
+            background-color: #f8f9fa;
         }
         
         .grid-item:hover img {
@@ -114,11 +115,30 @@
         }
         
         .hero-subtitle {
-            font-size: 1.3rem;
-            color: rgba(255,255,255,0.9);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.7);
-            margin-bottom: 2.5rem;
-        }
+    font-size: 1.3rem;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.7);
+    margin-bottom: 2.5rem;
+    min-height: 60px;
+    position: relative;
+    overflow: hidden;
+}
+
+.rotating-subtitle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.8s ease;
+    text-align: center;
+}
+
+.rotating-subtitle.active {
+    opacity: 1;
+    transform: translateY(0);
+}
         
         .search-bar {
             max-width: 600px;
@@ -150,6 +170,54 @@
             border-radius: 50px;
             font-weight: 600;
             margin: 0 10px 15px;
+        }
+        
+        /* Rotating Text Section */
+        .rotating-text-section {
+        
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+            margin: 0;
+        }
+        
+        .rotating-text-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            height: 120px;
+            overflow: hidden;
+        }
+        
+        .rotating-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+        }
+        
+        .rotating-text.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .rotating-text h3 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--bs-primary);
+        }
+        
+        .rotating-text p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
         }
         
         /* Navbar */
@@ -292,12 +360,17 @@
             position: relative;
             height: 160px;
             overflow: hidden;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
         }
         
         .product-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
             transition: transform 0.3s ease;
         }
         
@@ -375,6 +448,14 @@
             color: #718096;
             font-size: 0.75rem;
             margin-left: 3px;
+        }
+        
+        /* Monthly Orders */
+        .monthly-orders {
+            font-size: 0.75rem;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-weight: 600;
         }
         
         /* Status indicators */
@@ -456,7 +537,7 @@
             gap: 15px;
             padding: 20px 0;
             width: max-content;
-            animation: autoScroll 30s linear infinite;
+            animation: autoScroll 60s linear infinite;
         }
         
         .featured-scroller:hover {
@@ -534,12 +615,17 @@
             position: relative;
             height: 200px;
             overflow: hidden;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
         }
         
         .deal-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
             transition: transform 0.3s ease;
         }
         
@@ -833,6 +919,152 @@
             transform: scale(1.1) rotate(5deg);
             box-shadow: 0 8px 25px rgba(37, 211, 102, 0.6);
         }
+
+        /* Best Wholesale Products Section */
+.wholesale-section {
+    margin: 50px 0;
+    padding: 30px 0;
+    background: linear-gradient(135deg, #ff9900, #ff6600);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.wholesale-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23ffffff" opacity="0.1"><polygon points="50,0 100,50 50,100 0,50"/></svg>');
+    background-size: 80px;
+    animation: patternMove 30s linear infinite;
+}
+
+@keyframes patternMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 80px 80px; }
+}
+
+.wholesale-header {
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 2;
+}
+
+.wholesale-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    margin-bottom: 10px;
+}
+
+.wholesale-subtitle {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.9);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.wholesale-products {
+    display: flex;
+    overflow: hidden;
+    position: relative;
+    padding: 20px 0;
+}
+
+.wholesale-scroll {
+    display: flex;
+    animation: scrollWholesale 30s linear infinite;
+}
+
+.wholesale-scroll:hover {
+    animation-play-state: paused;
+}
+
+@keyframes scrollWholesale {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+.wholesale-item {
+    flex: 0 0 auto;
+    width: 240px;
+    margin: 0 12px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease;
+}
+
+.wholesale-item:hover {
+    transform: translateY(-8px);
+}
+
+.wholesale-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #ff3333;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 0.7rem;
+    z-index: 3;
+}
+
+.wholesale-image {
+    height: 160px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wholesale-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 10px;
+}
+
+.wholesale-content {
+    padding: 12px;
+}
+
+.wholesale-name {
+    font-weight: 700;
+    margin-bottom: 6px;
+    font-size: 1rem;
+}
+
+.wholesale-price {
+    font-weight: 800;
+    color: #ff9900;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.wholesale-markup {
+    background: #28a745;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px){
+    .wholesale-title { font-size: 2rem; }
+    .wholesale-item { width: 200px; }
+}
         
         /* Responsive */
         @media (max-width: 768px) {
@@ -842,6 +1074,7 @@
             
             .hero-subtitle {
                 font-size: 1.1rem;
+                min-height: 80px;
             }
             
             .background-grid {
@@ -885,6 +1118,18 @@
                 padding: 30px 20px;
             }
             
+            .rotating-text-container {
+                height: 140px;
+            }
+            
+            .rotating-text h3 {
+                font-size: 1.6rem;
+            }
+            
+            .rotating-text p {
+                font-size: 1.1rem;
+            }
+            
             .whatsapp-float {
                 width: 55px;
                 height: 55px;
@@ -905,6 +1150,7 @@
             
             .hero-subtitle {
                 font-size: 1rem;
+                min-height: 100px;
             }
             
             .section-title {
@@ -917,7 +1163,19 @@
             
             .featured-scroller {
                 gap: 10px;
-                animation-duration: 25s;
+                animation-duration: 50s;
+            }
+            
+            .rotating-text-container {
+                height: 160px;
+            }
+            
+            .rotating-text h3 {
+                font-size: 1.4rem;
+            }
+            
+            .rotating-text p {
+                font-size: 1rem;
             }
         }
     </style>
@@ -951,7 +1209,7 @@
                         <a class="nav-link" href="categories.html">Best Sellers Categories</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="product-detail.html">Latest Deals</a>
+                        <a class="nav-link" href="latest-deals.html">Latest Deals</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="contact.html">Contact</a>
@@ -1000,7 +1258,52 @@
             <div class="row justify-content-center">
                 <div class="col-lg-8 text-center">
                     <h1 class="hero-title">Connecting Amazon Business Community under One Roof</h1>
-                    <p class="hero-subtitle">Discover Amazon's Choice products available in Pakistan for Wholesale & Private Label, Connect with trusted suppliers, and grow your Amazon business.</p>
+                    
+                    <!-- Rotating Hero Subtitle -->
+                     <section class="rotating-text-section">
+    <div class="rotating-text-container">
+        <div class="rotating-text active">
+            <h3>Connect with Trusted Pakistani Suppliers</h3>
+            <p>Access our verified network of manufacturers and suppliers specializing in Amazon-ready products. Build direct relationships with reliable partners who understand international quality standards and shipping requirements.</p>
+        </div>
+        <div class="rotating-text">
+            <h3>Unlock High Profit Margins</h3>
+            <p>Discover products with proven 200-400% markup potential. Our curated selection focuses on high-demand items with excellent ROI, helping you maximize profitability while maintaining competitive pricing on Amazon marketplace.</p>
+        </div>
+        <div class="rotating-text">
+            <h3>Amazon's Choice & Best Sellers</h3>
+            <p>Get access to carefully selected products that have achieved Amazon's Choice status or are trending as best sellers. Save time on product research and focus on scaling your business with proven winners.</p>
+        </div>
+        <div class="rotating-text">
+            <h3>Direct WhatsApp Business Integration</h3>
+            <p>Communicate instantly with suppliers through our integrated WhatsApp Business platform. Negotiate prices, discuss customization options, and manage orders in real-time with seamless communication channels.</p>
+        </div>
+        <div class="rotating-text">
+            <h3>Private Label & Wholesale Opportunities</h3>
+            <p>Explore both wholesale and private label options with Pakistani manufacturers. Whether you're looking for ready-to-sell products or custom-branded solutions, we connect you with the right partners.</p>
+        </div>
+        <div class="rotating-text">
+            <h3>Quality Assurance & Compliance</h3>
+            <p>All our suppliers maintain strict quality control standards and understand Amazon's compliance requirements. Source with confidence knowing products meet international quality and safety standards.</p>
+        </div>
+        <div class="rotating-text">
+            <h3>Competitive Shipping & Logistics</h3>
+            <p>Benefit from established shipping routes and logistics partnerships. Our suppliers have experience with international shipping, customs clearance, and Amazon FBA requirements for smooth operations.</p>
+        </div>
+        <div class="rotating-text">
+            <h3>Market Insights & Trends</h3>
+            <p>Stay ahead of market trends with our regular updates on best-performing categories and emerging opportunities in the Amazon ecosystem across US, UK, UAE, and European markets.</p>
+        </div>
+        <div class="rotating-text">
+            <h3>Complete Supply Chain Support</h3>
+            <p>From product sourcing to quality inspection, packaging customization, and shipping coordination - we provide end-to-end support to ensure your Amazon business runs smoothly and efficiently.</p>
+        </div>
+        <div class="rotating-text">
+            <h3>Community & Networking</h3>
+            <p>Join Pakistan's fastest-growing Amazon seller community. Share experiences, learn from successful sellers, and collaborate with like-minded entrepreneurs to grow your business together.</p>
+        </div>
+    </div>
+</section>
                     
                     <div class="search-bar">
                         <div class="input-group search-input-group">
@@ -1023,6 +1326,8 @@
             </div>
         </div>
     </section>
+
+   
 
     <!-- Featured Products -->
     <section class="section-padding">
@@ -1059,97 +1364,28 @@
                 </div>
             </div>
             <div class="text-center mt-4">
-                <a href="marketplace.html" class="btn btn-primary me-2">View All Products</a>
+                <a href="Amazon's Choice.html" class="btn btn-primary me-2">View All Products</a>
                 <a href="list-product.html" class="btn btn-outline-primary">List Your Product</a>
             </div>
         </div>
     </section>
 
-    <!-- Popular Deals -->
-    <section class="section-padding">
-        <div class="container">
-            <h2 class="section-title">Most popular Latest wholesale deals</h2>
-            <div class="row" id="popular-deals">
-                <!-- Deal 1 -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="deal-card" data-product-id="leather-handbag">
-                        <div class="deal-image">
-                            <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&auto=format&fit=crop" alt="Leather Handbag Deal">
-                            <div class="deal-badge">Hot Deal</div>
-                        </div>
-                        <div class="deal-content">
-                            <h5>Premium Leather Handbag</h5>
-                            <div class="deal-price">
-                                <span class="current-price">$224.48</span>
-                                <span class="original-price">$438.89</span>
-                                <span class="discount">48% OFF</span>
-                            </div>
-                            <div class="deal-stats">
-                                <span class="markup">315% Markup</span>
-                                <span class="location">🇵🇰 Pakistan</span>
-                            </div>
-                            <div class="deal-actions">
-                                <a href="product.html?id=leather-handbag" class="btn btn-primary btn-sm">View Deal</a>
-                                <a href="https://wa.me/923016611011" class="btn btn-success btn-sm" target="_blank">Contact</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Deal 2 -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="deal-card" data-product-id="traditional-jewelry">
-                        <div class="deal-image">
-                            <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=400&auto=format&fit=crop" alt="Jewelry Deal">
-                            <div class="deal-badge">New</div>
-                        </div>
-                        <div class="deal-content">
-                            <h5>Traditional Jewelry Set</h5>
-                            <div class="deal-price">
-                                <span class="current-price">$29.99</span>
-                                <span class="original-price">$89.99</span>
-                                <span class="discount">67% OFF</span>
-                            </div>
-                            <div class="deal-stats">
-                                <span class="markup">280% Markup</span>
-                                <span class="location">🇵🇰 Pakistan</span>
-                            </div>
-                            <div class="deal-actions">
-                                <a href="product.html?id=traditional-jewelry" class="btn btn-primary btn-sm">View Deal</a>
-                                <a href="https://wa.me/923016611011" class="btn btn-success btn-sm" target="_blank">Contact</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Deal 3 -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="deal-card" data-product-id="handmade-carpet">
-                        <div class="deal-image">
-                            <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop" alt="Carpet Deal">
-                            <div class="deal-badge">Best Seller</div>
-                        </div>
-                        <div class="deal-content">
-                            <h5>Handmade Pakistani Carpet</h5>
-                            <div class="deal-price">
-                                <span class="current-price">$89.99</span>
-                                <span class="original-price">$199.99</span>
-                                <span class="discount">55% OFF</span>
-                            </div>
-                            <div class="deal-stats">
-                                <span class="markup">340% Markup</span>
-                                <span class="location">🇵🇰 Pakistan</span>
-                            </div>
-                            <div class="deal-actions">
-                                <a href="product.html?id=handmade-carpet" class="btn btn-primary btn-sm">View Deal</a>
-                                <a href="https://wa.me/923016611011" class="btn btn-success btn-sm" target="_blank">Contact</a>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Amazon Gymkhana Best Seller's Choice Section -->
+<section class="section-padding">
+    <div class="container">
+        <div class="wholesale-section">
+            <div class="wholesale-header">
+                <h2 class="wholesale-title">Amazon Gymkhana Best Seller's Choice</h2>
+                <p class="wholesale-subtitle">High-margin products with proven sales performance. Perfect for resellers and retailers.</p>
+            </div>
+            <div class="wholesale-products">
+                <div class="wholesale-scroll">
+                    <!-- Wholesale items will be populated by JavaScript -->
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- Testimonials -->
     <section class="section-padding">
@@ -1267,7 +1503,7 @@
                         <li><a href="index.html">Home</a></li>
                         <li><a href="Amazon's Choice.html">Amazon's Choice</a></li>
                         <li><a href="categories.html">Best Seller Categories</a></li>
-                        <li><a href="categories.html">Today's deals</a></li>
+                        <li><a href="latest-deals.html">Today's deals</a></li>
                         <li><a href="contact.html">Contact Us</a></li>
                     </ul>
                 </div>
@@ -1301,188 +1537,121 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Extended Product data with more products
+        // Complete product data matching all products from Amazon's Choice page
         const products = [
-            { 
-                id: "leather-handbag", 
-                name: "Premium Leather Handbag", 
-                price: "$45.99", 
-                rating: 4.5, 
-                reviews: 128, 
-                markup: "315%", 
-                image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&auto=format&fit=crop", 
-                basket: 105,
-                statuses: ["Best Seller", "Selling Fast", "105 in basket"]
-            },
-            { 
-                id: "traditional-jewelry", 
-                name: "Traditional Jewelry Set", 
-                price: "$29.99", 
-                rating: 4.0, 
-                reviews: 94, 
-                markup: "280%", 
-                image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=400&auto=format&fit=crop", 
-                basket: 87,
-                statuses: ["Amazon's Choice", "87 in basket", "Trending Now"]
-            },
-            { 
-                id: "handmade-carpet", 
-                name: "Handmade Carpet", 
-                price: "$89.99", 
-                rating: 5.0, 
-                reviews: 67, 
-                markup: "340%", 
-                image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", 
-                basket: 42,
-                statuses: ["Best Seller", "42 in basket", "Limited Stock"]
-            },
-            { 
-                id: "running-shoes", 
-                name: "Running Shoes", 
-                price: "$24.99", 
-                rating: 4.5, 
-                reviews: 156, 
-                markup: "295%", 
-                image: "https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=400&auto=format&fit=crop", 
-                basket: 63,
-                statuses: ["Selling Fast", "63 in basket", "Amazon's Choice"]
-            },
-            { 
-                id: "embroidered-fabric", 
-                name: "Embroidered Fabric", 
-                price: "$18.99", 
-                rating: 4.0, 
-                reviews: 203, 
-                markup: "320%", 
-                image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=400&auto=format&fit=crop", 
-                basket: 105,
-                statuses: ["Trending Now", "105 in basket", "Best Seller"]
-            },
-            { 
-                id: "wooden-decor", 
-                name: "Wooden Decor", 
-                price: "$34.99", 
-                rating: 4.7, 
-                reviews: 89, 
-                markup: "290%", 
-                image: "https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=400&auto=format&fit=crop", 
-                basket: 78,
-                statuses: ["Amazon's Choice", "78 in basket", "Selling Fast"]
-            },
-            { 
-                id: "traditional-shawl", 
-                name: "Traditional Shawl", 
-                price: "$22.99", 
-                rating: 4.3, 
-                reviews: 134, 
-                markup: "275%", 
-                image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=400&auto=format&fit=crop", 
-                basket: 91,
-                statuses: ["Best Seller", "91 in basket", "Limited Stock"]
-            },
-            { 
-                id: "leather-wallet", 
-                name: "Leather Wallet", 
-                price: "$19.99", 
-                rating: 4.6, 
-                reviews: 87, 
-                markup: "310%", 
-                image: "https://images.unsplash.com/photo-1556742044-3c734c641e49?q=80&w=400&auto=format&fit=crop", 
-                basket: 67,
-                statuses: ["Selling Fast", "67 in basket", "Amazon's Choice"]
-            },
-            { 
-                id: "handmade-pottery", 
-                name: "Handmade Pottery", 
-                price: "$32.99", 
-                rating: 4.8, 
-                reviews: 56, 
-                markup: "330%", 
-                image: "https://images.unsplash.com/photo-1578500494191-56d6d7e1c0be?q=80&w=400&auto=format&fit=crop", 
-                basket: 42,
-                statuses: ["Trending Now", "42 in basket", "Best Seller"]
-            },
-            { 
-                id: "traditional-footwear", 
-                name: "Traditional Footwear", 
-                price: "$27.99", 
-                rating: 4.4, 
-                reviews: 112, 
-                markup: "285%", 
-                image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=400&auto=format&fit=crop", 
-                basket: 88,
-                statuses: ["Amazon's Choice", "88 in basket", "Selling Fast"]
-            },
-            { 
-                id: "handwoven-basket", 
-                name: "Handwoven Basket", 
-                price: "$15.99", 
-                rating: 4.2, 
-                reviews: 76, 
-                markup: "300%", 
-                image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop", 
-                basket: 53,
-                statuses: ["Best Seller", "53 in basket", "Limited Stock"]
-            },
-            { 
-                id: "traditional-scarf", 
-                name: "Traditional Scarf", 
-                price: "$12.99", 
-                rating: 4.5, 
-                reviews: 98, 
-                markup: "265%", 
-                image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=400&auto=format&fit=crop", 
-                basket: 74,
-                statuses: ["Selling Fast", "74 in basket", "Amazon's Choice"]
-            },
-            // Additional Products
-            { 
-                id: "ceramic-vase", 
-                name: "Handmade Ceramic Vase", 
-                price: "$38.99", 
-                rating: 4.6, 
-                reviews: 67, 
-                markup: "310%", 
-                image: "https://images.unsplash.com/photo-1578500494191-56d6d7e1c0be?q=80&w=400&auto=format&fit=crop", 
-                basket: 45,
-                statuses: ["Amazon's Choice", "45 in basket", "Limited Stock"]
-            },
-            { 
-                id: "silk-scarf", 
-                name: "Premium Silk Scarf", 
-                price: "$28.99", 
-                rating: 4.3, 
-                reviews: 89, 
-                markup: "275%", 
-                image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=400&auto=format&fit=crop", 
-                basket: 78,
-                statuses: ["Trending Now", "78 in basket", "Best Seller"]
-            },
-            { 
-                id: "copper-utensils", 
-                name: "Traditional Copper Utensils", 
-                price: "$52.99", 
-                rating: 4.7, 
-                reviews: 112, 
-                markup: "340%", 
-                image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&auto=format&fit=crop", 
-                basket: 34,
-                statuses: ["Best Seller", "34 in basket", "Selling Fast"]
-            },
-            { 
-                id: "leather-journal", 
-                name: "Handcrafted Leather Journal", 
-                price: "$21.99", 
-                rating: 4.4, 
-                reviews: 156, 
-                markup: "290%", 
-                image: "https://images.unsplash.com/photo-1556742044-3c734c641e49?q=80&w=400&auto=format&fit=crop", 
-                basket: 92,
-                statuses: ["Amazon's Choice", "92 in basket", "Trending Now"]
-            }
+            // WATCH CATEGORY
+            
+            { id: 3, category: "watch", name: "Black NATO Watch Strap", price: "£19.89", rating: 4.0, reviews: 7, image: "main-pics/strap.jpg", basket: 42, monthlyOrders: "800",
+                statuses: ["Selling Fast", "42 in basket", "Amazon's Choice"] },
+            { id: 4, category: "watch", name: "Resin Watch Strap 15mm", price: "£19.89", rating: 4.5, reviews: 11, image: "main-pics/Resin.jpg", basket: 56, monthlyOrders: "1.2K",
+                statuses: ["Trending Now", "56 in basket", "Best Seller"] },
+            { id: 5, category: "watch", name: "Ladies Leather Watch Strap 10mm", price: "£19.89", rating: 5.0, reviews: 14, image: "main-pics/ladies-leather10mm.jpg", basket: 78, monthlyOrders: "2.8K",
+                statuses: ["Amazon's Choice", "78 in basket", "Selling Fast"] },
+            { id: 6, category: "watch", name: "Ladies Leather Watch Strap 14mm", price: "£19.89", rating: 4.0, reviews: 42, image: "main-pics/strap-brown14mm.jpg", basket: 63, monthlyOrders: "1.5K",
+                statuses: ["Best Seller", "63 in basket", "Limited Stock"] },
+
+            // PARTY SUPPLIES CATEGORY
+            { id: 7, category: "party", name: "Large White Glitter Fairy Wings", price: "£19.89", rating: 4.6, reviews: 72, image: "main-pics/whiteFairy.jpg", basket: 91, monthlyOrders: "3.2K",
+                statuses: ["Selling Fast", "91 in basket", "Amazon's Choice"] },
+            { id: 8, category: "party", name: "Adult Dancewear Princess Tutu Skirt", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Tutu Skirt.jpg", basket: 47, monthlyOrders: "1.9K",
+                statuses: ["Amazon's Choice", "47 in basket", "Selling Fast"] },
+            { id: 9, category: "party", name: "300 Pack Paper Straws", price: "£19.89", rating: 4.7, reviews: 93, markup: "290%", image: "main-pics/Straws.jpg", basket: 112, monthlyOrders: "5K",
+                statuses: ["Best Seller", "112 in basket", "Trending Now"] },
+            { id: 10, category: "party", name: "Clear Reusable Forks 150pcs", price: "£19.89", rating: 4.5, reviews: 124, image: "main-pics/forks.jpg", basket: 88, monthlyOrders: "4.5K",
+                statuses: ["Selling Fast", "88 in basket", "Amazon's Choice"] },
+            { id: 11, category: "party", name: "Plastic Spoons 50pcs", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/spoons.jpg", basket: 74, monthlyOrders: "3.8K",
+                statuses: ["Amazon's Choice", "74 in basket", "Selling Fast"] },
+            { id: 12, category: "party", name: "Pack of 150, Strong Reusable Clear Cutlery Set", price: "£19.89", rating: 4.3, reviews: 56, image: "main-pics/clear-cutlery.jpg", basket: 69, monthlyOrders: "2.2K",
+                statuses: ["Best Seller", "69 in basket", "Limited Stock"] },
+            { id: 13, category: "party", name: "Re-usable Washable Plastic Knives 100 Pack", price: "£19.89", rating: 4.8, reviews: 132, markup: "320%", image: "main-pics/knife.jpg", basket: 95, monthlyOrders: "4.2K",
+                statuses: ["Selling Fast", "95 in basket", "Amazon's Choice"] },
+            { id: 14, category: "party", name: "Black Plastic Cutlery Set", price: "£19.89", rating: 4.4, reviews: 78, image: "main-pics/Bcutlery.jpg", basket: 51, monthlyOrders: "1.7K",
+                statuses: ["Amazon's Choice", "51 in basket", "Selling Fast"] },
+            { id: 15, category: "party", name: "Wooden Spoon,100 Pack Disposable Spoons", price: "£19.89", rating: 4.7, reviews: 103, image: "main-pics/wood-spoons.jpg", basket: 127, monthlyOrders: "5.5K",
+                statuses: ["Best Seller", "127 in basket", "Trending Now"] },
+            { id: 16, category: "party", name: "Party Balloons Pack of 50 12 Inch Assorted Color Rainbow Balloons", price: "£19.89", rating: 4.2, reviews: 67, image: "main-pics/Balloons.jpg", basket: 58, monthlyOrders: "2.1K",
+                statuses: ["Selling Fast", "58 in basket", "Amazon's Choice"] },
+            { id: 17, category: "party", name: "Balloon Ribbon 250m", price: "£19.89", rating: 4.5, reviews: 89, image: "main-pics/Balloon Ribbon.jpg", basket: 76, monthlyOrders: "2.9K",
+                statuses: ["Amazon's Choice", "76 in basket", "Selling Fast"] },
+            { id: 18, category: "party", name: "Inflatable Dolphin 53cm", price: "£19.89", rating: 4.1, reviews: 45, image: "main-pics/Inflatable Dolphin.jpg", basket: 82, monthlyOrders: "1.8K",
+                statuses: ["Best Seller", "82 in basket", "Limited Stock"] },
+            { id: 19, category: "party", name: "Inflatable Giraffe 106cm", price: "£19.89", rating: 4.6, reviews: 71, image: "main-pics/Inflatable Giraffe.jpg", basket: 93, monthlyOrders: "3.1K",
+                statuses: ["Selling Fast", "93 in basket", "Amazon's Choice"] },
+            { id: 20, category: "party", name: "Inflatable Tiger 106cm", price: "£19.89", rating: 4.8, reviews: 118, image: "main-pics/Inflatable Tiger.jpg", basket: 64, monthlyOrders: "2.4K",
+                statuses: ["Amazon's Choice", "64 in basket", "Selling Fast"] },
+
+            // KITCHEN CATEGORY
+            { id: 21, category: "kitchen", name: "1L Plastic Measuring Jug", price: "£19.89", rating: 5.0, reviews: 67, markup: "340%", image: "main-pics/Measuring Jug.jpg", basket: 42, monthlyOrders: "1.6K",
+                statuses: ["Best Seller", "42 in basket", "Limited Stock"] },
+            { id: 22, category: "kitchen", name: "Wooden Chip Fork 1000pcs", price: "£19.89", rating: 4.5, reviews: 156, markup: "295%", image: "main-pics/Chip Fork.jpg", basket: 87, monthlyOrders: "4.8K",
+                statuses: ["Amazon's Choice", "87 in basket", "Selling Fast"] },
+            { id: 23, category: "kitchen", name: "Clear Plastic Bags 25pcs", price: "£19.89", rating: 4.0, reviews: 203, markup: "320%", image: "main-pics/clear-bags.jpg", basket: 105, monthlyOrders: "5.2K",
+                statuses: ["Trending Now", "105 in basket", "Best Seller"] },
+            { id: 24, category: "kitchen", name: "Clear Reusable Cutlery Set of 150 Pieces", price: "£19.89", rating: 4.5, reviews: 89, markup: "280%", image: "main-pics/clear-cutlery.jpg", basket: 73, monthlyOrders: "3.5K",
+                statuses: ["Amazon's Choice", "73 in basket", "Selling Fast"] },
+            { id: 25, category: "kitchen", name: "50 Heavy Duty Clear Plastic Knives", price: "£19.89", rating: 4.3, reviews: 67, markup: "290%", image: "main-pics/Knives.jpg", basket: 58, monthlyOrders: "2.7K",
+                statuses: ["Best Seller", "58 in basket", "Limited Stock"] },
+            { id: 26, category: "kitchen", name: "Black Plastic Spoons 50 Pack", price: "£19.89", rating: 4.4, reviews: 92, markup: "275%", image: "main-pics/Black Spoons.jpg", basket: 81, monthlyOrders: "3.9K",
+                statuses: ["Selling Fast", "81 in basket", "Amazon's Choice"] },
+
+            // ELECTRONICS CATEGORY
+            { id: 27, category: "electronics", name: "1M Charger Cable", price: "£19.89", rating: 4.5, reviews: 13, image: "main-pics/Charger Cable.jpg", basket: 28, monthlyOrders: "1.1K",
+                statuses: ["Selling Fast", "28 in basket", "Amazon's Choice"] },
+            { id: 28, category: "electronics", name: "Samsung Charging Cable", price: "£19.89", rating: 3.8, reviews: 14, image: "main-pics/Charging Cable.jpg", basket: 19, monthlyOrders: "900",
+                statuses: ["Amazon's Choice", "19 in basket", "Selling Fast"] },
+            { id: 29, category: "electronics", name: "Multi Socket Plug Adaptor", price: "£19.89", rating: 4.6, reviews: 87, image: "main-pics/Plug Adaptor.jpg", basket: 63, monthlyOrders: "2.5K",
+                statuses: ["Best Seller", "63 in basket", "Limited Stock"] },
+            { id: 30, category: "electronics", name: "Light Bulb Holder", price: "£19.89", rating: 4.3, reviews: 42, image: "main-pics/Bulb Holder.jpg", basket: 37, monthlyOrders: "1.4K",
+                statuses: ["Selling Fast", "37 in basket", "Amazon's Choice"] },
+            { id: 31, category: "electronics", name: "Samsung TV Remote", price: "£19.89", rating: 4.4, reviews: 56, image: "main-pics/Sam-Remote.jpg", basket: 44, monthlyOrders: "1.7K",
+                statuses: ["Amazon's Choice", "44 in basket", "Selling Fast"] },
+            { id: 32, category: "electronics", name: "LG TV Remote", price: "£19.89", rating: 4.1, reviews: 38, image: "main-pics/LG-Remote.jpg", basket: 29, monthlyOrders: "1.2K",
+                statuses: ["Best Seller", "29 in basket", "Limited Stock"] },
+
+            // JEWELRY CATEGORY
+            { id: 33, category: "jewelry", name: "Extra Thin Nose Ring 0.5mm", price: "£19.89", rating: 4.5, reviews: 67, image: "main-pics/nose ring.jpg", basket: 52, monthlyOrders: "2.1K",
+                statuses: ["Selling Fast", "52 in basket", "Amazon's Choice"] },
+            { id: 34, category: "jewelry", name: "Gold Nose Ring", price: "£19.89", rating: 4.2, reviews: 49, image: "main-pics/Gold Nose.jpg", basket: 41, monthlyOrders: "1.6K",
+                statuses: ["Amazon's Choice", "41 in basket", "Selling Fast"] },
+            { id: 35, category: "jewelry", name: "Rose Gold Nose Ring", price: "£19.89", rating: 4.7, reviews: 92, image: "main-pics/Rose Gold.jpg", basket: 68, monthlyOrders: "2.7K",
+                statuses: ["Best Seller", "68 in basket", "Limited Stock"] },
+            { id: 36, category: "jewelry", name: "Silver Nose Ring", price: "£19.89", rating: 4.3, reviews: 57, image: "main-pics/Silver L.jpg", basket: 39, monthlyOrders: "1.5K",
+                statuses: ["Selling Fast", "39 in basket", "Amazon's Choice"] },
+            { id: 37, category: "jewelry", name: "Double Hoop Nose Ring", price: "£19.89", rating: 4.6, reviews: 78, image: "main-pics/Double Hoop.jpg", basket: 55, monthlyOrders: "2.2K",
+                statuses: ["Amazon's Choice", "55 in basket", "Selling Fast"] },
+
+            // HOME & DECOR CATEGORY
+            { id: 38, category: "home", name: "Professional Comb", price: "£19.89", rating: 4.4, reviews: 63, image: "main-pics/Comb.jpg", basket: 46, monthlyOrders: "1.8K",
+                statuses: ["Best Seller", "46 in basket", "Limited Stock"] },
+            { id: 39, category: "home", name: "Red Paper Lampshade", price: "£19.89", rating: 4.5, reviews: 72, image: "main-pics/Red-Lampshade.jpg", basket: 58, monthlyOrders: "2.3K",
+                statuses: ["Selling Fast", "58 in basket", "Amazon's Choice"] },
+            { id: 40, category: "home", name: "Cotton Mop Head", price: "£19.89", rating: 4.3, reviews: 47, image: "main-pics/Mop head.jpg", basket: 62, monthlyOrders: "2.4K",
+                statuses: ["Amazon's Choice", "62 in basket", "Selling Fast"] },
+            { id: 41, category: "home", name: "Satin Ribbon 25m", price: "£19.89", rating: 4.7, reviews: 38, image: "main-pics/Ribbon.jpg", basket: 29, monthlyOrders: "1.1K",
+                statuses: ["Best Seller", "29 in basket", "Limited Stock"] },
+            { id: 42, category: "home", name: "Retro Plain Glasses", price: "£19.89", rating: 4.5, reviews: 63, image: "main-pics/Eyeglasses.jpg", basket: 41, monthlyOrders: "1.6K",
+                statuses: ["Selling Fast", "41 in basket", "Amazon's Choice"] },
+            { id: 43, category: "home", name: "Ankle Support Compression Sleeve", price: "£19.89", rating: 4.2, reviews: 58, image: "main-pics/Ankle Support.jpg", basket: 36, monthlyOrders: "1.4K",
+                statuses: ["Amazon's Choice", "36 in basket", "Selling Fast"] },
+
+            // AUTOMOTIVE CATEGORY
+            { id: 44, category: "automotive", name: "Car Bulbs 2x P21W", price: "£19.89", rating: 4.4, reviews: 72, image: "main-pics/Car Bulbs.jpg", basket: 58, monthlyOrders: "2.3K",
+                statuses: ["Best Seller", "58 in basket", "Limited Stock"] },
+            { id: 45, category: "automotive", name: "Head Light Bulbs H15", price: "£19.89", rating: 4.7, reviews: 88, image: "main-pics/Head Light Bulbs.jpg", basket: 42, monthlyOrders: "1.7K",
+                statuses: ["Selling Fast", "42 in basket", "Amazon's Choice"] },
+            { id: 46, category: "automotive", name: "Headlight Bulbs 4x H7", price: "£19.89", rating: 4.4, reviews: 58, image: "main-pics/Headlight Bulb.jpg", basket: 46, monthlyOrders: "1.8K",
+                statuses: ["Amazon's Choice", "46 in basket", "Selling Fast"] },
+            { id: 47, category: "automotive", name: "Car Bulbs 2x P21W BA15s", price: "£19.89", rating: 4.3, reviews: 47, image: "main-pics/Car Bulbs.jpg", basket: 32, monthlyOrders: "1.3K",
+                statuses: ["Best Seller", "32 in basket", "Limited Stock"] },
+            { id: 48, category: "automotive", name: "Hose Nozzles 2Pack", price: "£19.89", rating: 4.6, reviews: 63, image: "main-pics/Hose Nozzles.jpg", basket: 37, monthlyOrders: "1.5K",
+                statuses: ["Selling Fast", "37 in basket", "Amazon's Choice"] },
+            { id: 49, category: "automotive", name: "Single Filament Amber Glass Brake Light Bulb", price: "£19.89", rating: 4.5, reviews: 72, image: "main-pics/S-Amber-Breakbulb.jpg", basket: 58, monthlyOrders: "2.3K",
+                statuses: ["Amazon's Choice", "58 in basket", "Selling Fast"] },
+            { id: 50, category: "automotive", name: "Clear Glass Brake Light Bulb", price: "£19.89", rating: 4.3, reviews: 47, image: "main-pics/Clear-Brake.jpg", basket: 32, monthlyOrders: "1.3K",
+                statuses: ["Best Seller", "32 in basket", "Limited Stock"] }
         ];
 
-        // Function to generate star rating HTML
+       // Function to generate star rating HTML
         function generateStars(rating) {
             let stars = '';
             const fullStars = Math.floor(rating);
@@ -1514,21 +1683,46 @@
             return "status-best-seller";
         }
 
+        // Function to shuffle array randomly
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // Canonical ID (ASIN) mapping for exact product resolution on detail page
+        const productNameToId = {
+            
+            'Large White Glitter Fairy Wings': 'B015KYJ9IO',
+            'Sorrento Italian Watch Strap': 'B0133HY994',
+            '150 Clear Reusable Forks': 'B09FSL2VJL',
+            '50 Heavy Duty Clear Plastic Spoons': 'B09MS6X46G',
+            'Flat Neon Shoe Laces': 'B09M7FXSHW',
+            'Black NATO Watch Strap': 'B01EJR61OI',
+            'Extra Thin Small Nose Ring': 'B0D62RNPNJ'
+        };
+
         // Function to render products
         function renderProducts() {
             const productsGrid = document.getElementById('featured-products');
             productsGrid.innerHTML = '';
             
+            // Shuffle products for random display
+            const shuffledProducts = shuffleArray(products);
+            
             // Create two sets of products for seamless scrolling
             for (let i = 0; i < 2; i++) {
-                products.forEach(product => {
+                shuffledProducts.forEach(product => {
                     const productCard = document.createElement('div');
                     productCard.className = 'featured-item';
                     
                     productCard.innerHTML = `
-                        <div class="product-card" data-product-id="${product.id}">
+                        <div class="product-card" data-product-id="${product.id}" data-product-name="${product.name.replace(/"/g, '&quot;')}" data-product-image="${product.image}">
                             <div class="amazon-choice-badge">Amazon's Choice</div>
-                            <div class="markup-badge">${product.markup}</div>
+                            <div class="markup-badge">${product.markup || '250%'}</div>
                             <div class="product-image-container">
                                 <img class="product-image" src="${product.image}" alt="${product.name}">
                             </div>
@@ -1536,6 +1730,7 @@
                                 <h5 class="card-title">${product.name}</h5>
                                 <p class="card-text">Premium quality product with excellent customer reviews</p>
                                 <div class="price">${product.price}</div>
+                                <div class="monthly-orders">Monthly Orders: ${product.monthlyOrders}</div>
                                 <div class="rating">
                                     ${generateStars(product.rating)}
                                     <span class="rating-count">(${product.reviews})</span>
@@ -1546,9 +1741,6 @@
                                     ).join('')}
                                 </div>
                                 <div class="product-actions">
-                                    <a href="product.html?id=${product.id}" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-eye me-1"></i>View Details
-                                    </a>
                                     <a href="https://www.amazon.com/s?k=${encodeURIComponent(product.name)}" class="btn btn-outline-primary btn-sm" target="_blank">
                                         <i class="fab fa-amazon me-1"></i>Verify on Amazon
                                     </a>
@@ -1570,7 +1762,14 @@
                     }
                     
                     const productId = this.getAttribute('data-product-id');
-                    window.location.href = `product.html?id=${productId}`;
+                    const productName = this.getAttribute('data-product-name');
+                    const productImage = this.getAttribute('data-product-image');
+                    // Open the correct product with the specific ID and name in new tab
+                    const url = new URL(window.location.origin + '/product.html');
+                    if (productId) url.searchParams.set('id', productId);
+                    if (productName) url.searchParams.set('name', productName);
+                    if (productImage) url.searchParams.set('img', productImage);
+                    window.open(url.toString(), '_blank');
                 });
             });
         }
@@ -1585,7 +1784,11 @@
                     }
                     
                     const productId = this.getAttribute('data-product-id');
-                    window.location.href = `product.html?id=${productId}`;
+                    const productName = this.getAttribute('data-product-name');
+                    const url = new URL(window.location.origin + '/product.html');
+                    if (productId) url.searchParams.set('id', productId);
+                    if (productName) url.searchParams.set('name', productName);
+                    window.open(url.toString(), '_blank');
                 });
             });
         }
@@ -1612,13 +1815,115 @@
             });
         }
 
+        // Function to rotate text messages
+        function rotateTextMessages() {
+            const rotatingTexts = document.querySelectorAll('.rotating-text');
+            let currentTextIndex = 0;
+            
+            // Function to rotate to next text
+            function rotateText() {
+                // Hide all texts
+                rotatingTexts.forEach(text => {
+                    text.classList.remove('active');
+                });
+                
+                // Show current text
+                rotatingTexts[currentTextIndex].classList.add('active');
+                
+                // Move to next text
+                currentTextIndex = (currentTextIndex + 1) % rotatingTexts.length;
+            }
+            
+            // Initial call
+            rotateText();
+            
+            // Set interval to rotate text every 5 seconds
+            setInterval(rotateText, 5000);
+        }
+
+        // Function to rotate hero subtitle messages
+       function rotateHeroSubtitle() {
+    const rotatingSubtitles = document.querySelectorAll('.rotating-subtitle');
+    let currentSubtitleIndex = 0;
+    
+    // Function to rotate to next subtitle
+    function rotateSubtitle() {
+        // Remove active class from all subtitles
+        rotatingSubtitles.forEach(subtitle => {
+            subtitle.classList.remove('active');
+        });
+        
+        // Add active class to current subtitle
+        rotatingSubtitles[currentSubtitleIndex].classList.add('active');
+        
+        // Move to next subtitle
+        currentSubtitleIndex = (currentSubtitleIndex + 1) % rotatingSubtitles.length;
+    }
+    
+    // Initial call
+    rotateSubtitle();
+    
+    // Set interval to rotate subtitle every 5 seconds
+    setInterval(rotateSubtitle, 5000);
+}
+
+
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function(){
-            renderProducts();
-            addDealCardClickListeners();
-            // Start rotating status indicators after a short delay
-            setTimeout(rotateStatusIndicators, 500);
+    renderProducts();
+    addDealCardClickListeners();
+    rotateTextMessages();
+    rotateHeroSubtitle(); // Make sure this line is here
+    // Start rotating status indicators after a short delay
+    setTimeout(rotateStatusIndicators, 500);
+});
+
+        // Wholesale products data
+const wholesaleProducts = [
+    { name: "Large White Glitter Fairy Wings", price: "£19.89", markup: "340%", image: "main-pics/whiteFairy.jpg", badge: "Best Seller" },
+    { name: "Clear Reusable Forks 150pcs", price: "£19.89", markup: "250%", image: "main-pics/forks.jpg", badge: "Hot Deal" },
+    { name: "1L Plastic Measuring Jug", price: "£19.89", markup: "280%", image: "main-pics/Measuring Jug.jpg", badge: "Best Seller" },
+    { name: "1M Charger Cable", price: "£19.89", markup: "220%", image: "main-pics/Charger Cable.jpg", badge: "Hot Deal" },
+    { name: "Extra Thin Nose Ring 0.5mm", price: "£19.89", markup: "270%", image: "main-pics/nose ring.jpg", badge: "Best Seller" },
+    { name: "Black NATO Watch Strap", price: "£19.89", markup: "240%", image: "main-pics/strap.jpg", badge: "Hot Deal" },
+    { name: "Adult Dancewear Princess Tutu Skirt", price: "£19.89", markup: "260%", image: "main-pics/Tutu Skirt.jpg", badge: "Best Seller" },
+    { name: "300 Pack Paper Straws", price: "£19.89", markup: "290%", image: "main-pics/Straws.jpg", badge: "Hot Deal" }
+];
+
+// Function to render wholesale products
+function renderWholesaleProducts() {
+    const wholesaleScroll = document.querySelector('.wholesale-scroll');
+    if (!wholesaleScroll) return;
+    
+    wholesaleScroll.innerHTML = '';
+    
+    // Create two sets of products for seamless scrolling
+    for (let i = 0; i < 2; i++) {
+        wholesaleProducts.forEach(product => {
+            const wholesaleItem = document.createElement('div');
+            wholesaleItem.className = 'wholesale-item';
+            
+            wholesaleItem.innerHTML = `
+                <div class="wholesale-badge">${product.badge}</div>
+                <div class="wholesale-image">
+                    <img src="${product.image}" alt="${product.name}" onerror="this.src='main-pics/placeholder.jpg'">
+                </div>
+                <div class="wholesale-content">
+                    <h4 class="wholesale-name">${product.name}</h4>
+                    <div class="wholesale-price">${product.price}</div>
+                    <div class="wholesale-markup">${product.markup} Markup</div>
+                </div>
+            `;
+            
+            wholesaleScroll.appendChild(wholesaleItem);
         });
+    }
+}
+
+// Initialize wholesale products when DOM is loaded
+document.addEventListener('DOMContentLoaded', function(){
+    renderWholesaleProducts();
+});
     </script>
 </body>
 </html>

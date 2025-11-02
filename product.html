@@ -66,6 +66,11 @@
         .navbar-nav .nav-link.active {
             color: var(--bs-primary) !important;
         }
+        /* Active underline */
+        .navbar-nav .nav-link{ position: relative; }
+        .navbar-nav .nav-link.active::after{
+            content:''; position:absolute; left:10px; right:10px; bottom:-6px; height:3px; background: var(--bs-primary); border-radius:2px;
+        }
         
         /* Buttons */
         .btn-primary {
@@ -165,6 +170,13 @@
             color: #718096;
             font-size: 0.9rem;
             margin-bottom: 15px;
+        }
+        
+        .monthly-orders {
+            font-size: 0.9rem;
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-weight: 600;
         }
         
         .platform-comparison {
@@ -380,7 +392,9 @@
         .related-card img {
             width: 100%;
             height: 120px;
-            object-fit: cover;
+            object-fit: contain;
+            background-color: #f8f9fa;
+            padding: 10px;
         }
         
         .related-card-body {
@@ -404,6 +418,42 @@
             color: var(--bs-primary);
             font-weight: 700;
             font-size: 0.9rem;
+        }
+        
+        /* Image Gallery Styles */
+        .image-gallery {
+            margin-bottom: 20px;
+        }
+        
+        .main-image {
+            width: 100%;
+            height: 300px;
+            object-fit: contain;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .thumbnail-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+        
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        .thumbnail:hover, .thumbnail.active {
+            border-color: var(--bs-primary);
         }
         
         /* Footer */
@@ -573,7 +623,7 @@
                         <a class="nav-link" href="categories.html">Best Sellers Categories</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="product-detail.html">Latest Deals</a>
+                        <a class="nav-link" href="latest-deals.html">Latest Deals</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="contact.html">Contact</a>
@@ -604,7 +654,12 @@
             <div class="product-detail-container">
                 <!-- Product Images -->
                 <div class="product-images">
-                    <img id="main-image" src="" alt="Product" class="img-fluid rounded">
+                    <div class="image-gallery">
+                        <img id="main-image" src="" alt="Product" class="main-image">
+                        <div class="thumbnail-container" id="thumbnail-container">
+                            <!-- Thumbnails will be populated by JavaScript -->
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Product Info -->
@@ -620,6 +675,7 @@
                     <div class="price" id="main-price">$89.99</div>
                     <div class="price-unit">/ Unit ex. VAT</div>
                     <div class="rrp-price">RRP: <span id="rrp-price">$438.89</span></div>
+                    <div class="monthly-orders" id="monthly-orders">Monthly Orders: 2.5K</div>
                     
                     <!-- Platform Comparison -->
                     <div class="platform-comparison">
@@ -665,24 +721,24 @@
                     
                     <div class="supplier-info">
                         <p><strong>Contact Information</strong></p>
-                        <p>Company: Amzon Gymkhana Pvt Ltd</p>
-                        <p>Phone: +92 301 6611011</p>
-                        <p>Email: info@amzongymkhana.com</p>
-                        <p>WhatsApp: +92 301 6611011</p>
+                        <p id="supplier-company">Company: Loading...</p>
+                        <p id="supplier-phone">Phone: Loading...</p>
+                        <p id="supplier-email">Email: Loading...</p>
+                        <p id="supplier-whatsapp">WhatsApp: Loading...</p>
                     </div>
                     
                     <div class="supplier-info">
                         <p><strong>Location</strong></p>
-                        <p>Address: Dilawer Cheema Khurd, 52061, Pakistan</p>
-                        <p>Countries: Pakistan, China, UK, UAE</p>
-                        <p>Pakistan Cities: Lahore, Islamabad, Gujranwala</p>
+                        <p id="supplier-address">Address: Loading...</p>
+                        <p id="supplier-countries">Countries: Loading...</p>
+                        <p id="supplier-cities">Pakistan Cities: Loading...</p>
                     </div>
                     
                     <div class="supplier-info">
                         <p><strong>Main Category</strong></p>
                         <p>Primary: <span id="main-category">Fashion & Apparel</span></p>
-                        <p>Sub-categories: Leather Goods, Traditional Crafts</p>
-                        <p>Experience: 5+ Years in Amazon Marketplace</p>
+                        <p id="supplier-categories">Sub-categories: Loading...</p>
+                        <p id="supplier-experience">Experience: Loading...</p>
                     </div>
                 </div>
             </div>
@@ -765,7 +821,7 @@
                         <li><a href="index.html">Home</a></li>
                         <li><a href="Amazon's Choice.html">Amazon's Choice</a></li>
                         <li><a href="categories.html">Best Seller Categories</a></li>
-                        <li><a href="categories.html">Today's deals</a></li>
+                        <li><a href="latest-deals.html">Today's deals</a></li>
                         <li><a href="contact.html">Contact Us</a></li>
                     </ul>
                 </div>
@@ -799,21 +855,30 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Get product ID from URL parameter
+        // Get product params from URL
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
+        const productNameParam = urlParams.get('name');
+        const productImgParam = urlParams.get('img');
         
-        // Complete product data with all details
+        // Complete product data with all details and unique supplier information
         const products = {
-            'leather-handbag': {
-                id: "leather-handbag",
-                name: "Premium Leather Handbag",
-                price: 45.99,
-                rrp: 438.89,
-                rating: 4.5,
-                reviews: 128,
-                markup: "315%",
-                image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop",
+            101: {
+                id: 101,
+                name: "Black NATO Watch Strap",
+                price: 19.89,
+                rrp: 49.89,
+                rating: 4.0,
+                reviews: 7,
+                markup: "250%",
+                monthlyOrders: "800",
+                image: "main-pics/strap.jpg",
+                images: [
+                    "main-pics/strap.jpg",
+                    "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?q=80&w=800&auto=format&fit=crop"
+                ],
                 dealInfo: {
                     flag: "🇵🇰",
                     location: "Pakistan",
@@ -822,31 +887,49 @@
                     condition: "Excellent"
                 },
                 platforms: [
-                    { name: "RRP", price: 438.89, grossProfit: 392.90, markup: 854.43, verifyLink: null },
-                    { name: "Amazon", price: 418.48, grossProfit: 372.49, markup: 810.43, verifyLink: "https://www.amazon.com/s?k=premium+leather+handbag" },
-                    { name: "eBay", price: 398.25, grossProfit: 352.26, markup: 766.45, verifyLink: "https://www.ebay.com/sch/i.html?_nkw=premium+leather+handbag" }
+                    { name: "RRP", price: 49.89, grossProfit: 30.00, markup: 151.43, verifyLink: null },
+                    { name: "Amazon", price: 39.89, grossProfit: 20.00, markup: 101.43, verifyLink: "https://www.amazon.com/s?k=Black+NATO+Nylon+Watch+Strap" },
+                    { name: "eBay", price: 29.89, grossProfit: 10.00, markup: 51.43, verifyLink: "https://www.ebay.com/sch/i.html?_nkw=Black+NATO+Nylon+Watch+Strap" }
                 ],
                 specifications: {
-                    "Material": "Genuine Leather",
-                    "Dimensions": "12 x 8 x 5 inches",
-                    "Weight": "1.2 lbs",
-                    "Color": "Brown",
-                    "Style": "Traditional",
-                    "Compartments": "Multiple",
-                    "Closure": "Zipper",
+                    "Type": "NATO Watch Strap",
+                    "Material": "Nylon Fabric",
+                    "Color": "Black",
+                    "Width": "20mm",
+                    "Length": "Standard",
+                    "Closure": "Buckle",
+                    "Style": "Military",
                     "Origin": "Made in Pakistan"
                 },
-                category: "Fashion & Apparel"
+                category: "Watch Straps",
+                supplier: {
+                    company: "Military Gear Suppliers",
+                    phone: "+92 306 6616066",
+                    email: "military@gear.pk",
+                    whatsapp: "+92 306 6616066",
+                    address: "Defense Road, Rawalpindi 46000",
+                    countries: "Pakistan, UK, USA, Canada",
+                    cities: "Rawalpindi, Karachi, Lahore",
+                    categories: "Military Gear, Accessories",
+                    experience: "7+ Years in Military Supplies"
+                }
             },
-            'traditional-jewelry': {
-                id: "traditional-jewelry",
-                name: "Traditional Jewelry Set",
-                price: 29.99,
-                rrp: 89.99,
-                rating: 4.0,
-                reviews: 94,
-                markup: "280%",
-                image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=800&auto=format&fit=crop",
+            201: {
+                id: 201,
+                name: "Large White Glitter Fairy Wings",
+                price: 19.89,
+                rrp: 49.89,
+                rating: 4.6,
+                reviews: 72,
+                markup: "340%",
+                monthlyOrders: "3.2K",
+                image: "main-pics/whiteFairy.jpg",
+                images: [
+                    "main-pics/whiteFairy.jpg",
+                    "https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?q=80&w=800&auto=format&fit=crop"
+                ],
                 dealInfo: {
                     flag: "🇵🇰",
                     location: "Pakistan",
@@ -855,87 +938,134 @@
                     condition: "Excellent"
                 },
                 platforms: [
-                    { name: "RRP", price: 89.99, grossProfit: 60.00, markup: 200.00, verifyLink: null },
-                    { name: "Amazon", price: 85.48, grossProfit: 55.49, markup: 185.43, verifyLink: "https://www.amazon.com/s?k=traditional+jewelry+set" },
-                    { name: "eBay", price: 79.25, grossProfit: 49.26, markup: 164.45, verifyLink: "https://www.ebay.com/sch/i.html?_nkw=traditional+jewelry+set" }
+                    { name: "RRP", price: 49.89, grossProfit: 30.00, markup: 151.43, verifyLink: null },
+                    { name: "Amazon", price: 39.89, grossProfit: 20.00, markup: 101.43, verifyLink: "https://www.amazon.com/s?k=Large+White+Glitter+Fairy+Wings" },
+                    { name: "eBay", price: 29.89, grossProfit: 10.00, markup: 51.43, verifyLink: "https://www.ebay.com/sch/i.html?_nkw=Large+White+Glitter+Fairy+Wings" }
                 ],
                 specifications: {
-                    "Material": "Sterling Silver",
-                    "Stone Type": "Semi-precious stones",
-                    "Set Includes": "Necklace, Earrings, Bracelet",
-                    "Weight": "45 grams",
-                    "Style": "Traditional",
-                    "Packaging": "Elegant Box",
+                    "Type": "Fairy Wings",
+                    "Color": "White with Glitter",
+                    "Material": "Wire, Fabric, Glitter",
+                    "Size": "Large",
+                    "Age Range": "All Ages",
+                    "Occasion": "Costume Parties, Halloween",
+                    "Package": "Single Pair",
+                    "Origin": "Made in Pakistan"
+                },
+                category: "Party Supplies",
+                supplier: {
+                    company: "Party World Suppliers",
+                    phone: "+92 303 8813033",
+                    email: "info@partyworld.pk",
+                    whatsapp: "+92 303 8813033",
+                    address: "Festival Street, Lahore 54000",
+                    countries: "Pakistan, UK, USA, Canada",
+                    cities: "Lahore, Karachi, Rawalpindi",
+                    categories: "Party Supplies, Costumes, Decorations",
+                    experience: "6+ Years in Party Supplies"
+                }
+            },
+            204: {
+                id: 204,
+                name: "Clear Reusable Forks 150pcs",
+                price: 19.89,
+                rrp: 39.89,
+                rating: 4.5,
+                reviews: 124,
+                markup: "320%",
+                monthlyOrders: "4.5K",
+                image: "main-pics/forks.jpg",
+                images: [
+                    "main-pics/forks.jpg",
+                    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=800&auto=format&fit=crop"
+                ],
+                dealInfo: {
+                    flag: "🇵🇰",
+                    location: "Pakistan",
+                    minOrder: "1 Unit",
+                    grade: "New",
+                    condition: "Excellent"
+                },
+                platforms: [
+                    { name: "RRP", price: 39.89, grossProfit: 20.00, markup: 101.43, verifyLink: null },
+                    { name: "Amazon", price: 29.89, grossProfit: 10.00, markup: 51.43, verifyLink: "https://www.amazon.com/s?k=150+Clear+Reusable+Forks" },
+                    { name: "eBay", price: 24.89, grossProfit: 5.00, markup: 25.43, verifyLink: "https://www.ebay.com/sch/i.html?_nkw=150+Clear+Reusable+Forks" }
+                ],
+                specifications: {
+                    "Type": "Reusable Forks",
+                    "Quantity": "150 Pieces",
+                    "Material": "Plastic",
+                    "Color": "Clear",
+                    "Length": "Standard",
+                    "Reusable": "Yes",
+                    "Washable": "Yes",
+                    "Origin": "Made in Pakistan"
+                },
+                category: "Kitchen & Dining",
+                supplier: {
+                    company: "Plastic Products Manufacturing",
+                    phone: "+92 304 9914044",
+                    email: "plastic@products.pk",
+                    whatsapp: "+92 304 9914044",
+                    address: "Industrial Area, Gujranwala 52250",
+                    countries: "Pakistan, UK, USA, Canada",
+                    cities: "Gujranwala, Lahore, Karachi",
+                    categories: "Kitchenware, Party Supplies",
+                    experience: "15+ Years in Plastic Manufacturing"
+                }
+            },
+            501: {
+                id: 501,
+                name: "Extra Thin Nose Ring 0.5mm",
+                price: 19.89,
+                rrp: 49.89,
+                rating: 4.5,
+                reviews: 67,
+                markup: "270%",
+                monthlyOrders: "2.1K",
+                image: "main-pics/nose ring.jpg",
+                images: [
+                    "main-pics/nose ring.jpg",
+                    "https://images.unsplash.com/photo-1594736797933-d0ea3ff8db41?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1594736797933-d0ea3ff8db41?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1594736797933-d0ea3ff8db41?q=80&w=800&auto=format&fit=crop"
+                ],
+                dealInfo: {
+                    flag: "🇵🇰",
+                    location: "Pakistan",
+                    minOrder: "1 Unit",
+                    grade: "New",
+                    condition: "Excellent"
+                },
+                platforms: [
+                    { name: "RRP", price: 49.89, grossProfit: 30.00, markup: 151.43, verifyLink: null },
+                    { name: "Amazon", price: 39.89, grossProfit: 20.00, markup: 101.43, verifyLink: "https://www.amazon.com/s?k=Extra+Thin+Small+Nose+Ring" },
+                    { name: "eBay", price: 29.89, grossProfit: 10.00, markup: 51.43, verifyLink: "https://www.ebay.com/sch/i.html?_nkw=Extra+Thin+Small+Nose+Ring" }
+                ],
+                specifications: {
+                    "Type": "Nose Ring",
+                    "Material": "Surgical Steel",
+                    "Thickness": "0.5mm",
+                    "Diameter": "6mm",
+                    "Color": "Gold",
+                    "Style": "Hoop",
                     "Hypoallergenic": "Yes",
                     "Origin": "Made in Pakistan"
                 },
-                category: "Jewelry & Accessories"
-            },
-            'handmade-carpet': {
-                id: "handmade-carpet",
-                name: "Traditional Pakistani Wool Carpet",
-                price: 89.99,
-                rrp: 438.89,
-                rating: 5.0,
-                reviews: 67,
-                markup: "340%",
-                image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=800&auto=format&fit=crop",
-                dealInfo: {
-                    flag: "🇵🇰",
-                    location: "Pakistan",
-                    minOrder: "1 Unit",
-                    grade: "New",
-                    condition: "Excellent"
-                },
-                platforms: [
-                    { name: "RRP", price: 438.89, grossProfit: 348.90, markup: 387.43, verifyLink: null },
-                    { name: "Amazon", price: 418.48, grossProfit: 328.49, markup: 365.43, verifyLink: "https://www.amazon.com/s?k=handmade+pakistani+carpet" },
-                    { name: "eBay", price: 398.25, grossProfit: 308.26, markup: 342.45, verifyLink: "https://www.ebay.com/sch/i.html?_nkw=handmade+pakistani+carpet" }
-                ],
-                specifications: {
-                    "Material": "100% Premium Wool",
-                    "Dimensions": "6' x 9' (72' x 108')",
-                    "Weight": "15 lbs",
-                    "Color": "Traditional Red & Blue",
-                    "Weave": "Hand-knotted",
-                    "Knots Per Sq Inch": "120",
-                    "Backing": "Cotton Canvas",
-                    "Origin": "Made in Pakistan"
-                },
-                category: "Home Decor"
-            },
-            'running-shoes': {
-                id: "running-shoes",
-                name: "Running Shoes",
-                price: 24.99,
-                rrp: 89.99,
-                rating: 4.5,
-                reviews: 156,
-                markup: "295%",
-                image: "https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=800&auto=format&fit=crop",
-                dealInfo: {
-                    flag: "🇵🇰",
-                    location: "Pakistan",
-                    minOrder: "1 Unit",
-                    grade: "New",
-                    condition: "Excellent"
-                },
-                platforms: [
-                    { name: "RRP", price: 89.99, grossProfit: 65.00, markup: 260.00, verifyLink: null },
-                    { name: "Amazon", price: 85.48, grossProfit: 60.49, markup: 242.43, verifyLink: "https://www.amazon.com/s?k=running+shoes" },
-                    { name: "eBay", price: 79.25, grossProfit: 54.26, markup: 217.45, verifyLink: "https://www.ebay.com/sch/i.html?_nkw=running+shoes" }
-                ],
-                specifications: {
-                    "Material": "Mesh & Synthetic",
-                    "Sole": "Rubber",
-                    "Closure": "Lace-up",
-                    "Weight": "280 grams",
-                    "Activity": "Running, Training",
-                    "Cushioning": "Advanced",
-                    "Breathable": "Yes",
-                    "Origin": "Made in Pakistan"
-                },
-                category: "Sports & Fitness"
+                category: "Jewelry",
+                supplier: {
+                    company: "Jewelry Craftsmen Ltd",
+                    phone: "+92 307 7717077",
+                    email: "jewelry@craftsmen.pk",
+                    whatsapp: "+92 307 7717077",
+                    address: "Jewelers Street, Hyderabad 71000",
+                    countries: "Pakistan, UAE, UK, USA",
+                    cities: "Hyderabad, Karachi, Lahore",
+                    categories: "Jewelry, Accessories",
+                    experience: "20+ Years in Jewelry Manufacturing"
+                }
             }
         };
 
@@ -961,17 +1091,94 @@
             return stars;
         }
 
+        // Function to update image gallery
+        function updateImageGallery(images) {
+            const mainImage = document.getElementById('main-image');
+            const thumbnailContainer = document.getElementById('thumbnail-container');
+            
+            if (!images || images.length === 0) images = [];
+            // Ensure at least 5 images (1 main + 4 thumbs). Use placeholders if missing.
+            const placeholder = 'https://via.placeholder.com/600x600?text=Image';
+            while (images.length < 5) {
+                images.push(placeholder);
+            }
+            
+            // Set main image
+            mainImage.src = images[0];
+            mainImage.alt = "Product Image";
+            
+            // Clear thumbnails
+            thumbnailContainer.innerHTML = '';
+            
+            // Add thumbnails (first is main, still shown in thumbs as active)
+            images.slice(0, 5).forEach((image, index) => {
+                const thumbnail = document.createElement('img');
+                thumbnail.src = image;
+                thumbnail.alt = `Product Image ${index + 1}`;
+                thumbnail.className = index === 0 ? 'thumbnail active' : 'thumbnail';
+                thumbnail.addEventListener('click', () => {
+                    // Update main image
+                    mainImage.src = image;
+                    
+                    // Update active thumbnail
+                    document.querySelectorAll('.thumbnail').forEach(thumb => {
+                        thumb.classList.remove('active');
+                    });
+                    thumbnail.classList.add('active');
+                });
+                
+                thumbnailContainer.appendChild(thumbnail);
+            });
+        }
+
         // Load and display product
         function loadProduct() {
             let productData = null;
-            
-            if (productId && products[productId]) {
-                productData = products[productId];
-            } else {
-                // Default to first product if no ID specified or not found
-                productData = products['leather-handbag'];
+
+            // A) If name/img provided via URL (from index/Amazon's Choice), use them
+            if (productNameParam) {
+                productData = {
+                    id: productId || productNameParam,
+                    name: productNameParam,
+                    price: 19.89,
+                    rrp: 89.89,
+                    rating: 4.5,
+                    reviews: 50,
+                    markup: '300%',
+                    monthlyOrders: '1.5K',
+                    image: productImgParam || 'https://via.placeholder.com/600x600?text=Image',
+                    images: [productImgParam || 'https://via.placeholder.com/600x600?text=Image'],
+                    dealInfo: { flag: '🇵🇰', location: 'Pakistan', minOrder: '1 Unit', grade: 'New', condition: 'Excellent' },
+                    platforms: [
+                        { name: 'RRP', price: 89.89, grossProfit: 70.00, markup: 352.43, verifyLink: null },
+                        { name: 'Amazon', price: 79.89, grossProfit: 60.00, markup: 301.43, verifyLink: `https://www.amazon.com/s?k=${encodeURIComponent(productNameParam)}` }
+                    ],
+                    specifications: {},
+                    category: 'General',
+                    supplier: {
+                        company: 'Verified Supplier', phone: '+92 301 6611011', email: 'info@example.com', whatsapp: '+92 301 6611011',
+                        address: 'Pakistan', countries: 'Pakistan, UK, USA', cities: 'Karachi, Lahore, Islamabad', categories: 'Assorted', experience: '5+ Years'
+                    }
+                };
             }
-            
+
+            // B) Exact ID match from internal table
+            if (!productData && productId && products[productId]) {
+                productData = products[productId];
+            }
+
+            // C) Name-based internal table
+            if (!productData && productNameParam) {
+                const nameLower = productNameParam.trim().toLowerCase();
+                const byName = Object.values(products).find(p => p.name.toLowerCase() === nameLower) || Object.values(products).find(p => p.name.toLowerCase().includes(nameLower));
+                if (byName) productData = byName;
+            }
+
+            // D) Fallback to a default
+            if (!productData) {
+                productData = products[101];
+            }
+
             if (productData) {
                 displayProduct(productData);
             } else {
@@ -999,12 +1206,14 @@
             ratingText.textContent = '(' + product.reviews + ' reviews)';
             
             // Update pricing
-            document.getElementById('main-price').textContent = '$' + product.price.toFixed(2);
-            document.getElementById('rrp-price').textContent = '$' + product.rrp.toFixed(2);
+            document.getElementById('main-price').textContent = '£' + product.price.toFixed(2);
+            document.getElementById('rrp-price').textContent = '£' + product.rrp.toFixed(2);
             
-            // Update image
-            document.getElementById('main-image').src = product.image;
-            document.getElementById('main-image').alt = product.name;
+            // Update monthly orders
+            document.getElementById('monthly-orders').textContent = 'Monthly Orders: ' + product.monthlyOrders;
+            
+            // Update image gallery
+            updateImageGallery(product.images);
             
             // Update platform comparison table
             updatePlatformTable(product.platforms);
@@ -1017,6 +1226,9 @@
             
             // Update category
             document.getElementById('main-category').textContent = product.category;
+            
+            // Update supplier details
+            updateSupplierDetails(product.supplier);
             
             // Update related products
             updateRelatedProducts(product.id);
@@ -1038,8 +1250,8 @@
                 
                 row.innerHTML = `
                     <td>${platformCell}</td>
-                    <td>$${platform.price.toFixed(2)} / Unit</td>
-                    <td>$${platform.grossProfit.toFixed(2)} / Unit</td>
+                    <td>£${platform.price.toFixed(2)} / Unit</td>
+                    <td>£${platform.grossProfit.toFixed(2)} / Unit</td>
                     <td>${platform.markup.toFixed(2)}%</td>
                     <td>${platform.verifyLink ? '<a href="' + platform.verifyLink + '" class="btn btn-primary btn-sm action-btn" target="_blank">Verify</a>' : ''}</td>
                 `;
@@ -1070,6 +1282,18 @@
             }
         }
 
+        function updateSupplierDetails(supplier) {
+            document.getElementById('supplier-company').textContent = 'Company: ' + supplier.company;
+            document.getElementById('supplier-phone').textContent = 'Phone: ' + supplier.phone;
+            document.getElementById('supplier-email').textContent = 'Email: ' + supplier.email;
+            document.getElementById('supplier-whatsapp').textContent = 'WhatsApp: ' + supplier.whatsapp;
+            document.getElementById('supplier-address').textContent = 'Address: ' + supplier.address;
+            document.getElementById('supplier-countries').textContent = 'Countries: ' + supplier.countries;
+            document.getElementById('supplier-cities').textContent = 'Pakistan Cities: ' + supplier.cities;
+            document.getElementById('supplier-categories').textContent = 'Sub-categories: ' + supplier.categories;
+            document.getElementById('supplier-experience').textContent = 'Experience: ' + supplier.experience;
+        }
+
         function updateRelatedProducts(currentProductId) {
             const relatedContainer = document.getElementById('related-products');
             relatedContainer.innerHTML = '';
@@ -1090,13 +1314,16 @@
                         <div class="related-card-rating">
                             ${generateStars(product.rating)}
                         </div>
-                        <div class="related-card-price">$${product.price.toFixed(2)}</div>
+                        <div class="related-card-price">£${product.price.toFixed(2)}</div>
                     </div>
                 `;
                 
                 // Add click event to related products
                 relatedCard.addEventListener('click', function() {
-                    window.location.href = `product.html?id=${product.id}`;
+                    const u = new URL(window.location.origin + '/product.html');
+                    u.searchParams.set('id', product.id);
+                    u.searchParams.set('name', product.name);
+                    window.open(u.toString(), '_blank');
                 });
                 
                 relatedContainer.appendChild(relatedCard);

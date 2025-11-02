@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Latest Deals - Amazon Gymkhana</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"> 
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { 
+            --brand:#ff9900; 
+            --dark:#232f3e; 
+            --muted:#6b7280;
+            --card-radius:16px;
+        }
+        
+        body{ 
+            font-family:'Open Sans',sans-serif; 
+            background:#f5f7fb; 
+            margin:0;
+            -webkit-font-smoothing:antialiased;
+        }
+        
+        /* Navbar */
+        .navbar{ 
+            background:var(--dark)!important; 
+            padding:12px 0;
+            box-shadow:0 4px 18px rgba(0,0,0,0.08);
+        }
+        
+        .navbar-nav .nav-link{ 
+            color:rgba(255,255,255,0.95)!important; 
+            position:relative; 
+            font-weight:500;
+            transition:color 0.3s ease;
+        }
+        
+        .navbar-nav .nav-link.active, 
+        .navbar-nav .nav-link:hover{ 
+            color:var(--brand)!important; 
+        }
+        
+        .navbar-nav .nav-link.active::after{ 
+            content:''; 
+            position:absolute; 
+            left:10px; 
+            right:10px; 
+            bottom:-6px; 
+            height:3px; 
+            background:var(--brand); 
+            border-radius:2px; 
+        }
+
+        /* Hero Banner */
+        .hero-banner {
+            background: linear-gradient(135deg, var(--brand), #ff6600);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+        
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23ffffff" opacity="0.1"><polygon points="50,0 100,50 50,100 0,50"/></svg>');
+            background-size: 80px;
+            animation: patternMove 30s linear infinite;
+        }
+        
+        @keyframes patternMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 80px 80px; }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto 25px;
+            opacity: 0.9;
+        }
+        
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .countdown-item {
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 15px;
+            min-width: 80px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .countdown-number {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+        
+        .countdown-label {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        /* Deal Cards */
+        .deal-card{ 
+            background:#fff; 
+            border-radius:var(--card-radius); 
+            overflow:hidden; 
+            box-shadow:0 6px 18px rgba(0,0,0,0.08); 
+            transition:all 0.3s ease; 
+            height:100%; 
+            cursor:pointer;
+            position: relative;
+        }
+        
+        .deal-card:hover{ 
+            transform:translateY(-8px); 
+            box-shadow:0 12px 28px rgba(0,0,0,0.15); 
+        }
+        
+        .deal-img{ 
+            height:220px; 
+            background:#f8f9fa; 
+            display:flex; 
+            align-items:center; 
+            justify-content:center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .deal-img img{ 
+            max-width:90%; 
+            max-height:90%; 
+            object-fit:contain;
+            transition: transform 0.5s ease;
+        }
+        
+        .deal-card:hover .deal-img img {
+            transform: scale(1.05);
+        }
+        
+        .deal-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: #ff3333;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            z-index: 3;
+            box-shadow: 0 4px 10px rgba(255,51,51,0.3);
+        }
+        
+        .badge-markup{ 
+            background:#28a745; 
+            color:#fff; 
+            border-radius:12px; 
+            padding:4px 10px; 
+            font-size:.8rem; 
+            font-weight:700; 
+            box-shadow:0 4px 10px rgba(40,167,69,0.2);
+        }
+        
+        .price-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+        }
+        
+        .current-price {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--brand);
+        }
+        
+        .original-price {
+            text-decoration: line-through;
+            color: var(--muted);
+            font-size: 1rem;
+        }
+        
+        .discount-badge {
+            background: #ff3333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        
+        .deal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .deal-actions .btn {
+            flex: 1;
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-view {
+            background: var(--brand);
+            border: none;
+            color: white;
+        }
+        
+        .btn-view:hover {
+            background: #e68900;
+            transform: translateY(-2px);
+        }
+        
+        .btn-contact {
+            background: #25D366;
+            border: none;
+            color: white;
+        }
+        
+        .btn-contact:hover {
+            background: #1da851;
+            transform: translateY(-2px);
+        }
+        
+        .btn-verify {
+            background: #232f3e;
+            border: none;
+            color: white;
+            font-size: 0.8rem;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-verify:hover {
+            background: #37475a;
+            transform: translateY(-2px);
+        }
+
+        /* Section Styling */
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+        
+        .section-subtitle {
+            text-align: center;
+            color: var(--muted);
+            max-width: 700px;
+            margin: 0 auto 40px;
+            font-size: 1.1rem;
+        }
+
+        /* Footer */
+        .footer{ 
+            background:linear-gradient(135deg,var(--dark),#1a202c); 
+            color:#fff;
+            padding: 60px 0 30px;
+            margin-top: 60px;
+        }
+        
+        .footer h5 {
+            font-weight: 700;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .footer h5:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 3px;
+            width: 40px;
+            background: var(--brand);
+            border-radius: 2px;
+        }
+        
+        .footer ul {
+            list-style:none;
+            padding:0;
+            margin:0;
+        }
+        
+        .footer ul li {
+            margin-bottom:12px;
+        }
+        
+        .footer ul li a {
+            color:rgba(255,255,255,0.85);
+            text-decoration:none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer ul li a:hover {
+            color:var(--brand);
+        }
+        
+        .copyright {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+            margin-top: 40px;
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* WhatsApp Floating Button */
+        .whatsapp-float {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+            color: #fff;
+            text-decoration: none;
+            box-shadow: 0 10px 30px rgba(18,140,126,0.18);
+            transition: transform 0.3s ease;
+        }
+        
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+        }
+        
+        .whatsapp-float i {
+            font-size: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .countdown {
+                gap: 10px;
+            }
+            
+            .countdown-item {
+                min-width: 70px;
+                padding: 12px;
+            }
+            
+            .countdown-number {
+                font-size: 1.6rem;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- WhatsApp Floating Button -->
+    <a href="https://wa.me/923016611011" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">Amazon <span style="color:var(--brand)">Gymkhana</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navMain">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="Amazon's Choice.html">Amazon's Choice</a></li>
+                    <li class="nav-item"><a class="nav-link" href="categories.html">Best Sellers Categories</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="latest-deals.html">Latest Deals</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+                <div class="d-flex">
+                    <a href="login.html" class="btn btn-outline-light me-2">Login</a>
+                    <a href="register.html" class="btn btn-light" style="background:var(--brand);border:0;color:#fff;">Register</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Latest Wholesale Deals</h1>
+                <p class="hero-subtitle">Exclusive limited-time offers with high-profit margins. Don't miss these hot-selling products!</p>
+                
+                <div class="countdown">
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="days">02</span>
+                        <span class="countdown-label">Days</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="hours">12</span>
+                        <span class="countdown-label">Hours</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="minutes">45</span>
+                        <span class="countdown-label">Minutes</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="seconds">30</span>
+                        <span class="countdown-label">Seconds</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deals Section -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-title">Best Latest Wholesale Deals</h2>
+            <p class="section-subtitle">Hand-picked products with proven sales performance and high-profit margins. Perfect for resellers and retailers.</p>
+            
+            <div class="row" id="deals-grid"></div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5>About Amazon Choice</h5>
+                    <p>Connecting Pakistan's Amazon sellers, suppliers, and service providers under one platform to foster growth and collaboration.</p>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="Amazon's Choice.html">Amazon's Choice</a></li>
+                        <li><a href="categories.html">Best Seller Categories</a></li>
+                        <li><a href="latest-deals.html">Today's deals</a></li>
+                        <li><a href="contact.html">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5>Important Links</h5>
+                    <ul>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Help Center</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5>Contact Info</h5>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt me-2"></i> Islamabad, Pakistan</li>
+                        <li><i class="fas fa-envelope me-2"></i> info@amazonchoice.pk</li>
+                        <li><i class="fas fa-phone me-2"></i> +92 300 1234567</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">&copy; <span id="year"></span> Amazon Choice. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const latestDeals = [
+            { id:'prod-116', name:'Sorrento Italian Padded Calf Leather Watch Strap - Black', price:14.99, rrp:49.99, image:'main-pics/Black.jpg', markup:'280%', discount:'70% OFF' },
+            { id:'prod-133', name:'Waterproof Black Gaffer Duct Tape 50mm x 50m', price:8.99, rrp:24.99, image:'main-pics/Black-T.jpg', markup:'220%', discount:'64% OFF' },
+            { id:'prod-139', name:'Red Paper Lampshades for Ceiling Lights 40cm', price:14.99, rrp:39.99, image:'main-pics/Red-Lampshade.jpg', markup:'250%', discount:'63% OFF' },
+            { id:'prod-001', name:'Large White Glitter Fairy Wings', price:19.89, rrp:49.89, image:'main-pics/whiteFairy.jpg', markup:'340%', discount:'60% OFF' },
+            { id:'prod-002', name:'150 Clear Reusable Forks', price:19.89, rrp:39.89, image:'main-pics/forks.jpg', markup:'320%', discount:'50% OFF' },
+            { id:'prod-003', name:'50 Heavy Duty Clear Plastic Spoons', price:19.89, rrp:39.89, image:'main-pics/spoons.jpg', markup:'290%', discount:'50% OFF' },
+            { id:'prod-004', name:'Flat Neon Shoe Laces', price:19.89, rrp:39.89, image:'main-pics/laces.jpg', markup:'310%', discount:'50% OFF' },
+            { id:'prod-007', name:'Clear Reusable Knives', price:19.89, rrp:49.89, image:'main-pics/Knife.jpg', markup:'320%', discount:'60% OFF' },
+            { id:'prod-005', name:'Extra Thin Small Nose Ring', price:19.89, rrp:39.89, image:'main-pics/nose ring.jpg', markup:'270%', discount:'50% OFF' },
+            { id:'prod-006', name:'1M Charger Cable', price:19.89, rrp:34.89, image:'main-pics/Charger Cable.jpg', markup:'220%', discount:'43% OFF' },
+            { id:'prod-011', name:'Paper Drinking Straws', price:19.89, rrp:49.89, image:'main-pics/Straws.jpg', markup:'290%', discount:'60% OFF' },
+            { id:'prod-012', name:'1L Plastic Measuring Jug', price:19.89, rrp:59.89, image:'main-pics/Measuring Jug.jpg', markup:'340%', discount:'67% OFF' },
+            { id:'prod-132', name:'Black NATO Watch Strap', price:19.89, rrp:49.89, image:'main-pics/strap.jpg', markup:'250%', discount:'60% OFF' },
+            { id:'prod-046', name:'Inflatable Dolphin', price:19.89, rrp:39.89, image:'main-pics/Inflatable Dolphin.jpg', markup:'280%', discount:'50% OFF' },
+            { id:'prod-051', name:'Inflatable Spiderman', price:19.89, rrp:49.89, image:'main-pics/Inflatable Spiderman.jpg', markup:'320%', discount:'60% OFF' },
+            { id:'prod-024', name:'Cake Topper Happy Birthday', price:19.89, rrp:34.89, image:'main-pics/Cake Topper.jpg', markup:'250%', discount:'43% OFF' }
+        ];
+
+        function renderDeals(){
+            const grid = document.getElementById('deals-grid');
+            grid.innerHTML = latestDeals.map(d => `
+                <div class="col-sm-6 col-lg-4 col-xl-3 mb-4">
+                    <div class="deal-card" data-id="${d.id}" data-name="${d.name}">
+                        <div class="deal-badge">${d.discount}</div>
+                        <div class="deal-img">
+                            <img src="${d.image}" alt="${d.name}" onerror="this.src='main-pics/placeholder.jpg'">
+                        </div>
+                        <div class="p-3">
+                            <h5 class="fw-bold mb-2" style="font-size: 1rem; line-height: 1.3;">${d.name}</h5>
+                            
+                            <div class="price-section">
+                                <div>
+                                    <div class="current-price">£${d.price.toFixed(2)}</div>
+                                    <div class="original-price">RRP £${d.rrp.toFixed(2)}</div>
+                                </div>
+                                <span class="badge-markup">${d.markup}</span>
+                            </div>
+                            
+                            <div class="deal-actions">
+                                <a class="btn btn-view" href="product.html?id=${d.id}&name=${encodeURIComponent(d.name)}" target="_blank">
+                                    <i class="fas fa-eye me-1"></i> View Deal
+                                </a>
+                                <a class="btn btn-contact" href="https://wa.me/923016611011" target="_blank">
+                                    <i class="fab fa-whatsapp me-1"></i> Contact
+                                </a>
+                            </div>
+                            
+                            <button class="btn-verify" onclick="verifyOnAmazon('${d.name}')">
+                                <i class="fab fa-amazon"></i> Verify on Amazon
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Working Countdown Timer
+        function updateCountdown() {
+            // Set target time to 48 hours from now
+            const targetTime = new Date().getTime() + (48 * 60 * 60 * 1000);
+            const now = new Date().getTime();
+            const diff = targetTime - now;
+            
+            if (diff <= 0) {
+                // If countdown finished, reset to 48 hours
+                resetCountdown();
+                return;
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            // Update the display
+            document.getElementById('days').textContent = days.toString().padStart(2, '0');
+            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+        }
+
+        function resetCountdown() {
+            // Reset to 48 hours
+            document.getElementById('days').textContent = '02';
+            document.getElementById('hours').textContent = '00';
+            document.getElementById('minutes').textContent = '00';
+            document.getElementById('seconds').textContent = '00';
+        }
+
+        // Verify on Amazon functionality
+        function verifyOnAmazon(productName) {
+            const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(productName)}`;
+            window.open(amazonUrl, '_blank');
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDeals();
+            
+            // Start the countdown timer
+            updateCountdown(); // Initial call
+            setInterval(updateCountdown, 1000); // Update every second
+            
+            document.getElementById('year').textContent = new Date().getFullYear();
+        });
+    </script>
+</body>
+</html>
