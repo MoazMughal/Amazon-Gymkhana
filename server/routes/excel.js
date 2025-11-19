@@ -1,0 +1,503 @@
+import express from 'express';
+import xlsx from 'xlsx';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import axios from 'axios';
+import * as cheerio from 'cheerio';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const router = express.Router();
+
+// Cache for Amazon images to avoid repeated requests
+const imageCache = new Map();
+
+// Helper function to check if value is an image URL or filename
+function isImageUrl(value) {
+  if (!value) return false;
+  const str = value.toString().toLowerCase();
+  return str.endsWith('.jpg') || str.endsWith('.jpeg') || 
+         str.endsWith('.png') || str.endsWith('.gif') || 
+         str.endsWith('.webp') || str.includes('http') ||
+         str.includes('amazon.com/images') || str.includes('media-amazon') ||
+         str.includes('ssl-images-amazon') || str.match(/^[A-Z0-9]+\.(jpg|jpeg|png)$/i);
+}
+
+// Helper function to extract product name from row data
+function extractProductName(row, allKeys, index) {
+  let productName = '';
+  
+  // First, try columns with 'name', 'title', or 'product' in the key
+  const nameKeys = allKeys.filter(key => 
+    key.toLowerCase().includes('name') || 
+    key.toLowerCase().includes('title') || 
+    key.toLowerCase().includes('product')
+  );
+  
+  for (const key of nameKeys) {
+    const value = row[key];
+    if (value && value.toString().trim() && !isImageUrl(value)) {
+      productName = value.toString().trim();
+      if (index < 3) {
+        console.log(`  ✓ Found product name in column "${key}": ${productName.substring(0, 60)}...`);
+      }
+      return productName;
+    }
+  }
+  
+  // If still no name found, try ALL columns (excluding obvious non-name columns)
+  for (const key of allKeys) {
+    const value = row[key];
+    const keyLower = key.toLowerCase();
+    
+    // Skip columns that are clearly not product names
+    if (keyLower.includes('image') || keyLower.includes('url') || 
+        keyLower.includes('link') || keyLower.includes('asin') ||
+        keyLower.includes('price') || keyLower.includes('rating') ||
+        keyLower.includes('review') || keyLower.includes('stock')) {
+      continue;
+    }
+    
+    if (value && value.toString().trim() && !isImageUrl(value) && value.toString().length > 10) {
+      productName = value.toString().trim();
+      if (index < 3) {
+        console.log(`  ✓ Found product name in column "${key}": ${productName.substring(0, 60)}...`);
+      }
+      return productName;
+    }
+  }
+  
+  return `Product ${index + 1}`;
+}
+
+// Function to fetch Amazon product image by ASIN
+async function fetchAmazonImage(asin) {
+  if (!asin) return null;
+  
+  // Check cache first
+  if (imageCache.has(asin)) {
+    return imageCache.get(asin);
+  }
+  
+  try {
+    // Try multiple Amazon domains
+    const domains = ['amazon.com', 'amazon.co.uk'];
+    
+    for (const domain of domains) {
+      try {
+        const url = `https://www.${domain}/dp/${asin}`;
+        const response = await axios.get(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+          },
+          timeout: 5000
+        });
+        
+        const $ = cheerio.load(response.data);
+        
+        // Try multiple selectors for product images
+        let imageUrl = null;
+        
+        // Method 1: Main product image
+        imageUrl = $('#landingImage').attr('src') || $('#landingImage').attr('data-old-hires');
+        
+        // Method 2: Alternative image container
+        if (!imageUrl) {
+          imageUrl = $('#imgBlkFront').attr('src');
+        }
+        
+        // Method 3: Image in JSON data
+        if (!imageUrl) {
+          const scriptTags = $('script[type="text/javascript"]');
+          scriptTags.each((i, elem) => {
+            const scriptContent = $(elem).html();
+            if (scriptContent && scriptContent.includes('ImageBlockATF')) {
+              const match = scriptContent.match(/"hiRes":"([^"]+)"/);
+              if (match) {
+                imageUrl = match[1];
+              }
+            }
+          });
+        }
+        
+        if (imageUrl) {
+          // Clean up the URL
+          imageUrl = imageUrl.replace(/\._.*?_\./, '._AC_SL1500_.');
+          imageCache.set(asin, imageUrl);
+          return imageUrl;
+        }
+      } catch (err) {
+        console.log(`Failed to fetch from ${domain}:`, err.message);
+        continue;
+      }
+    }
+    
+    // If all methods fail, return a constructed URL (may or may not work)
+    const fallbackUrl = `https://images-na.ssl-images-amazon.com/images/P/${asin}.jpg`;
+    imageCache.set(asin, fallbackUrl);
+    return fallbackUrl;
+    
+  } catch (error) {
+    console.error(`Error fetching image for ASIN ${asin}:`, error.message);
+    return null;
+  }
+}
+
+// Read Excel file and return products
+router.get('/products', async (req, res) => {
+  try {
+    // Path to Excel file (in root directory)
+    const excelPath = path.join(__dirname, '../../Products.xlsx');
+    
+    // Read the Excel file
+    const workbook = xlsx.readFile(excelPath);
+    
+    // Get sheet name from query parameter or use first sheet
+    const requestedSheet = req.query.sheet;
+    const sheetName = requestedSheet || workbook.SheetNames[0];
+    
+    // Check if requested sheet exists
+    if (!workbook.SheetNames.includes(sheetName)) {
+      return res.status(404).json({
+        success: false,
+        message: `Sheet "${sheetName}" not found`,
+        availableSheets: workbook.SheetNames
+      });
+    }
+    
+    const worksheet = workbook.Sheets[sheetName];
+    
+    // Convert to JSON
+    const data = xlsx.utils.sheet_to_json(worksheet);
+    
+    // Transform data to match product format
+    const products = await Promise.all(data.map(async (row, index) => {
+      // Get ASIN and construct Amazon image URL
+      const asin = row.ASIN || row.asin || row['Product ASIN'] || '';
+      
+      // Multiple Amazon image URL formats to try
+      let imageUrl = '';
+      if (asin) {
+        // Try different Amazon image URL formats
+        // Format 1: Standard Amazon images
+        imageUrl = `https://m.media-amazon.com/images/I/${asin}._AC_SL1500_.jpg`;
+        // Fallback formats stored for frontend to try
+      }
+      
+      // Try multiple column name variations for product name
+      const productName = row.Name || row.name || row['Product Name'] || row['Product Title'] || 
+                         row.Title || row.title || row['Product'] || row.product || 
+                         `Product ${index + 1}`;
+      
+      // Generate random price if not provided (between 5 and 100)
+      const basePrice = parseFloat(row.Price || row.price || (Math.random() * 95 + 5).toFixed(2));
+      const originalPrice = parseFloat(row['Original Price'] || row.originalPrice || (basePrice * 1.3).toFixed(2));
+      
+      // Calculate discount
+      const discount = row.Discount || row.discount || Math.round(((originalPrice - basePrice) / originalPrice) * 100);
+      
+      // Random rating between 3.5 and 5.0
+      const rating = parseFloat(row.Rating || row.rating || (Math.random() * 1.5 + 3.5).toFixed(1));
+      
+      // Random reviews between 50 and 5000
+      const reviews = parseInt(row.Reviews || row.reviews || Math.floor(Math.random() * 4950 + 50));
+      
+      // Get image URL from Excel or fetch from Amazon
+      let finalImageUrl = row.Image || row.image || row['Image URL'] || row['Product Image'] || '';
+      
+      // If no image URL provided but ASIN exists, fetch from Amazon
+      if (!finalImageUrl && asin) {
+        console.log(`Fetching image for ASIN: ${asin}`);
+        finalImageUrl = await fetchAmazonImage(asin);
+      }
+      
+      // Fallback to placeholder if still no image
+      if (!finalImageUrl) {
+        finalImageUrl = 'https://via.placeholder.com/400x400?text=No+Image';
+      }
+      
+      return {
+        id: `excel-${index + 1}`,
+        name: productName,
+        asin: asin,
+        price: basePrice,
+        originalPrice: originalPrice,
+        category: row.Category || row.category || 'Uncategorized',
+        brand: row.Brand || row.brand || '',
+        rating: rating,
+        reviews: reviews,
+        stock: parseInt(row.Stock || row.stock || Math.floor(Math.random() * 100 + 10)),
+        description: row.Description || row.description || '',
+        image: finalImageUrl,
+        images: [finalImageUrl],
+        discount: discount,
+        // Raw data for reference
+        rawData: row
+      };
+    }));
+    
+    res.json({
+      success: true,
+      total: products.length,
+      products: products
+    });
+    
+  } catch (error) {
+    console.error('Error reading Excel file:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error reading Excel file',
+      error: error.message
+    });
+  }
+});
+
+// Get Excel file info
+router.get('/info', async (req, res) => {
+  try {
+    const excelPath = path.join(__dirname, '../../Products.xlsx');
+    const workbook = xlsx.readFile(excelPath);
+    
+    const info = {
+      sheets: workbook.SheetNames,
+      sheetCount: workbook.SheetNames.length
+    };
+    
+    // Get column headers from first sheet
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = xlsx.utils.sheet_to_json(firstSheet, { header: 1 });
+    info.columns = data[0] || [];
+    info.rowCount = data.length - 1; // Exclude header
+    
+    res.json(info);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error reading Excel file info',
+      error: error.message
+    });
+  }
+});
+
+// Get products by category (Best Selling or Fast Selling)
+router.get('/products-by-category', async (req, res) => {
+  try {
+    const excelPath = path.join(__dirname, '../../Products.xlsx');
+    const workbook = xlsx.readFile(excelPath);
+    
+    const result = {
+      fastSelling: [],
+      bestSelling: []
+    };
+    
+    // Process Amazon10 sheet for Best Selling products
+    if (workbook.SheetNames.includes('Amazon10')) {
+      const worksheet = workbook.Sheets['Amazon10'];
+      const data = xlsx.utils.sheet_to_json(worksheet);
+      
+      console.log(`\n=== Amazon10 Sheet ===`);
+      console.log(`Total rows: ${data.length}`);
+      if (data.length > 0) {
+        console.log('Column names:', Object.keys(data[0]));
+        console.log('First row sample:', data[0]);
+      }
+      
+      const products = await Promise.all(data.map(async (row, index) => {
+        // Get all possible column values
+        const allKeys = Object.keys(row);
+        
+        // ASIN - try all variations
+        const asin = row.ASIN || row.asin || row['Product ASIN'] || row['ASIN Code'] || '';
+        
+        // Product Name - use helper function to extract properly
+        const productName = extractProductName(row, allKeys, index);
+        
+        // Price - try all variations
+        let basePrice = 0;
+        const priceKeys = allKeys.filter(key => 
+          key.toLowerCase().includes('price') && 
+          !key.toLowerCase().includes('original') &&
+          !key.toLowerCase().includes('list')
+        );
+        for (const key of priceKeys) {
+          const val = parseFloat(row[key]);
+          if (!isNaN(val) && val > 0) {
+            basePrice = val;
+            break;
+          }
+        }
+        if (basePrice === 0) basePrice = parseFloat((Math.random() * 95 + 5).toFixed(2));
+        
+        const originalPrice = parseFloat(row['Original Price'] || row.originalPrice || row['List Price'] || (basePrice * 1.3).toFixed(2));
+        const discount = row.Discount || row.discount || row['Discount %'] || Math.round(((originalPrice - basePrice) / originalPrice) * 100);
+        const rating = parseFloat(row.Rating || row.rating || row['Product Rating'] || row['Star Rating'] || (Math.random() * 1.5 + 3.5).toFixed(1));
+        const reviews = parseInt(row.Reviews || row.reviews || row['Review Count'] || row['Number of Reviews'] || Math.floor(Math.random() * 4950 + 50));
+        
+        // Image URL - try ALL possible column names
+        let finalImageUrl = '';
+        const imageKeys = allKeys.filter(key => 
+          key.toLowerCase().includes('image') || 
+          key.toLowerCase().includes('picture') || 
+          key.toLowerCase().includes('photo') ||
+          key.toLowerCase().includes('img') ||
+          key.toLowerCase().includes('url')
+        );
+        for (const key of imageKeys) {
+          if (row[key] && row[key].toString().trim()) {
+            finalImageUrl = row[key].toString().trim();
+            break;
+          }
+        }
+        
+        if (!finalImageUrl && asin) {
+          console.log(`Fetching image for ASIN: ${asin}`);
+          finalImageUrl = await fetchAmazonImage(asin);
+        }
+        if (!finalImageUrl) {
+          finalImageUrl = 'https://via.placeholder.com/400x400?text=No+Image';
+        }
+        
+        if (index < 3) {
+          console.log(`Product ${index + 1}:`, {
+            name: productName,
+            price: basePrice,
+            image: finalImageUrl.substring(0, 50) + '...'
+          });
+        }
+        
+        return {
+          id: `amazon10-${index + 1}`,
+          name: productName,
+          asin: asin,
+          price: basePrice,
+          originalPrice: originalPrice,
+          category: row.Category || row.category || row['Product Category'] || 'Uncategorized',
+          brand: row.Brand || row.brand || row['Brand Name'] || '',
+          rating: rating,
+          reviews: reviews,
+          stock: parseInt(row.Stock || row.stock || row['Stock Quantity'] || Math.floor(Math.random() * 100 + 10)),
+          description: row.Description || row.description || row['Product Description'] || '',
+          image: finalImageUrl,
+          images: [finalImageUrl],
+          discount: discount,
+          isBestSeller: true,
+          sheet: 'Amazon10',
+          rawData: row // Keep raw data for debugging
+        };
+      }));
+      
+      result.bestSelling = products;
+      console.log(`Processed ${products.length} Best Selling products from Amazon10`);
+    }
+    
+    // Process first sheet for Fast Selling products
+    const firstSheetName = workbook.SheetNames[0];
+    if (firstSheetName && firstSheetName !== 'Amazon10') {
+      const worksheet = workbook.Sheets[firstSheetName];
+      const data = xlsx.utils.sheet_to_json(worksheet);
+      
+      console.log(`\n=== ${firstSheetName} Sheet (Fast Selling) ===`);
+      console.log(`Total rows: ${data.length}`);
+      if (data.length > 0) {
+        console.log('Column names:', Object.keys(data[0]));
+      }
+      
+      const products = await Promise.all(data.map(async (row, index) => {
+        const allKeys = Object.keys(row);
+        
+        const asin = row.ASIN || row.asin || row['Product ASIN'] || row['ASIN Code'] || '';
+        
+        // Product Name - use helper function to extract properly
+        const productName = extractProductName(row, allKeys, index);
+        
+        // Price
+        let basePrice = 0;
+        const priceKeys = allKeys.filter(key => 
+          key.toLowerCase().includes('price') && 
+          !key.toLowerCase().includes('original') &&
+          !key.toLowerCase().includes('list')
+        );
+        for (const key of priceKeys) {
+          const val = parseFloat(row[key]);
+          if (!isNaN(val) && val > 0) {
+            basePrice = val;
+            break;
+          }
+        }
+        if (basePrice === 0) basePrice = parseFloat((Math.random() * 95 + 5).toFixed(2));
+        
+        const originalPrice = parseFloat(row['Original Price'] || row.originalPrice || row['List Price'] || (basePrice * 1.3).toFixed(2));
+        const discount = row.Discount || row.discount || row['Discount %'] || Math.round(((originalPrice - basePrice) / originalPrice) * 100);
+        const rating = parseFloat(row.Rating || row.rating || row['Product Rating'] || row['Star Rating'] || (Math.random() * 1.5 + 3.5).toFixed(1));
+        const reviews = parseInt(row.Reviews || row.reviews || row['Review Count'] || row['Number of Reviews'] || Math.floor(Math.random() * 4950 + 50));
+        
+        // Image URL
+        let finalImageUrl = '';
+        const imageKeys = allKeys.filter(key => 
+          key.toLowerCase().includes('image') || 
+          key.toLowerCase().includes('picture') || 
+          key.toLowerCase().includes('photo') ||
+          key.toLowerCase().includes('img') ||
+          key.toLowerCase().includes('url')
+        );
+        for (const key of imageKeys) {
+          if (row[key] && row[key].toString().trim()) {
+            finalImageUrl = row[key].toString().trim();
+            break;
+          }
+        }
+        
+        if (!finalImageUrl && asin) {
+          finalImageUrl = await fetchAmazonImage(asin);
+        }
+        if (!finalImageUrl) {
+          finalImageUrl = 'https://via.placeholder.com/400x400?text=No+Image';
+        }
+        
+        return {
+          id: `fast-${index + 1}`,
+          name: productName,
+          asin: asin,
+          price: basePrice,
+          originalPrice: originalPrice,
+          category: row.Category || row.category || row['Product Category'] || 'Uncategorized',
+          brand: row.Brand || row.brand || row['Brand Name'] || '',
+          rating: rating,
+          reviews: reviews,
+          stock: parseInt(row.Stock || row.stock || row['Stock Quantity'] || Math.floor(Math.random() * 100 + 10)),
+          description: row.Description || row.description || row['Product Description'] || '',
+          image: finalImageUrl,
+          images: [finalImageUrl],
+          discount: discount,
+          isFastSelling: true,
+          sheet: firstSheetName,
+          rawData: row
+        };
+      }));
+      
+      result.fastSelling = products;
+      console.log(`Processed ${products.length} Fast Selling products from ${firstSheetName}`);
+    }
+    
+    res.json({
+      success: true,
+      fastSelling: result.fastSelling,
+      bestSelling: result.bestSelling,
+      totalFastSelling: result.fastSelling.length,
+      totalBestSelling: result.bestSelling.length
+    });
+    
+  } catch (error) {
+    console.error('Error reading Excel file:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error reading Excel file',
+      error: error.message
+    });
+  }
+});
+
+export default router;
