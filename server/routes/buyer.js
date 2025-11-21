@@ -24,7 +24,21 @@ router.post('/register', async (req, res) => {
 
     const existingBuyer = await Buyer.findOne({ email: email.toLowerCase() });
     if (existingBuyer) {
-      return res.status(400).json({ message: 'Email already registered' });
+      return res.status(400).json({ message: 'Email already registered as a buyer. Please use a different email or login.' });
+    }
+
+    // Check if email exists in Seller collection
+    const Seller = (await import('../models/Seller.js')).default;
+    const existingSeller = await Seller.findOne({ email: email.toLowerCase() });
+    if (existingSeller) {
+      return res.status(400).json({ message: 'Email already registered as a seller. Please use a different email or login as seller.' });
+    }
+
+    // Check if email exists in Admin collection
+    const Admin = (await import('../models/Admin.js')).default;
+    const existingAdmin = await Admin.findOne({ email: email.toLowerCase() });
+    if (existingAdmin) {
+      return res.status(400).json({ message: 'Email already registered. Please use a different email.' });
     }
 
     const buyer = new Buyer({
@@ -582,8 +596,8 @@ router.post('/forgot-password', async (req, res) => {
       });
     }
 
-    // Generate 6-digit OTP (use default for development)
-    const otp = process.env.NODE_ENV === 'development' ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Save OTP to buyer record
@@ -591,26 +605,13 @@ router.post('/forgot-password', async (req, res) => {
     buyer.passwordResetOTPExpiry = otpExpiry;
     await buyer.save();
 
-    // Send OTP via WhatsApp (in development, just log it)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('\n🔧 DEVELOPMENT MODE - PASSWORD RESET OTP');
-      console.log('=====================================');
-      console.log(`📱 Phone: ${buyer.whatsappNo}`);
-      console.log(`🔑 OTP: ${otp}`);
-      console.log(`👤 User: ${buyer.getFullName()}`);
-      console.log(`⏰ Expires: ${otpExpiry.toLocaleString()}`);
-      console.log('=====================================\n');
-    } else {
-      // In production, send actual WhatsApp message
-      console.log(`📱 Sending OTP to ${buyer.whatsappNo}: ${otp}`);
-    }
+    // Send OTP via WhatsApp
+    console.log(`📱 Sending OTP to ${buyer.whatsappNo}`);
 
     res.json({
       success: true,
       message: 'OTP sent to your WhatsApp number',
-      whatsappNo: buyer.whatsappNo.replace(/(\+\d{2})(\d{3})\d{4}(\d{4})/, '$1$2****$3'), // Masked number
-      // Return OTP in development mode only
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined
+      whatsappNo: buyer.whatsappNo.replace(/(\+\d{2})(\d{3})\d{4}(\d{4})/, '$1$2****$3') // Masked number
     });
   } catch (error) {
     console.error('Forgot password error:', error);
@@ -662,9 +663,8 @@ router.post('/reset-password', async (req, res) => {
       });
     }
 
-    // Check OTP (allow development default)
-    const isValidOTP = buyer.passwordResetOTP === otp || 
-                      (process.env.NODE_ENV === 'development' && otp === '123456');
+    // Check OTP
+    const isValidOTP = buyer.passwordResetOTP === otp;
     
     if (!isValidOTP) {
       return res.status(400).json({ 

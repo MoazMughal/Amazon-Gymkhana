@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 const ForgotPassword = () => {
   const navigate = useNavigate()
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(1) // 1: Enter identifier, 2: Enter OTP, 3: OTP verified - show password fields
   const [loading, setLoading] = useState(false)
   const [userType, setUserType] = useState('buyer')
   const [formData, setFormData] = useState({
@@ -54,17 +54,52 @@ const ForgotPassword = () => {
         setMaskedWhatsApp(data.contactInfo)
         setStep(2)
         setSuccess(`OTP sent to your ${data.method === 'email' ? 'email' : 'WhatsApp'}: ${data.contactInfo}`)
-        
-        if (data.developmentOTP) {
-          console.log('Development OTP:', data.developmentOTP)
-          setSuccess(`OTP sent to ${data.contactInfo}. Development OTP: ${data.developmentOTP}`)
-        }
       } else {
         setError(data.message || 'Failed to send OTP')
       }
     } catch (error) {
       console.error('Send OTP error:', error)
       setError('Failed to send OTP. Please check your connection.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleVerifyOTP = async () => {
+    setError('')
+    setSuccess('')
+    
+    if (!formData.otp.trim() || formData.otp.length < 6) {
+      setError('Please enter a valid 6-digit OTP')
+      return
+    }
+    
+    setLoading(true)
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          identifier: formData.identifier.trim(),
+          otp: formData.otp.trim(),
+          userType: userType
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setStep(3) // Move to password reset step
+        setSuccess('OTP verified successfully! Now set your new password.')
+      } else {
+        setError(data.message || 'Invalid OTP. Please try again.')
+      }
+    } catch (error) {
+      console.error('Verify OTP error:', error)
+      setError('Failed to verify OTP. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -166,19 +201,7 @@ const ForgotPassword = () => {
         </div>
       </div>
 
-      <div className="alert alert-info py-2 mb-3">
-        <div className="d-flex align-items-start">
-          <i className="fas fa-info-circle text-info me-2 mt-1"></i>
-          <div>
-            <h6 className="mb-1 small">How it works:</h6>
-            <ol className="mb-0 small">
-              <li>Enter your account details</li>
-              <li>Get 6-digit OTP on WhatsApp</li>
-              <li>Set your new password</li>
-            </ol>
-          </div>
-        </div>
-      </div>
+
 
       <button 
         type="submit" 
@@ -192,7 +215,7 @@ const ForgotPassword = () => {
           </>
         ) : (
           <>
-            <i className="fab fa-whatsapp me-2"></i>Send OTP
+            <i className="fas fa-paper-plane me-2"></i>Send OTP
           </>
         )}
       </button>
@@ -209,14 +232,8 @@ const ForgotPassword = () => {
     <form onSubmit={handleResetPassword}>
       <div className="alert alert-success py-2 mb-3">
         <div className="d-flex align-items-center">
-          <i className="fab fa-whatsapp text-success me-2"></i>
+          <i className="fas fa-envelope text-success me-2"></i>
           <small>OTP sent to: <strong>{maskedWhatsApp}</strong></small>
-        </div>
-        <div className="mt-2 p-2 bg-warning bg-opacity-25 rounded">
-          <div className="d-flex align-items-center">
-            <i className="fas fa-code text-warning me-2"></i>
-            <small><strong>Development Mode:</strong> Use OTP: <code className="bg-dark text-light px-1">123456</code></small>
-          </div>
         </div>
       </div>
 
@@ -234,11 +251,33 @@ const ForgotPassword = () => {
           required
         />
         <div className="form-text small">
-          Development: Use 123456 or check console for OTP
+          Check your email for the OTP code
         </div>
       </div>
 
-      {formData.otp && formData.otp.length >= 6 && (
+      <button 
+        type="button"
+        className="btn btn-primary w-100 mb-3 py-2"
+        onClick={handleVerifyOTP}
+        disabled={loading || !formData.otp || formData.otp.length < 6 || step === 3}
+      >
+        {loading ? (
+          <>
+            <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+            Verifying OTP...
+          </>
+        ) : step === 3 ? (
+          <>
+            <i className="fas fa-check-circle me-2"></i>OTP Verified
+          </>
+        ) : (
+          <>
+            <i className="fas fa-check me-2"></i>Verify OTP
+          </>
+        )}
+      </button>
+
+      {step === 3 && (
         <>
           <div className="mb-3">
             <label className="form-label fw-semibold small">New Password</label>
@@ -285,7 +324,7 @@ const ForgotPassword = () => {
       <button 
         type="submit" 
         className="btn btn-success w-100 mb-3 py-2"
-        disabled={loading || !formData.otp || formData.otp.length < 6}
+        disabled={loading || step !== 3}
       >
         {loading ? (
           <>

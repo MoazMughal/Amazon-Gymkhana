@@ -156,14 +156,14 @@ const Home = () => {
 
   // Best wholesale products - matching main.html
   const wholesaleProducts = [
-    { name: "Large White Glitter Fairy Wings", price: "£19.89", markup: "340%", image: fairyImg, badge: "Best Seller" },
-    { name: "Clear Reusable Forks 150pcs", price: "£19.89", markup: "250%", image: forksImg, badge: "Hot Deal" },
-    { name: "1L Plastic Measuring Jug", price: "£19.89", markup: "280%", image: glassImg, badge: "Best Seller" },
-    { name: "1M Charger Cable", price: "£19.89", markup: "220%", image: cableImg, badge: "Hot Deal" },
-    { name: "Extra Thin Nose Ring 0.5mm", price: "£19.89", markup: "270%", image: noseRingImg, badge: "Best Seller" },
-    { name: "Black NATO Watch Strap", price: "£19.89", markup: "240%", image: watchStrapImg, badge: "Hot Deal" },
-    { name: "Adult Dancewear Princess Tutu Skirt", price: "£19.89", markup: "260%", image: balloonImg, badge: "Best Seller" },
-    { name: "300 Pack Paper Straws", price: "£19.89", markup: "290%", image: spoonImg, badge: "Hot Deal" }
+    { id: 'prod-001', name: "Large White Glitter Fairy Wings", price: "£19.89", markup: "340%", image: fairyImg, badge: "Best Seller", rating: 4.6, reviews: 72, category: "Fashion" },
+    { id: 'prod-002', name: "Clear Reusable Forks 150pcs", price: "£19.89", markup: "250%", image: forksImg, badge: "Hot Deal", rating: 4.5, reviews: 124, category: "Kitchen" },
+    { id: 'prod-012', name: "1L Plastic Measuring Jug", price: "£19.89", markup: "280%", image: glassImg, badge: "Best Seller", rating: 5.0, reviews: 67, category: "Kitchen" },
+    { id: 'prod-006', name: "1M Charger Cable", price: "£19.89", markup: "220%", image: cableImg, badge: "Hot Deal", rating: 4.5, reviews: 13, category: "Electronics" },
+    { id: 'prod-005', name: "Extra Thin Nose Ring 0.5mm", price: "£19.89", markup: "270%", image: noseRingImg, badge: "Best Seller", rating: 4.5, reviews: 67, category: "Jewelry" },
+    { id: 'prod-101', name: "Black NATO Watch Strap", price: "£19.89", markup: "240%", image: watchStrapImg, badge: "Hot Deal", rating: 4.0, reviews: 7, category: "Accessories" },
+    { id: 'prod-balloon', name: "Adult Dancewear Princess Tutu Skirt", price: "£19.89", markup: "260%", image: balloonImg, badge: "Best Seller", rating: 4.3, reviews: 45, category: "Fashion" },
+    { id: 'prod-011', name: "300 Pack Paper Straws", price: "£19.89", markup: "290%", image: spoonImg, badge: "Hot Deal", rating: 4.7, reviews: 93, category: "Kitchen" }
   ]
 
   const wholesaleScrolling = [...wholesaleProducts, ...wholesaleProducts]
@@ -249,23 +249,87 @@ const Home = () => {
       <CurrencySelector />
 
       {/* Hero Section with Animated Background */}
-      <section className="hero-section">
-        <div className="hero-background">
-          <div className="background-grid">
+      <section className="hero-section" style={{
+        position: 'relative',
+        minHeight: '90vh',
+        display: 'flex',
+        alignItems: 'center',
+        background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)',
+        overflow: 'hidden'
+      }}>
+        <div className="hero-background" style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          opacity: 0.2,
+          zIndex: 0,
+          pointerEvents: 'none'
+        }}>
+          <div className="background-grid" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gridTemplateRows: 'repeat(2, 1fr)',
+            gap: '20px',
+            padding: '20px',
+            height: '100%',
+            width: '100%'
+          }}>
             {imageSets[currentImageSet].map((image, index) => (
-              <div key={index} className={`grid-item item-${index + 1}`}>
-                <img src={image} alt={`Product ${index + 1}`} className="animate__animated animate__fadeIn" />
+              <div key={index} className={`grid-item item-${index + 1}`} style={{
+                borderRadius: '20px',
+                overflow: 'hidden',
+                transition: 'all 0.8s ease',
+                boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                transform: 'scale(1)',
+                animation: `float ${3 + (index * 0.5)}s ease-in-out infinite`
+              }}>
+                <img 
+                  src={image} 
+                  alt={`Product ${index + 1}`} 
+                  className="animate__animated animate__fadeIn" 
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    filter: 'brightness(1.2) contrast(1.15) saturate(1.1)',
+                    display: 'block'
+                  }} 
+                />
               </div>
             ))}
           </div>
         </div>
         
-        <div className="container hero-content">
+        <div className="container hero-content" style={{position: 'relative', zIndex: 10}}>
           <div className="row justify-content-center">
             <div className="col-lg-10 col-xl-9 text-center">
-              <h1 className="hero-title animate__animated animate__fadeInDown" style={{marginTop: '60px'}}>
-                Connecting Amazon Business <span className="highlight-text">Community under One Roof</span>
-              </h1>
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.12)',
+                backdropFilter: 'blur(15px)',
+                borderRadius: '24px',
+                padding: '40px',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}>
+                <h1 className="hero-title animate__animated animate__fadeInDown" style={{
+                  marginTop: '20px',
+                  fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+                  fontWeight: '800',
+                  color: 'white',
+                  textShadow: '3px 3px 6px rgba(0,0,0,0.3)',
+                  marginBottom: '20px',
+                  lineHeight: '1.2'
+                }}>
+                  Connecting Amazon Business <span style={{
+                    background: 'linear-gradient(45deg, #fbbf24, #f59e0b)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    textShadow: 'none'
+                  }}>Community under One Roof</span>
+                </h1>
               
               {/* Rotating Hero Subtitle */}
               <section className="rotating-text-section">
@@ -279,26 +343,80 @@ const Home = () => {
                 </div>
               </section>
               
-              <div className="search-bar">
-                <div className="input-group search-input-group">
+              <div className="search-bar" style={{margin: '30px 0'}}>
+                <div className="input-group search-input-group" style={{
+                  maxWidth: '600px',
+                  margin: '0 auto',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                  borderRadius: '50px',
+                  overflow: 'hidden'
+                }}>
                   <input 
                     type="text" 
                     className="form-control form-control-lg search-input" 
                     placeholder="Search by Product, Supplier, or Category"
+                    style={{
+                      border: 'none',
+                      padding: '20px 30px',
+                      fontSize: '1.1rem',
+                      background: 'white'
+                    }}
                   />
-                  <button className="btn search-btn" type="button">
+                  <button className="btn search-btn" type="button" style={{
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    border: 'none',
+                    padding: '0 40px',
+                    color: 'white',
+                    fontWeight: '600',
+                    fontSize: '1.1rem',
+                    transition: 'all 0.3s ease'
+                  }}>
                     <i className="fas fa-search"></i>
                   </button>
                 </div>
               </div>
               
-              <div className="hero-buttons d-flex gap-3 justify-content-center flex-wrap animate__animated animate__fadeInUp animate__delay-1s">
-                <Link to="/amazons-choice" className="btn btn-primary btn-lg px-4 py-3 shadow-lg">
+              <div className="hero-buttons d-flex gap-3 justify-content-center flex-wrap animate__animated animate__fadeInUp animate__delay-1s" style={{marginTop: '30px'}}>
+                <Link to="/amazons-choice" className="btn btn-lg px-5 py-3" style={{
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  color: 'white',
+                  fontWeight: '700',
+                  borderRadius: '50px',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                  border: 'none',
+                  transition: 'all 0.3s ease',
+                  fontSize: '1.1rem'
+                }} onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-5px)'
+                  e.target.style.boxShadow = '0 15px 40px rgba(0,0,0,0.4)'
+                }} onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)'
+                  e.target.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)'
+                }}>
                   <i className="fas fa-store me-2"></i>Explore Amazon's Choice
                 </Link>
-                <Link to="/join-now" className="btn btn-outline-light btn-lg px-4 py-3 shadow-lg">
+                <Link to="/join-now" className="btn btn-lg px-5 py-3" style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  color: '#1e3a8a',
+                  fontWeight: '700',
+                  borderRadius: '50px',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                  border: 'none',
+                  backdropFilter: 'blur(10px)',
+                  transition: 'all 0.3s ease',
+                  fontSize: '1.1rem'
+                }} onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-5px)'
+                  e.target.style.background = 'white'
+                  e.target.style.boxShadow = '0 15px 40px rgba(0,0,0,0.4)'
+                }} onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)'
+                  e.target.style.background = 'rgba(255, 255, 255, 0.95)'
+                  e.target.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)'
+                }}>
                   <i className="fas fa-user-plus me-2"></i>Join Community
                 </Link>
+              </div>
               </div>
             </div>
           </div>
@@ -306,28 +424,75 @@ const Home = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="section-padding">
+      <section className="section-padding" style={{
+        background: 'linear-gradient(180deg, #f9fafb 0%, #ffffff 100%)',
+        padding: '60px 0',
+        position: 'relative',
+        zIndex: 20
+      }}>
         <div className="container">
-          <div className="row g-3 stats-bar mb-4">
+          <div className="row g-4 stats-bar mb-5">
             <div className="col-12 col-md-4">
-              <div className="stat-card">
-                <div className="stat-heading">Average Markup</div>
-                <div className="stat-value">170.00%</div>
-                <div className="stat-sub">of wholesale prices</div>
+              <div className="stat-card" style={{
+                background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+                borderRadius: '20px',
+                padding: '40px 30px',
+                textAlign: 'center',
+                boxShadow: '0 10px 40px rgba(59, 130, 246, 0.3)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }} onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-10px)'
+                e.currentTarget.style.boxShadow = '0 20px 50px rgba(59, 130, 246, 0.4)'
+              }} onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = '0 10px 40px rgba(59, 130, 246, 0.3)'
+              }}>
+                <div className="stat-heading" style={{color: 'rgba(255,255,255,0.9)', fontSize: '1rem', marginBottom: '15px', fontWeight: '600'}}>Average Markup</div>
+                <div className="stat-value" style={{color: 'white', fontSize: '3rem', fontWeight: '800', marginBottom: '10px'}}>170.00%</div>
+                <div className="stat-sub" style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem'}}>of wholesale prices</div>
               </div>
             </div>
             <div className="col-12 col-md-4">
-              <div className="stat-card">
-                <div className="stat-heading">Active Deals</div>
-                <div className="stat-value">21,674+</div>
-                <div className="stat-sub">as of today</div>
+              <div className="stat-card" style={{
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                borderRadius: '20px',
+                padding: '40px 30px',
+                textAlign: 'center',
+                boxShadow: '0 10px 40px rgba(245, 158, 11, 0.3)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }} onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-10px)'
+                e.currentTarget.style.boxShadow = '0 20px 50px rgba(245, 158, 11, 0.4)'
+              }} onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = '0 10px 40px rgba(245, 158, 11, 0.3)'
+              }}>
+                <div className="stat-heading" style={{color: 'rgba(255,255,255,0.9)', fontSize: '1rem', marginBottom: '15px', fontWeight: '600'}}>Active Deals</div>
+                <div className="stat-value" style={{color: 'white', fontSize: '3rem', fontWeight: '800', marginBottom: '10px'}}>21,674+</div>
+                <div className="stat-sub" style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem'}}>as of today</div>
               </div>
             </div>
             <div className="col-12 col-md-4">
-              <div className="stat-card">
-                <div className="stat-heading">New Suppliers</div>
-                <div className="stat-value">321</div>
-                <div className="stat-sub">in the past 7 days</div>
+              <div className="stat-card" style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                borderRadius: '20px',
+                padding: '40px 30px',
+                textAlign: 'center',
+                boxShadow: '0 10px 40px rgba(16, 185, 129, 0.3)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }} onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-10px)'
+                e.currentTarget.style.boxShadow = '0 20px 50px rgba(16, 185, 129, 0.4)'
+              }} onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = '0 10px 40px rgba(16, 185, 129, 0.3)'
+              }}>
+                <div className="stat-heading" style={{color: 'rgba(255,255,255,0.9)', fontSize: '1rem', marginBottom: '15px', fontWeight: '600'}}>New Suppliers</div>
+                <div className="stat-value" style={{color: 'white', fontSize: '3rem', fontWeight: '800', marginBottom: '10px'}}>321</div>
+                <div className="stat-sub" style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem'}}>in the past 7 days</div>
               </div>
             </div>
           </div>
@@ -465,7 +630,22 @@ const Home = () => {
             <div className="wholesale-products">
               <div className="wholesale-scroll">
                 {wholesaleScrolling.map((product, index) => (
-                  <div key={index} className="wholesale-item">
+                  <a
+                    key={index}
+                    href={`/product/${product.id}?name=${encodeURIComponent(product.name)}&img=${encodeURIComponent(product.image)}&price=${parseFloat(product.price.replace(/[£$₨]/g, ''))}&rating=${product.rating || 4.5}&reviews=${product.reviews || 100}&category=${encodeURIComponent(product.category || 'General')}&brand=&discount=${product.markup}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="wholesale-item"
+                    style={{textDecoration: 'none', color: 'inherit', cursor: 'pointer', transition: 'all 0.3s ease'}}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-5px)'
+                      e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)'
+                      e.currentTarget.style.boxShadow = 'none'
+                    }}
+                  >
                     <div className="wholesale-badge">{product.badge}</div>
                     <div className="wholesale-image">
                       <img 
@@ -477,8 +657,20 @@ const Home = () => {
                       <h4 className="wholesale-name">{product.name}</h4>
                       <div className="wholesale-price">{formatPrice(product.price)}</div>
                       <div className="wholesale-markup">{product.markup} Markup</div>
+                      <div style={{
+                        marginTop: '8px',
+                        fontSize: '0.75rem',
+                        color: '#666',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}>
+                        <i className="fas fa-star" style={{color: '#ffc107', fontSize: '0.7rem'}}></i>
+                        <span>{product.rating || 4.5}</span>
+                        <span style={{color: '#999'}}>({product.reviews || 100})</span>
+                      </div>
                     </div>
-                  </div>
+                  </a>
                 ))}
               </div>
             </div>

@@ -38,6 +38,7 @@ const CurrencySelector = ({ position = 'fixed', style = {} }) => {
         <option value="PKR">PKR (Rs)</option>
         <option value="USD">USD ($)</option>
         <option value="GBP">GBP (£)</option>
+        <option value="AED">AED (د.إ)</option>
       </select>
     </div>
   );

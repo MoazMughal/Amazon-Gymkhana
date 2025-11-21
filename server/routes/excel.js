@@ -501,3 +501,138 @@ router.get('/products-by-category', async (req, res) => {
 });
 
 export default router;
+
+
+// ============================================
+// UAE EXCEL IMPORT ROUTES
+// ============================================
+
+// Import UAE products from uae-asin.xlsx
+router.get('/uae-products', async (req, res) => {
+  try {
+    const excelPath = path.join(__dirname, '../../uae-asin.xlsx');
+    const workbook = xlsx.readFile(excelPath);
+    
+    const result = {
+      products: [],
+      totalCount: 0
+    };
+    
+    // Get the first sheet (assuming UAE data is in the first sheet)
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    const data = xlsx.utils.sheet_to_json(worksheet);
+    
+    if (data.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No products found in UAE Excel file',
+        products: [],
+        totalCount: 0
+      });
+    }
+    
+    const allKeys = Object.keys(data[0]);
+    
+    // Process each row
+    const products = await Promise.all(data.map(async (row, index) => {
+      // Extract ASIN - use NEW ASINS column from the Excel file
+      const asin = row['NEW ASINS'] || row['NEW ASIN'] || row.ASIN || row.asin || row['OLD ASIN'] || '';
+      
+      // Extract product name - use TITLE column
+      const productName = row.TITLE || row.Title || row.title || extractProductName(row, allKeys, index);
+      
+      // Get price - use the correct column names from UAE Excel
+      const basePrice = parseFloat(row['Sales Price'] || row['SALE PRICE'] || row.Price || row.price || 0);
+      const originalPrice = parseFloat(row['Original Price'] || row.originalPrice || basePrice * 1.3);
+      const discount = row.Discount || row.discount || Math.round(((originalPrice - basePrice) / originalPrice) * 100);
+      
+      // Rating and reviews
+      const rating = parseFloat(row.Rating || row.rating || row.Review || (Math.random() * 1.5 + 3.5).toFixed(1));
+      const reviews = parseInt(row.Reviews || row.reviews || Math.floor(Math.random() * 4950 + 50));
+      
+      // Get image URL - use IMAGE column or construct from ASIN
+      let finalImageUrl = '';
+      
+      // First, check if IMAGE column has a value
+      if (row.IMAGE || row.Image || row.image) {
+        finalImageUrl = row.IMAGE || row.Image || row.image;
+      }
+      // If ASIN exists, use it to load from public assets folder
+      else if (asin) {
+        // Frontend will load this from public/assets/uae/
+        finalImageUrl = `/assets/uae/${asin}.jpg`;
+      }
+      
+      // Fallback to placeholder if no image
+      if (!finalImageUrl) {
+        finalImageUrl = 'https://via.placeholder.com/400x400?text=UAE+Product';
+      }
+      
+      return {
+        id: `uae-${index + 1}`,
+        name: productName,
+        asin: asin,
+        price: basePrice,
+        originalPrice: originalPrice,
+        category: row.Category || row.category || 'UAE Products',
+        brand: row.BRAND || row.Brand || row.brand || '',
+        rating: rating,
+        reviews: reviews,
+        stock: parseInt(row.qty || row.Stock || row.stock || 0), // Use qty column
+        description: row.Description || row.description || '',
+        image: finalImageUrl,
+        images: [finalImageUrl],
+        discount: discount,
+        marketplace: 'UAE',
+        currency: 'AED',
+        // Raw data for reference
+        rawData: row
+      };
+    }));
+    
+    result.products = products;
+    result.totalCount = products.length;
+    
+    res.json({
+      success: true,
+      message: `Successfully loaded ${products.length} UAE products`,
+      ...result
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error reading UAE Excel file',
+      error: error.message
+    });
+  }
+});
+
+// Get UAE Excel file info
+router.get('/uae-info', async (req, res) => {
+  try {
+    const excelPath = path.join(__dirname, '../../uae-asin.xlsx');
+    const workbook = xlsx.readFile(excelPath);
+    
+    const info = {
+      sheets: workbook.SheetNames,
+      sheetCount: workbook.SheetNames.length
+    };
+    
+    // Get column headers from first sheet
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = xlsx.utils.sheet_to_json(firstSheet, { header: 1 });
+    info.columns = data[0] || [];
+    info.rowCount = data.length - 1; // Exclude header
+    
+    res.json(info);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error reading UAE Excel file info',
+      error: error.message
+    });
+  }
+});
+

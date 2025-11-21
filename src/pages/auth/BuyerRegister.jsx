@@ -81,19 +81,19 @@ const BuyerRegister = () => {
   }
 
   return (
-    <div className="min-vh-100 d-flex align-items-center bg-light py-5">
+    <div className="min-vh-100 d-flex align-items-center bg-light py-2">
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-lg-6 col-md-8">
-            <div className="card shadow-lg border-0 rounded-4">
-              <div className="card-body p-5">
+            <div className="card shadow-lg border-0 rounded-3">
+              <div className="card-body p-3">
                 {/* Header */}
-                <div className="text-center mb-4">
-                  <div className="mb-3">
-                    <i className="fas fa-shopping-cart fa-3x text-primary"></i>
+                <div className="text-center mb-2">
+                  <div className="mb-1">
+                    <i className="fas fa-shopping-cart fa-2x text-primary"></i>
                   </div>
-                  <h2 className="fw-bold text-dark mb-2">Create Buyer Account</h2>
-                  <p className="text-muted">Join thousands of retailers getting wholesale prices</p>
+                  <h4 className="fw-bold text-dark mb-1" style={{fontSize: '1.2rem'}}>Create Buyer Account</h4>
+                  <p className="text-muted mb-0" style={{fontSize: '0.75rem'}}>Join thousands of retailers getting wholesale prices</p>
                 </div>
 
                 {/* Success Message */}
@@ -130,129 +130,112 @@ const BuyerRegister = () => {
                 {/* Registration Form */}
                 <form onSubmit={handleSubmit} style={{ display: success ? 'none' : 'block' }}>
                   <div className="row">
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="firstName" className="form-label fw-semibold">
+                    <div className="col-md-6 mb-2">
+                      <label htmlFor="firstName" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>
                         First Name
                       </label>
                       <input
                         type="text"
-                        className="form-control"
+                        className="form-control form-control-sm"
                         id="firstName"
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
-                        placeholder="Enter first name"
+                        placeholder="First name"
+                        style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                         required
                       />
                     </div>
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="lastName" className="form-label fw-semibold">
+                    <div className="col-md-6 mb-2">
+                      <label htmlFor="lastName" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>
                         Last Name
                       </label>
                       <input
                         type="text"
-                        className="form-control"
+                        className="form-control form-control-sm"
                         id="lastName"
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
-                        placeholder="Enter last name"
+                        placeholder="Last name"
+                        style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="mb-3">
-                    <label htmlFor="email" className="form-label fw-semibold">
+                  <div className="mb-2">
+                    <label htmlFor="email" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>
                       Email Address
                     </label>
-                    <div className="input-group">
-                      <span className="input-group-text bg-light">
-                        <i className="fas fa-envelope text-muted"></i>
-                      </span>
-                      <input
-                        type="email"
-                        className="form-control"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="Enter your email address"
-                        required
-                      />
-                    </div>
+                    <input
+                      type="email"
+                      className="form-control form-control-sm"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="your@email.com"
+                      style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
+                      required
+                    />
                   </div>
 
-                  <div className="mb-3">
-                    <label htmlFor="whatsappNo" className="form-label fw-semibold">
+                  <div className="mb-2">
+                    <label htmlFor="whatsappNo" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>
                       WhatsApp Number
                     </label>
-                    <div className="input-group">
-                      <span className="input-group-text bg-light">
-                        <i className="fab fa-whatsapp text-success"></i>
-                      </span>
-                      <input
-                        type="tel"
-                        className="form-control"
-                        id="whatsappNo"
-                        name="whatsappNo"
-                        value={formData.whatsappNo}
-                        onChange={handleChange}
-                        placeholder="e.g., +92 300 1234567"
-                        required
-                      />
-                    </div>
-                    <div className="form-text small">
-                      Include country code. Used for login and order updates.
+                    <input
+                      type="tel"
+                      className="form-control form-control-sm"
+                      id="whatsappNo"
+                      name="whatsappNo"
+                      value={formData.whatsappNo}
+                      onChange={handleChange}
+                      placeholder="+92 300 1234567"
+                      style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
+                      required
+                    />
+                    <div className="form-text" style={{fontSize: '0.65rem', marginTop: '1px'}}>
+                      Include country code
                     </div>
                   </div>
 
-                  <div className="mb-3">
-                    <label htmlFor="password" className="form-label fw-semibold">
+                  <div className="mb-2">
+                    <label htmlFor="password" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>
                       Password
                     </label>
-                    <div className="input-group">
-                      <span className="input-group-text bg-light">
-                        <i className="fas fa-lock text-muted"></i>
-                      </span>
-                      <input
-                        type="password"
-                        className="form-control"
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder="Create a strong password"
-                        required
-                      />
-                    </div>
-                    <div className="form-text small">
-                      Password must be at least 8 characters long
-                    </div>
+                    <input
+                      type="password"
+                      className="form-control form-control-sm"
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Min 8 characters"
+                      style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
+                      required
+                    />
                   </div>
 
-                  <div className="mb-3">
-                    <label htmlFor="confirmPassword" className="form-label fw-semibold">
+                  <div className="mb-2">
+                    <label htmlFor="confirmPassword" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>
                       Confirm Password
                     </label>
-                    <div className="input-group">
-                      <span className="input-group-text bg-light">
-                        <i className="fas fa-lock text-muted"></i>
-                      </span>
-                      <input
-                        type="password"
-                        className="form-control"
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        placeholder="Confirm your password"
-                        required
-                      />
-                    </div>
+                    <input
+                      type="password"
+                      className="form-control form-control-sm"
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="Confirm password"
+                      style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
+                      required
+                    />
                   </div>
 
-                  <div className="mb-4">
+                  <div className="mb-2">
                     <div className="form-check">
                       <input
                         className="form-check-input"
@@ -261,23 +244,25 @@ const BuyerRegister = () => {
                         name="agreeToTerms"
                         checked={formData.agreeToTerms}
                         onChange={handleChange}
+                        style={{transform: 'scale(0.9)'}}
                         required
                       />
-                      <label className="form-check-label" htmlFor="agreeToTerms">
-                        I agree to the <Link to="/terms" className="text-decoration-none">Terms of Service</Link> and <Link to="/privacy" className="text-decoration-none">Privacy Policy</Link>
+                      <label className="form-check-label" htmlFor="agreeToTerms" style={{fontSize: '0.7rem'}}>
+                        I agree to the <Link to="/terms">Terms</Link> and <Link to="/privacy">Privacy Policy</Link>
                       </label>
                     </div>
                   </div>
 
                   <button 
                     type="submit" 
-                    className="btn btn-primary w-100 py-2 fw-semibold rounded-3 mb-3" 
+                    className="btn btn-primary w-100 rounded-2 mb-2" 
+                    style={{fontSize: '0.8rem', padding: '6px', height: '32px'}}
                     disabled={loading}
                   >
                     {loading ? (
                       <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                        Creating Account...
+                        <span className="spinner-border spinner-border-sm me-1" role="status" style={{width: '0.8rem', height: '0.8rem'}}></span>
+                        Creating...
                       </>
                     ) : (
                       'Create Buyer Account'
@@ -285,18 +270,18 @@ const BuyerRegister = () => {
                   </button>
 
                   <div className="text-center">
-                    <span className="text-muted">Already have an account? </span>
-                    <Link to="/login/buyer" className="text-decoration-none fw-semibold">
+                    <span className="text-muted" style={{fontSize: '0.7rem'}}>Already have an account? </span>
+                    <Link to="/login/buyer" className="text-decoration-none" style={{fontSize: '0.7rem'}}>
                       Sign In
                     </Link>
                   </div>
                 </form>
 
                 {/* Other Options */}
-                <div className="text-center mt-4">
-                  <hr className="my-3" />
-                  <p className="text-muted small mb-2">Want to sell products instead?</p>
-                  <Link to="/register/supplier" className="btn btn-outline-success btn-sm">
+                <div className="text-center mt-2">
+                  <hr className="my-2" />
+                  <p className="text-muted mb-1" style={{fontSize: '0.7rem'}}>Want to sell products instead?</p>
+                  <Link to="/register/supplier" className="btn btn-outline-success btn-sm" style={{fontSize: '0.7rem', padding: '3px 10px'}}>
                     Create Supplier Account
                   </Link>
                 </div>

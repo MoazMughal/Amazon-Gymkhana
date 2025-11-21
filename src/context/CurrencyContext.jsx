@@ -20,13 +20,15 @@ export const CurrencyProvider = ({ children }) => {
   const currencyRates = {
     PKR: 1,
     USD: 0.0036,  // 1 PKR = 0.0036 USD
-    GBP: 0.0028   // 1 PKR = 0.0028 GBP
+    GBP: 0.0028,  // 1 PKR = 0.0028 GBP
+    AED: 0.013    // 1 PKR = 0.013 AED (1 AED ≈ 77 PKR)
   };
 
   const currencySymbols = {
     PKR: 'Rs',
     USD: '$',
-    GBP: '£'
+    GBP: '£',
+    AED: 'د.إ'
   };
 
   // Save to localStorage whenever currency changes

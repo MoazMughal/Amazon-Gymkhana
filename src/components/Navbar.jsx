@@ -21,7 +21,6 @@ const Navbar = () => {
         setIsAdminLoggedIn(true)
         setAdminData(JSON.parse(admin))
       } catch (error) {
-        console.error('Error parsing admin data:', error)
         setIsAdminLoggedIn(false)
       }
     } else {
@@ -37,7 +36,6 @@ const Navbar = () => {
         setIsBuyerLoggedIn(true)
         setBuyerData(JSON.parse(buyer))
       } catch (error) {
-        console.error('Error parsing buyer data:', error)
         setIsBuyerLoggedIn(false)
       }
     } else {
@@ -50,7 +48,7 @@ const Navbar = () => {
     localStorage.removeItem('adminData')
     setIsAdminLoggedIn(false)
     setAdminData(null)
-    navigate('/')
+    navigate('/admin/login')
   }
 
   const handleBuyerLogout = () => {
@@ -58,7 +56,7 @@ const Navbar = () => {
     localStorage.removeItem('buyerData')
     setIsBuyerLoggedIn(false)
     setBuyerData(null)
-    navigate('/')
+    navigate('/login/buyer')
   }
 
   return (

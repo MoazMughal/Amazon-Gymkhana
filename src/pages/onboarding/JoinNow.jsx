@@ -13,8 +13,12 @@ const JoinNow = () => {
   })
 
   const handleUserTypeSelect = (type) => {
-    setSelectedUserType(type)
-    setCurrentStep(2)
+    // Navigate directly to registration page
+    if (type === 'buyer') {
+      navigate('/register/buyer')
+    } else if (type === 'supplier') {
+      navigate('/register/supplier')
+    }
   }
 
   const handleAssessmentChange = (field, value) => {

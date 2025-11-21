@@ -16,8 +16,31 @@ router.post('/register', async (req, res) => {
     });
 
     if (existingSeller) {
+      if (existingSeller.email === email) {
+        return res.status(400).json({ 
+          message: 'Email already registered. Please use a different email.' 
+        });
+      }
       return res.status(400).json({ 
-        message: 'Seller already exists with this email or username' 
+        message: 'Username already taken. Please choose a different username.' 
+      });
+    }
+
+    // Check if email exists in Buyer collection
+    const Buyer = (await import('../models/Buyer.js')).default;
+    const existingBuyer = await Buyer.findOne({ email });
+    if (existingBuyer) {
+      return res.status(400).json({ 
+        message: 'Email already registered as a buyer. Please use a different email or login as buyer.' 
+      });
+    }
+
+    // Check if email exists in Admin collection
+    const Admin = (await import('../models/Admin.js')).default;
+    const existingAdmin = await Admin.findOne({ email });
+    if (existingAdmin) {
+      return res.status(400).json({ 
+        message: 'Email already registered. Please use a different email.' 
       });
     }
 
@@ -119,8 +142,6 @@ router.get('/', authenticateAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 20, status, search } = req.query;
     
-    console.log('Sellers API called with status:', status); // Debug log
-    
     const query = {};
     
     // Filter based on verification status logic
@@ -128,18 +149,15 @@ router.get('/', authenticateAdmin, async (req, res) => {
       if (status === 'approved') {
         // Only sellers with completed verification (ID card approved)
         query.verificationStatus = 'approved';
-        console.log('Filtering for approved sellers:', query); // Debug log
       } else if (status === 'pending') {
         // Sellers who registered and can login but haven't completed verification
         query.verificationStatus = { $in: ['required', 'not_required'] };
-        console.log('Filtering for pending sellers:', query); // Debug log
       } else if (status === 'rejected') {
         // Sellers who were rejected by admin
         query.$or = [
           { verificationStatus: 'rejected' },
           { status: 'rejected' }
         ];
-        console.log('Filtering for rejected sellers:', query); // Debug log
       }
     }
     
@@ -194,7 +212,8 @@ router.put('/:id/approve', authenticateAdmin, async (req, res) => {
     const seller = await Seller.findByIdAndUpdate(
       req.params.id,
       {
-        status: 'approved',
+        status: 'verified',
+        verificationStatus: 'approved',
         approvedBy: req.admin._id,
         approvedAt: new Date()
       },
@@ -258,17 +277,14 @@ router.delete('/:id', authenticateAdmin, async (req, res) => {
 // Get seller profile
 router.get('/profile', authenticateSeller, async (req, res) => {
   try {
-    console.log('Fetching profile for seller ID:', req.seller._id); // Debug log
     const seller = await Seller.findById(req.seller._id).select('-password');
     
     if (!seller) {
       return res.status(404).json({ message: 'Seller not found' });
     }
     
-    console.log('Seller profile found:', seller.username); // Debug log
     res.json(seller);
   } catch (error) {
-    console.error('Profile fetch error:', error); // Debug log
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -277,7 +293,6 @@ router.get('/profile', authenticateSeller, async (req, res) => {
 router.put('/profile', authenticateSeller, async (req, res) => {
   try {
     const { whatsappNo, contactNo, country, city, productCategory } = req.body;
-    console.log('Updating profile for seller:', req.seller._id, 'with data:', { whatsappNo, contactNo, country, city, productCategory }); // Debug
     
     const seller = await Seller.findByIdAndUpdate(
       req.seller._id,
@@ -289,7 +304,6 @@ router.put('/profile', authenticateSeller, async (req, res) => {
       return res.status(404).json({ message: 'Seller not found' });
     }
 
-    console.log('Profile updated successfully for:', seller.username); // Debug
     res.json({ message: 'Profile updated successfully', seller });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -358,11 +372,10 @@ router.post('/verification/submit', authenticateSeller, async (req, res) => {
 
     if (!cnicNumber || !idCardFront || !idCardBack || !idCardWithFace) {
       return res.status(400).json({ 
+        success: false,
         message: 'CNIC number and all three documents are required: CNIC front, CNIC back, and CNIC with selfie' 
       });
     }
-
-    console.log('Verification submission for seller:', req.seller._id, 'CNIC:', cnicNumber); // Debug
 
     const seller = await Seller.findByIdAndUpdate(
       req.seller._id,
@@ -379,12 +392,23 @@ router.post('/verification/submit', authenticateSeller, async (req, res) => {
       { new: true }
     ).select('-password');
 
+    if (!seller) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Seller not found' 
+      });
+    }
+
     res.json({ 
+      success: true,
       message: 'Verification documents submitted successfully. Please wait for admin approval.',
       seller 
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error: ' + error.message 
+    });
   }
 });
 
@@ -615,8 +639,8 @@ router.post('/forgot-password', async (req, res) => {
       });
     }
 
-    // Generate 6-digit OTP (use default for development)
-    const otp = process.env.NODE_ENV === 'development' ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Save OTP to seller record
@@ -624,26 +648,13 @@ router.post('/forgot-password', async (req, res) => {
     seller.passwordResetOTPExpiry = otpExpiry;
     await seller.save();
 
-    // Send OTP via WhatsApp (in development, just log it)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('\n🔧 DEVELOPMENT MODE - PASSWORD RESET OTP');
-      console.log('=====================================');
-      console.log(`📱 Phone: ${seller.whatsappNo}`);
-      console.log(`🔑 OTP: ${otp}`);
-      console.log(`👤 User: ${seller.username}`);
-      console.log(`⏰ Expires: ${otpExpiry.toLocaleString()}`);
-      console.log('=====================================\n');
-    } else {
-      // In production, send actual WhatsApp message
-      console.log(`📱 Sending OTP to ${seller.whatsappNo}: ${otp}`);
-    }
+    // Send OTP via WhatsApp
+    console.log(`📱 Sending OTP to ${seller.whatsappNo}`);
 
     res.json({
       success: true,
       message: 'OTP sent to your WhatsApp number',
-      whatsappNo: seller.whatsappNo.replace(/(\+\d{2})(\d{3})\d{4}(\d{4})/, '$1$2****$3'), // Masked number
-      // Return OTP in development mode only
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined
+      whatsappNo: seller.whatsappNo.replace(/(\+\d{2})(\d{3})\d{4}(\d{4})/, '$1$2****$3') // Masked number
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -695,9 +706,8 @@ router.post('/reset-password', async (req, res) => {
       });
     }
 
-    // Check OTP (allow development default)
-    const isValidOTP = seller.passwordResetOTP === otp || 
-                      (process.env.NODE_ENV === 'development' && otp === '123456');
+    // Check OTP
+    const isValidOTP = seller.passwordResetOTP === otp;
     
     if (!isValidOTP) {
       return res.status(400).json({ 

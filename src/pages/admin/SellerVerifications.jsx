@@ -140,7 +140,24 @@ const AdminSellerVerifications = () => {
                     <strong>Email:</strong> {seller.email}
                   </div>
                   <div className="mb-2">
-                    <strong>Contact:</strong> {seller.contactNo}
+                    <strong>WhatsApp:</strong>{' '}
+                    {(seller.whatsappNo || seller.contactNo) ? (
+                      <a 
+                        href={`https://wa.me/${(seller.whatsappNo || seller.contactNo).replace(/[^0-9]/g, '')}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{
+                          color: '#25D366',
+                          textDecoration: 'none',
+                          fontWeight: '600'
+                        }}
+                      >
+                        <i className="fab fa-whatsapp me-1"></i>
+                        {seller.whatsappNo || seller.contactNo}
+                      </a>
+                    ) : (
+                      'N/A'
+                    )}
                   </div>
                   <div className="mb-2">
                     <strong>Location:</strong> {seller.city}, {seller.country}
@@ -263,7 +280,26 @@ const AdminSellerVerifications = () => {
                     <div className="col-md-6">
                       <p><strong>Username:</strong> {selectedSeller.username}</p>
                       <p><strong>Email:</strong> {selectedSeller.email}</p>
-                      <p><strong>Contact:</strong> {selectedSeller.contactNo}</p>
+                      <p>
+                        <strong>WhatsApp:</strong>{' '}
+                        {(selectedSeller.whatsappNo || selectedSeller.contactNo) ? (
+                          <a 
+                            href={`https://wa.me/${(selectedSeller.whatsappNo || selectedSeller.contactNo).replace(/[^0-9]/g, '')}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{
+                              color: '#25D366',
+                              textDecoration: 'none',
+                              fontWeight: '600'
+                            }}
+                          >
+                            <i className="fab fa-whatsapp me-1"></i>
+                            {selectedSeller.whatsappNo || selectedSeller.contactNo}
+                          </a>
+                        ) : (
+                          'N/A'
+                        )}
+                      </p>
                     </div>
                     <div className="col-md-6">
                       <p><strong>Location:</strong> {selectedSeller.city}, {selectedSeller.country}</p>

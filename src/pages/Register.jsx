@@ -83,7 +83,8 @@ const Register = () => {
       const data = await response.json()
 
       if (response.ok) {
-        navigate('/auth')
+        // Redirect directly to login page
+        navigate('/login')
       } else {
         alert('❌ ' + data.message)
       }
@@ -98,21 +99,21 @@ const Register = () => {
   return (
     <div>
       {/* Registration Section */}
-      <section style={{padding: '40px 0'}}>
+      <section style={{padding: '20px 0'}}>
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-6 col-md-8">
               <div className="card shadow border-0">
                 <div className="card-body p-3">
-                  <div className="text-center mb-3">
-                    <h3 className="card-title modern-title" style={{fontSize: '1.8rem', marginBottom: '0.5rem'}}>Create Account</h3>
-                    <p className="text-muted section-subtitle" style={{fontSize: '0.85rem', marginBottom: '0.5rem'}}>Join Amazon Gymkhana community today</p>
+                  <div className="text-center mb-2">
+                    <h3 className="card-title modern-title" style={{fontSize: '1.3rem', marginBottom: '0.3rem'}}>Create Account</h3>
+                    <p className="text-muted section-subtitle" style={{fontSize: '0.75rem', marginBottom: '0.3rem'}}>Join Amazon Gymkhana community today</p>
                   </div>
 
                   <form onSubmit={handleSubmit}>
                     <div className="row">
-                      <div className="col-md-6 mb-2">
-                        <label htmlFor="firstName" className="form-label" style={{fontSize: '0.85rem', fontWeight: '600', marginBottom: '4px'}}>First Name</label>
+                      <div className="col-md-6 mb-1">
+                        <label htmlFor="firstName" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>First Name</label>
                         <input
                           type="text"
                           className="form-control form-control-sm"
@@ -120,12 +121,12 @@ const Register = () => {
                           name="firstName"
                           value={formData.firstName}
                           onChange={handleChange}
-                          style={{fontSize: '0.85rem', padding: '6px 10px'}}
+                          style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                           required
                         />
                       </div>
-                      <div className="col-md-6 mb-2">
-                        <label htmlFor="lastName" className="form-label" style={{fontSize: '0.85rem', fontWeight: '600', marginBottom: '4px'}}>Last Name</label>
+                      <div className="col-md-6 mb-1">
+                        <label htmlFor="lastName" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>Last Name</label>
                         <input
                           type="text"
                           className="form-control form-control-sm"
@@ -133,14 +134,14 @@ const Register = () => {
                           name="lastName"
                           value={formData.lastName}
                           onChange={handleChange}
-                          style={{fontSize: '0.85rem', padding: '6px 10px'}}
+                          style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                           required
                         />
                       </div>
                     </div>
 
-                    <div className="mb-2">
-                      <label htmlFor="email" className="form-label" style={{fontSize: '0.85rem', fontWeight: '600', marginBottom: '4px'}}>Email Address</label>
+                    <div className="mb-1">
+                      <label htmlFor="email" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>Email Address</label>
                       <input
                         type="email"
                         className="form-control form-control-sm"
@@ -148,14 +149,14 @@ const Register = () => {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        style={{fontSize: '0.85rem', padding: '6px 10px'}}
+                        style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                         required
                       />
                     </div>
 
                     {/* WhatsApp Number for all users */}
-                    <div className="mb-2">
-                      <label htmlFor="whatsappNo" className="form-label" style={{fontSize: '0.85rem', fontWeight: '600', marginBottom: '4px'}}>WhatsApp Number</label>
+                    <div className="mb-1">
+                      <label htmlFor="whatsappNo" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>WhatsApp Number</label>
                       <input
                         type="tel"
                         className="form-control form-control-sm"
@@ -163,24 +164,24 @@ const Register = () => {
                         name="whatsappNo"
                         value={formData.whatsappNo}
                         onChange={handleChange}
-                        style={{fontSize: '0.85rem', padding: '6px 10px'}}
+                        style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                         placeholder="e.g., +92 300 1234567"
                         required
                       />
-                      <div className="form-text" style={{fontSize: '0.75rem', marginTop: '2px'}}>
-                        Include country code. Used for login and password recovery.
+                      <div className="form-text" style={{fontSize: '0.65rem', marginTop: '1px'}}>
+                        Include country code
                       </div>
                     </div>
 
-                    <div className="mb-2">
-                      <label htmlFor="userType" className="form-label" style={{fontSize: '0.85rem', fontWeight: '600', marginBottom: '4px'}}>I want to</label>
+                    <div className="mb-1">
+                      <label htmlFor="userType" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>I want to</label>
                       <select
                         className="form-select form-select-sm"
                         id="userType"
                         name="userType"
                         value={formData.userType}
                         onChange={handleChange}
-                        style={{fontSize: '0.85rem', padding: '6px 10px'}}
+                        style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                         required
                       >
                         <option value="buyer">Buy products (Retailer)</option>
@@ -192,8 +193,8 @@ const Register = () => {
                     {/* Seller-specific fields */}
                     {formData.userType === 'supplier' && (
                       <>
-                        <div className="mb-2">
-                          <label htmlFor="username" className="form-label" style={{fontSize: '0.85rem', fontWeight: '600', marginBottom: '4px'}}>Username</label>
+                        <div className="mb-1">
+                          <label htmlFor="username" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>Username</label>
                           <input
                             type="text"
                             className="form-control form-control-sm"
@@ -201,13 +202,13 @@ const Register = () => {
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
-                            style={{fontSize: '0.85rem', padding: '6px 10px'}}
+                            style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                             required
                           />
                         </div>
 
-                        <div className="mb-2">
-                          <label htmlFor="contactNo" className="form-label" style={{fontSize: '0.85rem', fontWeight: '600', marginBottom: '4px'}}>WhatsApp Number</label>
+                        <div className="mb-1">
+                          <label htmlFor="contactNo" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>WhatsApp Number</label>
                           <input
                             type="tel"
                             className="form-control form-control-sm"
@@ -215,18 +216,15 @@ const Register = () => {
                             name="contactNo"
                             value={formData.contactNo}
                             onChange={handleChange}
-                            style={{fontSize: '0.85rem', padding: '6px 10px'}}
+                            style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                             placeholder="e.g., +92 300 1234567"
                             required
                           />
-                          <div className="form-text" style={{fontSize: '0.75rem', marginTop: '2px'}}>
-                            Include country code (e.g., +92 for Pakistan)
-                          </div>
                         </div>
 
                         <div className="row">
-                          <div className="col-md-6 mb-2">
-                            <label htmlFor="country" className="form-label" style={{fontSize: '0.85rem', fontWeight: '600', marginBottom: '4px'}}>Country</label>
+                          <div className="col-md-6 mb-1">
+                            <label htmlFor="country" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>Country</label>
                             <input
                               type="text"
                               className="form-control form-control-sm"
@@ -234,12 +232,12 @@ const Register = () => {
                               name="country"
                               value={formData.country}
                               onChange={handleChange}
-                              style={{fontSize: '0.85rem', padding: '6px 10px'}}
+                              style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                               required
                             />
                           </div>
-                          <div className="col-md-6 mb-2">
-                            <label htmlFor="city" className="form-label" style={{fontSize: '0.85rem', fontWeight: '600', marginBottom: '4px'}}>City</label>
+                          <div className="col-md-6 mb-1">
+                            <label htmlFor="city" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>City</label>
                             <input
                               type="text"
                               className="form-control form-control-sm"
@@ -247,21 +245,21 @@ const Register = () => {
                               name="city"
                               value={formData.city}
                               onChange={handleChange}
-                              style={{fontSize: '0.85rem', padding: '6px 10px'}}
+                              style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                               required
                             />
                           </div>
                         </div>
 
-                        <div className="mb-2">
-                          <label htmlFor="productCategory" className="form-label" style={{fontSize: '0.85rem', fontWeight: '600', marginBottom: '4px'}}>Product Category</label>
+                        <div className="mb-1">
+                          <label htmlFor="productCategory" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>Product Category</label>
                           <select
                             className="form-select form-select-sm"
                             id="productCategory"
                             name="productCategory"
                             value={formData.productCategory}
                             onChange={handleChange}
-                            style={{fontSize: '0.85rem', padding: '6px 10px'}}
+                            style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                             required
                           >
                             <option value="">Select Category</option>
@@ -280,8 +278,8 @@ const Register = () => {
                       </>
                     )}
 
-                    <div className="mb-2">
-                      <label htmlFor="password" className="form-label" style={{fontSize: '0.85rem', fontWeight: '600', marginBottom: '4px'}}>Password</label>
+                    <div className="mb-1">
+                      <label htmlFor="password" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>Password</label>
                       <input
                         type="password"
                         className="form-control form-control-sm"
@@ -289,16 +287,16 @@ const Register = () => {
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        style={{fontSize: '0.85rem', padding: '6px 10px'}}
+                        style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                         required
                       />
-                      <div className="form-text" style={{fontSize: '0.75rem', marginTop: '2px'}}>
-                        Password must be at least 8 characters long
+                      <div className="form-text" style={{fontSize: '0.65rem', marginTop: '1px'}}>
+                        Min 8 characters
                       </div>
                     </div>
 
-                    <div className="mb-2">
-                      <label htmlFor="confirmPassword" className="form-label" style={{fontSize: '0.85rem', fontWeight: '600', marginBottom: '4px'}}>Confirm Password</label>
+                    <div className="mb-1">
+                      <label htmlFor="confirmPassword" className="form-label" style={{fontSize: '0.75rem', fontWeight: '600', marginBottom: '2px'}}>Confirm Password</label>
                       <input
                         type="password"
                         className="form-control form-control-sm"
@@ -306,7 +304,7 @@ const Register = () => {
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        style={{fontSize: '0.85rem', padding: '6px 10px'}}
+                        style={{fontSize: '0.75rem', padding: '4px 8px', height: '30px'}}
                         required
                       />
                     </div>
@@ -319,20 +317,21 @@ const Register = () => {
                         name="agreeToTerms"
                         checked={formData.agreeToTerms}
                         onChange={handleChange}
+                        style={{transform: 'scale(0.9)'}}
                         required
                       />
-                      <label className="form-check-label" htmlFor="agreeToTerms" style={{fontSize: '0.8rem'}}>
-                        I agree to the <Link to="/terms">Terms of Service</Link> and <Link to="/privacy">Privacy Policy</Link>
+                      <label className="form-check-label" htmlFor="agreeToTerms" style={{fontSize: '0.7rem'}}>
+                        I agree to the <Link to="/terms">Terms</Link> and <Link to="/privacy">Privacy Policy</Link>
                       </label>
                     </div>
 
-                    <button type="submit" className="btn btn-primary btn-sm w-100 mb-2" style={{fontSize: '0.85rem', padding: '8px'}} disabled={loading}>
+                    <button type="submit" className="btn btn-primary btn-sm w-100 mb-2" style={{fontSize: '0.8rem', padding: '6px', height: '32px'}} disabled={loading}>
                       {loading ? 'Creating Account...' : 'Create Account'}
                     </button>
 
                     <div className="text-center">
-                      <span className="text-muted" style={{fontSize: '0.8rem'}}>Already have an account? </span>
-                      <Link to="/login" className="text-decoration-none" style={{fontSize: '0.8rem'}}>
+                      <span className="text-muted" style={{fontSize: '0.7rem'}}>Already have an account? </span>
+                      <Link to="/login" className="text-decoration-none" style={{fontSize: '0.7rem'}}>
                         Sign In
                       </Link>
                     </div>

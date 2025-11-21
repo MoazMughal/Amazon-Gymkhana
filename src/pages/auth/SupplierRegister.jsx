@@ -84,19 +84,19 @@ const SupplierRegister = () => {
   }
 
   return (
-    <div className="min-vh-100 d-flex align-items-center bg-light py-5">
+    <div className="min-vh-100 d-flex align-items-center bg-light py-2">
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-lg-7 col-md-9">
-            <div className="card shadow-lg border-0 rounded-4">
-              <div className="card-body p-5">
+            <div className="card shadow-lg border-0 rounded-3">
+              <div className="card-body p-3">
                 {/* Header */}
-                <div className="text-center mb-4">
-                  <div className="mb-3">
-                    <i className="fas fa-store fa-3x text-success"></i>
+                <div className="text-center mb-2">
+                  <div className="mb-1">
+                    <i className="fas fa-store fa-2x text-success"></i>
                   </div>
-                  <h2 className="fw-bold text-dark mb-2">Create Supplier Account</h2>
-                  <p className="text-muted">Start selling to thousands of verified buyers</p>
+                  <h4 className="fw-bold text-dark mb-1" style={{fontSize: '1.2rem'}}>Create Supplier Account</h4>
+                  <p className="text-muted mb-0" style={{fontSize: '0.75rem'}}>Start selling to thousands of verified buyers</p>
                 </div>
 
                 {/* Success Message */}

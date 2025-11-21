@@ -17,6 +17,8 @@ router.get('/public', async (req, res) => {
       order = 'desc',
       isAmazonsChoice,
       isBestSeller,
+      isLatestDeal,
+      showOnHome,
       source
     } = req.query;
 
@@ -33,12 +35,14 @@ router.get('/public', async (req, res) => {
     if (category && category !== 'all') query.category = category;
     if (isAmazonsChoice === 'true') query.isAmazonsChoice = true;
     if (isBestSeller === 'true') query.isBestSeller = true;
+    if (isLatestDeal === 'true') query.isLatestDeal = true;
+    if (showOnHome === 'true') query.showOnHome = true;
 
     const products = await Product.find(query)
       .sort({ [sortBy]: order === 'desc' ? -1 : 1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .select('-seller'); // Don't expose seller info to public
+      .select('+seller'); // Include seller field (ObjectId only, not populated for security)
 
     const count = await Product.countDocuments(query);
 
@@ -230,6 +234,80 @@ router.post('/bulk-import', authenticateAdmin, async (req, res) => {
           isAmazonsChoice: true, // All imported products are Amazon's Choice
           isBestSeller: productData.isBestSeller || false,
           status: 'active'
+        });
+
+        await product.save();
+        imported++;
+      } catch (err) {
+        errors.push({ name: productData.name, error: err.message });
+      }
+    }
+
+    res.json({
+      message: 'Bulk import completed',
+      imported,
+      skipped,
+      errors: errors.length > 0 ? errors : undefined
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Admin bulk import with seller assignment
+router.post('/admin/bulk-import', authenticateAdmin, async (req, res) => {
+  try {
+    const { products } = req.body;
+    
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ message: 'Invalid products array' });
+    }
+
+    let imported = 0;
+    let skipped = 0;
+    const errors = [];
+
+    for (const productData of products) {
+      try {
+        // Check if product already exists by ASIN or name
+        const exists = await Product.findOne({ 
+          $or: [
+            { asin: productData.asin },
+            { name: productData.name }
+          ]
+        });
+        
+        if (exists) {
+          skipped++;
+          continue;
+        }
+
+        const product = new Product({
+          name: productData.name || 'Unnamed Product',
+          asin: productData.asin || '',
+          description: productData.description || '',
+          price: parseFloat(productData.price) || 0,
+          originalPrice: parseFloat(productData.originalPrice) || parseFloat(productData.price) || 0,
+          discount: productData.discount || 0,
+          category: productData.category || 'Uncategorized',
+          subcategory: productData.subcategory || '',
+          brand: productData.brand || '',
+          images: Array.isArray(productData.images) ? productData.images : [productData.image || ''],
+          rating: parseFloat(productData.rating) || 4.0,
+          reviews: parseInt(productData.reviews) || 0,
+          stock: parseInt(productData.stock) || 0,
+          marketplace: productData.marketplace || 'UK',
+          currency: productData.currency || 'GBP',
+          isAdminProduct: productData.isAdminProduct || true,
+          isAmazonsChoice: productData.isAmazonsChoice || false,
+          isBestSeller: productData.isBestSeller || false,
+          isLatestDeal: productData.isLatestDeal || false,
+          showOnHome: productData.showOnHome || false,
+          status: productData.status || 'active',
+          approvalStatus: productData.approvalStatus || 'approved',
+          seller: productData.seller || null,
+          listedBy: productData.listedBy || 'admin',
+          listedAt: new Date()
         });
 
         await product.save();

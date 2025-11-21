@@ -22,7 +22,10 @@ const adminSchema = new mongoose.Schema({
     type: String,
     default: 'admin',
     enum: ['admin', 'superadmin']
-  }
+  },
+  // Password reset fields (Token-based)
+  passwordResetToken: String,
+  passwordResetTokenExpiry: Date
 }, { timestamps: true });
 
 adminSchema.pre('save', async function(next) {

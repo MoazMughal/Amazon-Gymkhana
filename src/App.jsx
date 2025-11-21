@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import WhatsAppFloat from './components/WhatsAppFloat'
@@ -7,83 +7,94 @@ import WhatsAppFloat from './components/WhatsAppFloat'
 import ProtectedRoute from './components/ProtectedRoute'
 import { CurrencyProvider } from './context/CurrencyContext'
 import { SellerProvider } from './context/SellerContext'
-import Home from './pages/Home'
-import AmazonsChoice from './pages/AmazonsChoice'
-import BestSellers from './pages/BestSellers'
-import Categories from './pages/Categories'
-import LatestDeals from './pages/LatestDeals'
-import Contact from './pages/Contact'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import ForgotPassword from './pages/ForgotPassword'
-import AuthLanding from './pages/auth/AuthLanding'
-import BuyerLogin from './pages/auth/BuyerLogin'
-import SupplierLogin from './pages/auth/SupplierLogin'
-import BuyerRegister from './pages/auth/BuyerRegister'
-import SupplierRegister from './pages/auth/SupplierRegister'
-import JoinNow from './pages/onboarding/JoinNow'
-import Product from './pages/Product'
-import ProductDetail from './pages/ProductDetail'
-import AdminLogin from './pages/admin/Login'
-import AdminDashboard from './pages/admin/Dashboard'
-import AdminProducts from './pages/admin/Products'
-import AdminAddProduct from './pages/admin/AddProduct'
-import EditProduct from './pages/admin/EditProduct'
-import ExcelProducts from './pages/ExcelProducts'
-import AdminSellers from './pages/admin/Sellers'
-import AdminSellerProducts from './pages/admin/SellerProducts'
-import AdminSellerVerifications from './pages/admin/SellerVerifications'
-import ExcelImport from './pages/admin/ExcelImport'
-import AdminBuyers from './pages/admin/Buyers'
-import BuyerDashboard from './pages/buyer/Dashboard'
-import SellerDashboard from './pages/seller/Dashboard'
-import ClearStorage from './pages/ClearStorage'
-import SellerProfile from './pages/seller/Profile'
-import SellerProducts from './pages/seller/Products'
-import SellerAddProduct from './pages/seller/AddProduct'
-import SellerAddProducts from './pages/seller/AddProducts'
-import SellerEditProfile from './pages/seller/EditProfile'
+import { AdminProvider } from './context/AdminContext'
+import authSessionManager from './utils/authSession'
 import './App.css'
 
+// Lazy load pages for better performance
+const Home = lazy(() => import('./pages/Home'))
+const AmazonsChoice = lazy(() => import('./pages/AmazonsChoice'))
+const BestSellers = lazy(() => import('./pages/BestSellers'))
+const Categories = lazy(() => import('./pages/Categories'))
+const LatestDeals = lazy(() => import('./pages/LatestDeals'))
+const Contact = lazy(() => import('./pages/Contact'))
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const ForgotPasswordToken = lazy(() => import('./pages/ForgotPasswordToken'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const AuthLanding = lazy(() => import('./pages/auth/AuthLanding'))
+const BuyerLogin = lazy(() => import('./pages/auth/BuyerLogin'))
+const SupplierLogin = lazy(() => import('./pages/auth/SupplierLogin'))
+const BuyerRegister = lazy(() => import('./pages/auth/BuyerRegister'))
+const SupplierRegister = lazy(() => import('./pages/auth/SupplierRegister'))
+const JoinNow = lazy(() => import('./pages/onboarding/JoinNow'))
+const Product = lazy(() => import('./pages/Product'))
+const ProductDetail = lazy(() => import('./pages/ProductDetail'))
+const AdminLogin = lazy(() => import('./pages/admin/Login'))
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
+const AdminProducts = lazy(() => import('./pages/admin/Products'))
+const AdminAddProduct = lazy(() => import('./pages/admin/AddProduct'))
+const EditProduct = lazy(() => import('./pages/admin/EditProduct'))
+const ExcelProducts = lazy(() => import('./pages/ExcelProducts'))
+const AdminSellers = lazy(() => import('./pages/admin/Sellers'))
+const AdminSellerProducts = lazy(() => import('./pages/admin/SellerProducts'))
+const AdminSellerVerifications = lazy(() => import('./pages/admin/SellerVerifications'))
+const ExcelImport = lazy(() => import('./pages/admin/ExcelImport'))
+const UaeExcelImport = lazy(() => import('./pages/admin/UaeExcelImport'))
+const AdminBuyers = lazy(() => import('./pages/admin/Buyers'))
+const BuyerDashboard = lazy(() => import('./pages/buyer/Dashboard'))
+const SellerDashboard = lazy(() => import('./pages/seller/Dashboard'))
+const ClearStorage = lazy(() => import('./pages/ClearStorage'))
+const SellerProfile = lazy(() => import('./pages/seller/Profile'))
+const SellerProducts = lazy(() => import('./pages/seller/Products'))
+const SellerAddProduct = lazy(() => import('./pages/seller/AddProduct'))
+const SellerAddProducts = lazy(() => import('./pages/seller/AddProducts'))
+const SellerEditProfile = lazy(() => import('./pages/seller/EditProfile'))
+
+// Loading component
+const PageLoader = () => (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '60vh',
+    fontSize: '1.2rem',
+    color: '#666'
+  }}>
+    <div>
+      <div style={{fontSize: '2rem', marginBottom: '10px'}}>⏳</div>
+      <div>Loading...</div>
+    </div>
+  </div>
+)
+
 function App() {
-  // Auto-cleanup: Prevent token conflicts on app load
+  // Initialize auth session manager - handles auto-logout on browser close
   useEffect(() => {
-    const adminToken = localStorage.getItem('adminToken')
-    const sellerToken = localStorage.getItem('sellerToken')
-    const buyerToken = localStorage.getItem('buyerToken')
+    // Auth session manager is already initialized as singleton
+    // It will automatically:
+    // 1. Clear auth on fresh browser session
+    // 2. Monitor user activity
+    // 3. Auto-logout after 24 hours of inactivity
+    // 4. Clear sessions when browser closes
     
-    // If multiple tokens exist, keep only the most recent one based on current URL
-    const isAdminRoute = window.location.pathname.startsWith('/admin')
-    const isSellerRoute = window.location.pathname.startsWith('/seller')
-    const isBuyerRoute = window.location.pathname.startsWith('/buyer')
+    console.log('✅ Auth session manager initialized');
     
-    if (isAdminRoute && (sellerToken || buyerToken)) {
-      // On admin routes, clear seller/buyer tokens
-      localStorage.removeItem('sellerToken')
-      localStorage.removeItem('sellerData')
-      localStorage.removeItem('buyerToken')
-      localStorage.removeItem('buyerData')
-    } else if (isSellerRoute && (adminToken || buyerToken)) {
-      // On seller routes, clear admin/buyer tokens
-      localStorage.removeItem('adminToken')
-      localStorage.removeItem('adminData')
-      localStorage.removeItem('buyerToken')
-      localStorage.removeItem('buyerData')
-    } else if (isBuyerRoute && (adminToken || sellerToken)) {
-      // On buyer routes, clear admin/seller tokens
-      localStorage.removeItem('adminToken')
-      localStorage.removeItem('adminData')
-      localStorage.removeItem('sellerToken')
-      localStorage.removeItem('sellerData')
-    }
-  }, [])
+    // Cleanup on unmount
+    return () => {
+      // Session manager will persist across component remounts
+    };
+  }, []);
   
   return (
     <CurrencyProvider>
       <SellerProvider>
+        <AdminProvider>
         <Router>
         <div className="App">
           <Navbar />
+          <Suspense fallback={<PageLoader />}>
           <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/clear-storage" element={<ClearStorage />} />
@@ -105,6 +116,8 @@ function App() {
           <Route path="/join-now" element={<JoinNow />} />
           
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/forgot-password-token" element={<ForgotPasswordToken />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/excel-products" element={<ExcelProducts />} />
           
@@ -130,11 +143,14 @@ function App() {
           <Route path="/admin/seller-verifications" element={<ProtectedRoute><AdminSellerVerifications /></ProtectedRoute>} />
           <Route path="/admin/buyers" element={<ProtectedRoute><AdminBuyers /></ProtectedRoute>} />
           <Route path="/admin/excel-import" element={<ProtectedRoute><ExcelImport /></ProtectedRoute>} />
+          <Route path="/admin/uae-excel-import" element={<ProtectedRoute><UaeExcelImport /></ProtectedRoute>} />
         </Routes>
+        </Suspense>
         <Footer />
         <WhatsAppFloat />
         </div>
       </Router>
+      </AdminProvider>
       </SellerProvider>
     </CurrencyProvider>
   )

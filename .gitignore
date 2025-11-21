@@ -7,7 +7,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies
 node_modules
 dist
 dist-ssr
@@ -27,25 +26,17 @@ dist-ssr
 # Environment variables
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.production
 
-# Build output
-build
-dist
+# Excel files (if not needed in production)
+*.xlsx
 
-# Testing
-coverage
-
-# Misc
-.cache
-.parcel-cache
-.next
-.nuxt
-.vuepress/dist
-.serverless
-.fusebox
-.dynamodb
-.tern-port
-.yarn-integrity
+# Documentation files (keep local only)
+START_HERE.md
+QUICK_DEPLOY_CHECKLIST.md
+DEPLOYMENT_GUIDE.md
+DEPLOYMENT_TIMELINE.md
+HOSTER_PK_DNS_GUIDE.md
+ENV_VARIABLES_TEMPLATE.md
+README_DEPLOYMENT.md
+DEPLOYMENT_SUMMARY.txt

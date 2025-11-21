@@ -1,91 +1,178 @@
-// Email Service using Nodemailer
 import nodemailer from 'nodemailer';
-import crypto from 'crypto';
 
-// Create transporter for Gmail SMTP
+// Create email transporter
 const createTransporter = () => {
-  return nodemailer.createTransporter({
-    service: 'gmail',
+  // Check if email credentials are configured
+  if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn('⚠️  Email credentials not configured. Password reset emails will not be sent.');
+    return null;
+  }
+
+
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT) || 587,
+    secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
     auth: {
-      user: process.env.GMAIL_USER, // Your Gmail address
-      pass: process.env.GMAIL_APP_PASSWORD // Gmail App Password (not regular password)
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    },
+    tls: {
+      rejectUnauthorized: false // Allow self-signed certificates
     }
   });
+  
+  return transporter;
 };
 
-// Send OTP via Email
-const sendEmailOTP = async (email, otp, userName = 'User') => {
+// Send OTP email (for OTP-based password reset)
+export const sendEmailOTP = async (email, otp, userName = 'User') => {
   try {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`📧 Email OTP for ${email}: ${otp}`);
-      console.log(`Subject: Amazon Choice - Password Reset OTP`);
-      console.log(`Message: Hi ${userName}, your verification code is: ${otp}. Valid for 5 minutes.`);
-      return { success: true, message: 'OTP sent (development mode)' };
-    }
-
-    // Production email sending
     const transporter = createTransporter();
     
+    // If no transporter (email not configured), return error
+    if (!transporter) {
+      return { success: false, message: 'Email service not configured' };
+    }
+
     const mailOptions = {
-      from: {
-        name: 'Amazon Choice',
-        address: process.env.GMAIL_USER
-      },
+      from: `"${process.env.EMAIL_FROM_NAME || 'Your App'}" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Amazon Choice - Password Reset OTP',
+      subject: 'Your Password Reset OTP',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #ff9900; margin: 0;">Amazon Choice</h1>
-              <p style="color: #666; margin: 5px 0;">Password Reset Request</p>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .otp-box { background: white; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #667eea; border: 2px dashed #667eea; border-radius: 10px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+            .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 style="margin: 0;">🔐 Password Reset OTP</h1>
             </div>
-            
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h2 style="color: #333; margin-bottom: 10px;">Hi ${userName}!</h2>
-              <p style="color: #666; margin-bottom: 20px;">You requested to reset your password. Use the OTP below:</p>
+            <div class="content">
+              <p>Hi <strong>${userName}</strong>,</p>
               
-              <div style="background-color: #f0f8ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <div style="font-size: 32px; font-weight: bold; color: #ff9900; letter-spacing: 5px;">${otp}</div>
+              <p>Your One-Time Password (OTP) for password reset is:</p>
+              
+              <div class="otp-box">
+                ${otp}
               </div>
               
-              <p style="color: #666; font-size: 14px;">This OTP is valid for 5 minutes only.</p>
-            </div>
-            
-            <div style="border-top: 1px solid #eee; padding-top: 20px; text-align: center;">
-              <p style="color: #999; font-size: 12px; margin: 0;">
-                If you didn't request this, please ignore this email.<br>
-                This is an automated message, please don't reply.
+              <div class="warning">
+                <strong>⚠️ Important:</strong>
+                <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                  <li>This OTP will expire in <strong>5 minutes</strong></li>
+                  <li>Do not share this OTP with anyone</li>
+                  <li>If you didn't request this, please ignore this email</li>
+                </ul>
+              </div>
+              
+              <p style="margin-top: 30px; color: #666;">
+                Enter this OTP on the password reset page to continue.
               </p>
             </div>
+            <div class="footer">
+              <p>This is an automated email. Please do not reply.</p>
+              <p>&copy; ${new Date().getFullYear()} Your Company. All rights reserved.</p>
+            </div>
           </div>
-        </div>
+        </body>
+        </html>
       `
     };
 
     await transporter.sendMail(mailOptions);
-    return { success: true, message: 'OTP sent to your email' };
+    return { success: true, message: 'OTP sent successfully' };
 
   } catch (error) {
-    console.error('Email OTP Error:', error);
-    return { success: false, message: 'Failed to send email OTP' };
+    return { success: false, message: 'Failed to send OTP email' };
   }
 };
 
-// Verify email configuration
-const verifyEmailConfig = async () => {
+// Send password reset email
+export const sendPasswordResetEmail = async (email, userName, resetUrl) => {
   try {
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-      return { success: false, message: 'Email configuration missing' };
+    const transporter = createTransporter();
+    
+    // If no transporter (email not configured), return error
+    if (!transporter) {
+      return false;
     }
 
-    const transporter = createTransporter();
-    await transporter.verify();
-    return { success: true, message: 'Email configuration verified' };
+    const mailOptions = {
+      from: `"${process.env.EMAIL_FROM_NAME || 'Your App'}" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Password Reset Request',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+            .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 style="margin: 0;">🔐 Password Reset Request</h1>
+            </div>
+            <div class="content">
+              <p>Hi <strong>${userName}</strong>,</p>
+              
+              <p>We received a request to reset your password. Click the button below to create a new password:</p>
+              
+              <div style="text-align: center;">
+                <a href="${resetUrl}" class="button">Reset Password</a>
+              </div>
+              
+              <p>Or copy and paste this link into your browser:</p>
+              <p style="background: white; padding: 10px; border-radius: 5px; word-break: break-all;">
+                <a href="${resetUrl}">${resetUrl}</a>
+              </p>
+              
+              <div class="warning">
+                <strong>⚠️ Important:</strong>
+                <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                  <li>This link will expire in <strong>10 minutes</strong></li>
+                  <li>The link can only be used <strong>once</strong></li>
+                  <li>If you didn't request this, please ignore this email</li>
+                </ul>
+              </div>
+              
+              <p style="margin-top: 30px; color: #666;">
+                If you're having trouble clicking the button, copy and paste the URL above into your web browser.
+              </p>
+            </div>
+            <div class="footer">
+              <p>This is an automated email. Please do not reply.</p>
+              <p>&copy; ${new Date().getFullYear()} Your Company. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    return true;
+
   } catch (error) {
-    console.error('Email config verification failed:', error);
-    return { success: false, message: 'Email configuration invalid' };
+    return false;
   }
 };
-
-export { sendEmailOTP, verifyEmailConfig };

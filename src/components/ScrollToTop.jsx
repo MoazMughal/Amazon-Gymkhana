@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 
 const ScrollToTop = () => {
   const [showScrollTop, setShowScrollTop] = useState(false)
@@ -79,4 +79,4 @@ const ScrollToTop = () => {
   )
 }
 
-export default ScrollToTop
+export default memo(ScrollToTop)

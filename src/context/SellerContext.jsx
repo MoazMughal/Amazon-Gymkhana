@@ -73,7 +73,6 @@ export const SellerProvider = ({ children }) => {
   }, [])
 
   const login = (sellerData, token) => {
-    console.log('Setting seller in context:', sellerData.username) // Debug log
     setSeller(sellerData)
     setIsLoggedIn(true)
     localStorage.setItem('sellerToken', token)
@@ -81,16 +80,12 @@ export const SellerProvider = ({ children }) => {
   }
 
   const logout = () => {
-    console.log('Logging out seller...')
     setSeller(null)
     setIsLoggedIn(false)
     localStorage.removeItem('sellerToken')
     localStorage.removeItem('sellerData')
-    // Also clear any other related data
-    localStorage.removeItem('buyerToken')
-    localStorage.removeItem('buyerData')
-    // Force page reload to clear all state
-    window.location.href = '/login'
+    // Force page reload to clear all state and redirect to supplier login
+    window.location.href = '/login/supplier'
   }
 
   const updateSeller = (updatedData) => {
@@ -117,7 +112,7 @@ export const SellerProvider = ({ children }) => {
           updateSeller(data)
         }
       } catch (error) {
-        console.error('Error refreshing seller data:', error)
+        // Silent error handling
       }
     }
   }

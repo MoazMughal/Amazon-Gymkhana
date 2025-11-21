@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '../../context/CurrencyContext';
+import { useAdmin } from '../../context/AdminContext';
 import '../../styles/AdminDashboard.css';
 import '../../styles/AdminLayout.css';
 
@@ -27,6 +28,7 @@ const AdminDashboard = () => {
   });
   const navigate = useNavigate();
   const { currency, setCurrency, formatPrice } = useCurrency();
+  const { logout: adminLogout } = useAdmin();
 
   useEffect(() => {
     fetchStats();
@@ -187,9 +189,7 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminData');
-    navigate('/admin/login');
+    adminLogout();
   };
 
   const toggleSection = (section) => {
@@ -1191,7 +1191,10 @@ const AdminDashboard = () => {
           📦 Manage All ({stats?.products.total || 0})
         </button>
         <button onClick={() => navigate('/admin/excel-import')} className="tool-btn primary">
-          ➕ Add from Excel
+          ➕ UK Products (Excel)
+        </button>
+        <button onClick={() => navigate('/admin/uae-excel-import')} className="tool-btn warning">
+          🇦🇪 UAE Products (Excel)
         </button>
         <button onClick={importHardcodedProducts} className="tool-btn success">
           📥 Import JSON

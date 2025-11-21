@@ -359,9 +359,12 @@ const AmazonsChoice = () => {
   }
 
   const renderStars = (rating) => {
+    // Validate and cap rating between 0 and 5
+    const validRating = Math.min(Math.max(parseFloat(rating) || 0, 0), 5);
+    
     const stars = []
-    const fullStars = Math.floor(rating)
-    const hasHalfStar = rating % 1 !== 0
+    const fullStars = Math.floor(validRating)
+    const hasHalfStar = validRating % 1 !== 0
 
     for (let i = 0; i < fullStars; i++) {
       stars.push(<i key={i} className="fas fa-star"></i>)
@@ -371,7 +374,7 @@ const AmazonsChoice = () => {
       stars.push(<i key="half" className="fas fa-star-half-alt"></i>)
     }
 
-    const emptyStars = 5 - Math.ceil(rating)
+    const emptyStars = 5 - Math.ceil(validRating)
     for (let i = 0; i < emptyStars; i++) {
       stars.push(<i key={`empty-${i}`} className="far fa-star"></i>)
     }

@@ -284,13 +284,14 @@ const AddProduct = () => {
             <div className="form-group">
               <label>Seller</label>
               <select name="seller" value={formData.seller} onChange={handleChange}>
-                <option value="">Direct (No Seller)</option>
+                <option value="">No Seller Assigned</option>
                 {sellers.map(seller => (
                   <option key={seller._id} value={seller._id}>
-                    {seller.businessName} - {seller.email}
+                    {seller.username} ({seller.supplierId}) - {seller.email}
                   </option>
                 ))}
               </select>
+              <small>Assign a seller to this product. Admins will see seller contact details on product page.</small>
             </div>
 
             <div className="form-group">

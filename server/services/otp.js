@@ -5,10 +5,7 @@ import { sendWhatsAppOTP, validatePhoneNumber } from './whatsapp.js';
 
 // Generate 6-digit OTP
 const generateOTP = () => {
-  // In development, use fixed OTP for testing
-  if (process.env.NODE_ENV === 'development') {
-    return '123456';
-  }
+  // Always generate random OTP
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
@@ -21,11 +18,6 @@ const hashOTP = (otp) => {
 
 // Verify OTP against stored hash
 const verifyOTP = (inputOTP, storedHash, storedSalt) => {
-  // Allow development OTP bypass
-  if (process.env.NODE_ENV === 'development' && inputOTP === '123456') {
-    return true;
-  }
-  
   const hash = crypto.pbkdf2Sync(inputOTP, storedSalt, 10000, 64, 'sha512').toString('hex');
   return hash === storedHash;
 };

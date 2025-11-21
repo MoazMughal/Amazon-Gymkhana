@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAdmin } from '../../context/AdminContext';
 
 const AdminLogin = () => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAdmin();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,8 +33,8 @@ const AdminLogin = () => {
       localStorage.removeItem('buyerToken');
       localStorage.removeItem('buyerData');
       
-      localStorage.setItem('adminToken', data.token);
-      localStorage.setItem('adminData', JSON.stringify(data.admin));
+      // Use the AdminContext login function
+      login(data.admin, data.token);
       navigate('/admin/dashboard');
     } catch (err) {
       setError(err.message);

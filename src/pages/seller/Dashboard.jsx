@@ -183,6 +183,13 @@ const SellerDashboard = () => {
 
     try {
       const token = localStorage.getItem('sellerToken')
+      
+      if (!token) {
+        alert('❌ Authentication required. Please login again.')
+        navigate('/login/supplier')
+        return
+      }
+      
       const response = await fetch('http://localhost:5000/api/sellers/verification/submit', {
         method: 'POST',
         headers: {
@@ -194,16 +201,20 @@ const SellerDashboard = () => {
 
       const data = await response.json()
 
-      if (response.ok) {
-        alert('✅ Verification documents submitted successfully!')
+      if (response.ok && data.success) {
+        alert('✅ Verification documents submitted successfully! Admin will review your documents.')
         setShowVerificationModal(false)
+        // Refresh seller data
+        if (seller) {
+          updateSeller({...seller, verificationStatus: 'pending'})
+        }
         fetchDashboardData(token)
       } else {
-        alert('❌ ' + data.message)
+        alert('❌ ' + (data.message || 'Failed to submit verification documents'))
       }
     } catch (error) {
       console.error('Verification error:', error)
-      alert('❌ Failed to submit verification documents')
+      alert('❌ Failed to submit verification documents. Error: ' + error.message)
     }
   }
 
@@ -551,7 +562,25 @@ const SellerDashboard = () => {
                   </tr>
                   <tr>
                     <td><strong>WhatsApp Number:</strong></td>
-                    <td>{seller?.whatsappNo || 'Not provided'}</td>
+                    <td>
+                      {seller?.whatsappNo ? (
+                        <a 
+                          href={`https://wa.me/${seller.whatsappNo.replace(/[^0-9]/g, '')}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{
+                            color: '#25D366',
+                            textDecoration: 'none',
+                            fontWeight: '600'
+                          }}
+                        >
+                          <i className="fab fa-whatsapp me-1"></i>
+                          {seller.whatsappNo}
+                        </a>
+                      ) : (
+                        'Not provided'
+                      )}
+                    </td>
                   </tr>
                   <tr>
                     <td><strong>Location:</strong></td>

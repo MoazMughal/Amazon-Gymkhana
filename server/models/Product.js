@@ -4,7 +4,8 @@ const productSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    index: true // Index for faster search
   },
   description: String,
   price: {
@@ -73,9 +74,46 @@ const productSchema = new mongoose.Schema({
   paymentTransactionId: String,
   listedAt: Date,
   monthlyProfit: String,
-  yearlyProfit: String
+  yearlyProfit: String,
+  asin: {
+    type: String,
+    sparse: true,
+    index: true
+  },
+  marketplace: {
+    type: String,
+    enum: ['UK', 'UAE', 'US', 'Other'],
+    default: 'UK'
+  },
+  currency: {
+    type: String,
+    enum: ['GBP', 'AED', 'USD', 'PKR'],
+    default: 'GBP'
+  },
+  listedBy: {
+    type: String,
+    enum: ['admin', 'seller'],
+    default: 'admin'
+  },
+  isLatestDeal: {
+    type: Boolean,
+    default: false
+  },
+  showOnHome: {
+    type: Boolean,
+    default: false
+  }
 }, { timestamps: true });
 
-productSchema.index({ name: 'text', description: 'text', brand: 'text' });
+// Indexes for better query performance
+productSchema.index({ name: 'text', description: 'text', brand: 'text' }); // Text search
+productSchema.index({ category: 1, isAmazonsChoice: 1 }); // Category + Amazon's Choice filter
+productSchema.index({ category: 1, isBestSeller: 1 }); // Category + Best Seller filter
+productSchema.index({ seller: 1, status: 1 }); // Seller products query
+productSchema.index({ isAmazonsChoice: 1, status: 1 }); // Amazon's Choice products
+productSchema.index({ isBestSeller: 1, status: 1 }); // Best Seller products
+productSchema.index({ price: 1 }); // Price sorting
+productSchema.index({ rating: -1 }); // Rating sorting
+productSchema.index({ createdAt: -1 }); // Latest products
 
 export default mongoose.model('Product', productSchema);

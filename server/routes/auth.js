@@ -1,6 +1,7 @@
 // Unified Authentication Routes
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import Admin from '../models/Admin.js';
 import Buyer from '../models/Buyer.js';
 import Seller from '../models/Seller.js';
@@ -13,6 +14,7 @@ import {
   maskContact,
   identifyContactMethod 
 } from '../services/otp.js';
+import { sendPasswordResetEmail } from '../services/email.js';
 
 const router = express.Router();
 
@@ -65,8 +67,6 @@ router.post('/login', async (req, res) => {
       role: admin.role
     };
 
-    console.log(`✅ Admin login successful: ${admin.username}`);
-
     res.json({
       message: 'Login successful',
       token,
@@ -74,7 +74,6 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Admin login error:', error);
     res.status(500).json({ 
       message: 'Server error. Please try again later.' 
     });
@@ -163,6 +162,12 @@ router.post('/send-otp', async (req, res) => {
     user.passwordResetOTPSalt = otpRecord.otpSalt;
     user.passwordResetOTPExpiry = otpRecord.otpExpiry;
     user.passwordResetOTPAttempts = 0;
+    
+    // Fix invalid status values before saving
+    if (userType === 'seller' && user.status === 'approved') {
+      user.status = 'verified';
+    }
+    
     await user.save();
 
     // Send OTP
@@ -176,29 +181,15 @@ router.post('/send-otp', async (req, res) => {
       });
     }
 
-    // Log for development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('\n🔧 DEVELOPMENT MODE - PASSWORD RESET OTP');
-      console.log('=====================================');
-      console.log(`👤 User: ${userName} (${userType})`);
-      console.log(`📧 Contact: ${contactInfo}`);
-      console.log(`🔑 OTP: ${otp}`);
-      console.log(`⏰ Expires: ${otpRecord.otpExpiry.toLocaleString()}`);
-      console.log('=====================================\n');
-    }
-
     res.json({
       success: true,
       message: `OTP sent to your ${contactMethod === 'email' ? 'email' : 'WhatsApp'}`,
       contactInfo: maskContact(contactInfo),
       method: contactMethod,
-      expiresIn: '5 minutes',
-      // Return OTP in development mode only
-      ...(process.env.NODE_ENV === 'development' && { developmentOTP: otp })
+      expiresIn: '5 minutes'
     });
 
   } catch (error) {
-    console.error('Send OTP error:', error);
     res.status(500).json({ 
       success: false,
       message: 'Server error. Please try again later.' 
@@ -275,6 +266,12 @@ router.post('/verify-otp', async (req, res) => {
     if (!isValidOTP) {
       // Increment failed attempts
       user.passwordResetOTPAttempts = (user.passwordResetOTPAttempts || 0) + 1;
+      
+      // Fix invalid status values before saving
+      if (userType === 'seller' && user.status === 'approved') {
+        user.status = 'verified';
+      }
+      
       await user.save();
 
       const remainingAttempts = 3 - user.passwordResetOTPAttempts;
@@ -295,7 +292,6 @@ router.post('/verify-otp', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Verify OTP error:', error);
     res.status(500).json({ 
       success: false,
       message: 'Server error. Please try again later.' 
@@ -389,6 +385,12 @@ router.post('/reset-password', async (req, res) => {
     user.passwordResetOTPSalt = undefined;
     user.passwordResetOTPExpiry = undefined;
     user.passwordResetOTPAttempts = undefined;
+    
+    // Fix invalid status values before saving
+    if (userType === 'seller' && user.status === 'approved') {
+      user.status = 'verified';
+    }
+    
     await user.save();
 
     console.log(`✅ Password reset successful for ${userType}: ${user.email || user.username}`);
@@ -406,5 +408,247 @@ router.post('/reset-password', async (req, res) => {
     });
   }
 });
+
+// ============================================
+// TOKEN-BASED PASSWORD RESET ROUTES
+// ============================================
+
+// POST /auth/forgot-password - Send password reset link via email
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email, userType } = req.body;
+
+    if (!email || !email.trim()) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Email is required' 
+      });
+    }
+
+    if (!userType || !['buyer', 'seller', 'admin'].includes(userType)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Valid user type (buyer/seller/admin) is required' 
+      });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Find user based on type
+    let user;
+    let Model;
+    if (userType === 'buyer') {
+      Model = Buyer;
+      user = await Buyer.findOne({ email: cleanEmail });
+    } else if (userType === 'seller') {
+      Model = Seller;
+      user = await Seller.findOne({ email: cleanEmail });
+    } else {
+      Model = Admin;
+      user = await Admin.findOne({ email: cleanEmail });
+    }
+
+    // Always return success message for security (don't reveal if email exists)
+    if (!user) {
+      return res.json({
+        success: true,
+        message: 'If an account exists with this email, a password reset link has been sent.'
+      });
+    }
+
+    // Generate reset token using crypto
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    
+    // Hash the token before saving to database
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    // Save hashed token and expiry (10 minutes)
+    user.passwordResetToken = hashedToken;
+    user.passwordResetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await user.save();
+
+    // Create reset URL with original (unhashed) token
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}?type=${userType}`;
+
+    // Send email with reset link
+    const userName = userType === 'buyer' 
+      ? user.getFullName() 
+      : userType === 'seller' 
+        ? user.username 
+        : user.username;
+
+    const emailSent = await sendPasswordResetEmail(cleanEmail, userName, resetUrl);
+
+    if (!emailSent) {
+      // Clear the token if email fails
+      user.passwordResetToken = undefined;
+      user.passwordResetTokenExpiry = undefined;
+      await user.save();
+
+      return res.status(500).json({ 
+        success: false,
+        message: 'Failed to send reset email. Please try again later.' 
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'If an account exists with this email, a password reset link has been sent.'
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error. Please try again later.' 
+    });
+  }
+});
+
+// POST /auth/reset-password-token - Reset password using token from email link
+router.post('/reset-password-token', async (req, res) => {
+  try {
+    const { token, newPassword, userType } = req.body;
+
+    if (!token || !newPassword || !userType) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Token, new password, and user type are required' 
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Password must be at least 8 characters long' 
+      });
+    }
+
+    if (!['buyer', 'seller', 'admin'].includes(userType)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Valid user type (buyer/seller/admin) is required' 
+      });
+    }
+
+    // Hash the token to match with database
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    // Find user with matching token and valid expiry
+    let user;
+    if (userType === 'buyer') {
+      user = await Buyer.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetTokenExpiry: { $gt: Date.now() }
+      });
+    } else if (userType === 'seller') {
+      user = await Seller.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetTokenExpiry: { $gt: Date.now() }
+      });
+    } else {
+      user = await Admin.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetTokenExpiry: { $gt: Date.now() }
+      });
+    }
+
+    if (!user) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid or expired reset token. Please request a new password reset link.' 
+      });
+    }
+
+    // Update password and clear reset token fields
+    user.password = newPassword; // Will be hashed by pre-save middleware
+    user.passwordResetToken = undefined;
+    user.passwordResetTokenExpiry = undefined;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully. You can now login with your new password.'
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error. Please try again later.' 
+    });
+  }
+});
+
+// GET /auth/verify-reset-token - Verify if reset token is valid
+router.get('/verify-reset-token/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { type: userType } = req.query;
+
+    if (!token || !userType) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Token and user type are required' 
+      });
+    }
+
+    if (!['buyer', 'seller', 'admin'].includes(userType)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Valid user type is required' 
+      });
+    }
+
+    // Hash the token to match with database
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    // Find user with matching token and valid expiry
+    let user;
+    if (userType === 'buyer') {
+      user = await Buyer.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetTokenExpiry: { $gt: Date.now() }
+      });
+    } else if (userType === 'seller') {
+      user = await Seller.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetTokenExpiry: { $gt: Date.now() }
+      });
+    } else {
+      user = await Admin.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetTokenExpiry: { $gt: Date.now() }
+      });
+    }
+
+    if (!user) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid or expired reset token' 
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Token is valid',
+      email: user.email
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error. Please try again later.' 
+    });
+  }
+});
+
 
 export default router;

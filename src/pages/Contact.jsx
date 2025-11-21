@@ -161,8 +161,8 @@ const Contact = () => {
                     <div className="contact-icon"><i className="fas fa-phone-alt"></i></div>
                     <div className="contact-info">
                       <h5>Phone Numbers</h5>
-                      <p className="mb-2">+92-301-6611011<br />+92-303-4928000<br />+92-304-4928000</p>
-                      <a href="https://wa.me/923016611011" className="btn btn-success" target="_blank" rel="noopener noreferrer">
+                      <p className="mb-2"> +92-303-4928000<br />+92-304-4928000</p>
+                      <a href="https://wa.me/+923044928000" className="btn btn-success" target="_blank" rel="noopener noreferrer">
                         <i className="fab fa-whatsapp me-2"></i> Chat on WhatsApp
                       </a>
                     </div>

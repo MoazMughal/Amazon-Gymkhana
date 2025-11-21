@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 const WhatsAppFloat = () => {
   return (
     <a 
@@ -13,4 +15,4 @@ const WhatsAppFloat = () => {
   )
 }
 
-export default WhatsAppFloat
+export default memo(WhatsAppFloat)

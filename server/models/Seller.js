@@ -129,14 +129,17 @@ const sellerSchema = new mongoose.Schema({
     },
     rejectionReason: String
   }],
-  // Password reset fields
+  // Password reset fields (OTP-based)
   passwordResetOTP: String,
   passwordResetOTPSalt: String,
   passwordResetOTPExpiry: Date,
   passwordResetOTPAttempts: {
     type: Number,
     default: 0
-  }
+  },
+  // Password reset fields (Token-based)
+  passwordResetToken: String,
+  passwordResetTokenExpiry: Date
 }, { timestamps: true });
 
 // Generate unique supplier ID

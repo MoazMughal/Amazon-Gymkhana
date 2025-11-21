@@ -25,6 +25,8 @@ const ProductDetail = () => {
   const [isSupplierUnlocked, setIsSupplierUnlocked] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [supplierId, setSupplierId] = useState(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [sellerInfo, setSellerInfo] = useState(null)
 
   // Function to get proper image path
   const getImageSrc = (imagePath) => {
@@ -48,6 +50,52 @@ const ProductDetail = () => {
     const converted = price * currencyRates[currency]
     return `${currencySymbols[currency]}${converted.toFixed(2)}`
   }
+
+  // Check if user is admin
+  useEffect(() => {
+    const adminToken = localStorage.getItem('adminToken');
+    const isAdminUser = !!adminToken;
+    console.log('Admin check:', { adminToken: !!adminToken, isAdminUser });
+    setIsAdmin(isAdminUser);
+  }, []);
+
+  // Fetch seller information
+  const fetchSellerInfo = async (sellerId) => {
+    console.log('fetchSellerInfo called with sellerId:', sellerId);
+    if (!sellerId) {
+      console.log('No sellerId provided');
+      return;
+    }
+    
+    try {
+      const adminToken = localStorage.getItem('adminToken');
+      console.log('Admin token exists:', !!adminToken);
+      
+      if (!adminToken) {
+        console.log('No admin token, skipping seller fetch');
+        return;
+      }
+      
+      const response = await fetch(`http://localhost:5000/api/sellers/${sellerId}`, {
+        headers: {
+          'Authorization': `Bearer ${adminToken}`
+        }
+      });
+      
+      console.log('Seller fetch response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Seller info fetched:', data);
+        setSellerInfo(data);
+      } else {
+        const errorText = await response.text();
+        console.log('Failed to fetch seller info:', response.status, errorText);
+      }
+    } catch (error) {
+      console.error('Error fetching seller info:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -210,6 +258,7 @@ const ProductDetail = () => {
               brand: foundProduct.brand || '',
               markup: foundProduct.discount ? `${foundProduct.discount}%` : '250%',
               showEvaluation: shouldShowEvaluation,
+              seller: foundProduct.seller, // Add seller field
               platforms: [
                 { name: 'RRP', price: '£420.99', grossProfit: '£328.39', markup: '354.63%' },
                 { name: 'Amazon', price: '£419.00', grossProfit: '£326.40', markup: '352.48%' },
@@ -277,6 +326,18 @@ const ProductDetail = () => {
             }
             
             setProduct(productData)
+            
+            // Fetch seller info if product has seller and user is admin
+            console.log('Product seller field:', foundProduct.seller);
+            const adminToken = localStorage.getItem('adminToken');
+            if (foundProduct.seller && adminToken) {
+              console.log('Admin user - Fetching seller info for:', foundProduct.seller);
+              await fetchSellerInfo(foundProduct.seller);
+            } else if (!foundProduct.seller) {
+              console.log('No seller field in product');
+            } else if (!adminToken) {
+              console.log('Not admin user, skipping seller fetch');
+            }
             
             // Get related products
             const related = data.products
@@ -482,9 +543,12 @@ const ProductDetail = () => {
     .slice(0, 6)
 
   const renderStars = (rating) => {
+    // Validate and cap rating between 0 and 5
+    const validRating = Math.min(Math.max(parseFloat(rating) || 0, 0), 5);
+    
     const stars = []
-    const fullStars = Math.floor(rating)
-    const hasHalfStar = rating % 1 !== 0
+    const fullStars = Math.floor(validRating)
+    const hasHalfStar = validRating % 1 !== 0
 
     for (let i = 0; i < fullStars; i++) {
       stars.push(<i key={i} className="fas fa-star"></i>)
@@ -492,7 +556,7 @@ const ProductDetail = () => {
     if (hasHalfStar) {
       stars.push(<i key="half" className="fas fa-star-half-alt"></i>)
     }
-    const emptyStars = 5 - Math.ceil(rating)
+    const emptyStars = 5 - Math.ceil(validRating)
     for (let i = 0; i < emptyStars; i++) {
       stars.push(<i key={`empty-${i}`} className="far fa-star"></i>)
     }
@@ -905,64 +969,120 @@ const ProductDetail = () => {
                   <div className="mb-2">
                     <h3 className="fw-bold mb-2" style={{fontSize: '0.85rem'}}>Supplier Information</h3>
                     
-                    <div className="mb-1">
-                      <div className="d-flex align-items-center mb-1">
-                        <i className="fas fa-check-circle text-success me-1" style={{fontSize: '0.75rem'}}></i>
-                        <span className="fw-semibold" style={{fontSize: '0.75rem'}}>Verified Seller</span>
-                      </div>
-                    </div>
+                    {/* Debug info */}
+                    {console.log('Supplier section render:', { isAdmin, sellerInfo: !!sellerInfo, productSeller: product.seller, isBuyerLoggedIn })}
                     
-                    {product.dealInfo && (
+                    {/* Show seller info for admin */}
+                    {isAdmin && sellerInfo ? (
+                      <div className="border rounded p-2 mb-2" style={{background: '#e8f5e9'}}>
+                        <div className="mb-2">
+                          <div className="d-flex align-items-center mb-1">
+                            <i className="fas fa-check-circle text-success me-1" style={{fontSize: '0.75rem'}}></i>
+                            <span className="fw-semibold text-success" style={{fontSize: '0.75rem'}}>Verified Seller</span>
+                          </div>
+                        </div>
+                        <div className="mb-1" style={{fontSize: '0.7rem'}}>
+                          <strong>Seller:</strong> {sellerInfo.username}
+                        </div>
+                        <div className="mb-1" style={{fontSize: '0.7rem'}}>
+                          <strong>Supplier ID:</strong> {sellerInfo.supplierId}
+                        </div>
+                        <div className="mb-1" style={{fontSize: '0.7rem'}}>
+                          <strong>Email:</strong> {sellerInfo.email}
+                        </div>
+                        <div className="mb-1" style={{fontSize: '0.7rem'}}>
+                          <strong>WhatsApp:</strong> {sellerInfo.whatsappNo}
+                        </div>
+                        {sellerInfo.contactNo && (
+                          <div className="mb-1" style={{fontSize: '0.7rem'}}>
+                            <strong>Contact:</strong> {sellerInfo.contactNo}
+                          </div>
+                        )}
+                        <div className="mb-1" style={{fontSize: '0.7rem'}}>
+                          <strong>Location:</strong> 🇵🇰 {sellerInfo.city}, {sellerInfo.country}
+                        </div>
+                        <div className="mb-1" style={{fontSize: '0.7rem'}}>
+                          <strong>Category:</strong> {sellerInfo.productCategory}
+                        </div>
+                        <div className="mb-1" style={{fontSize: '0.7rem'}}>
+                          <strong>Status:</strong> <span className="badge bg-success" style={{fontSize: '0.65rem'}}>{sellerInfo.verificationStatus}</span>
+                        </div>
+                      </div>
+                    ) : isAdmin && product.seller && !sellerInfo ? (
+                      <div className="alert alert-info border-0 p-2 mb-2" style={{fontSize: '0.7rem'}}>
+                        <i className="fas fa-spinner fa-spin me-1"></i>
+                        Loading seller information...
+                      </div>
+                    ) : isAdmin && !product.seller ? (
+                      <div className="alert alert-warning border-0 p-2 mb-2" style={{fontSize: '0.7rem'}}>
+                        <i className="fas fa-exclamation-triangle me-1"></i>
+                        No seller assigned to this product
+                      </div>
+                    ) : !isAdmin ? (
                       <>
-                        <div className="mb-1" style={{fontSize: '0.7rem'}}>
-                          <strong>Location:</strong> {product.dealInfo.flag} {product.dealInfo.location}
+                        <div className="mb-1">
+                          <div className="d-flex align-items-center mb-1">
+                            <i className="fas fa-check-circle text-success me-1" style={{fontSize: '0.75rem'}}></i>
+                            <span className="fw-semibold" style={{fontSize: '0.75rem'}}>Verified Seller</span>
+                          </div>
                         </div>
-                        <div className="mb-1" style={{fontSize: '0.7rem'}}>
-                          <strong>Min Order:</strong> {product.dealInfo.minOrder}
-                        </div>
-                        <div className="mb-1" style={{fontSize: '0.7rem'}}>
-                          <strong>Condition:</strong> {product.dealInfo.condition}
-                        </div>
+                        
+                        {product.dealInfo && (
+                          <>
+                            <div className="mb-1" style={{fontSize: '0.7rem'}}>
+                              <strong>Location:</strong> {product.dealInfo.flag} {product.dealInfo.location}
+                            </div>
+                            <div className="mb-1" style={{fontSize: '0.7rem'}}>
+                              <strong>Min Order:</strong> {product.dealInfo.minOrder}
+                            </div>
+                            <div className="mb-1" style={{fontSize: '0.7rem'}}>
+                              <strong>Condition:</strong> {product.dealInfo.condition}
+                            </div>
+                          </>
+                        )}
+                        
+                        {!isBuyerLoggedIn && (
+                          <div className="alert alert-warning border-0 mt-2 mb-2" style={{fontSize: '0.7rem', padding: '6px'}}>
+                            <i className="fas fa-lock me-1"></i>
+                            Join to see full contact details
+                          </div>
+                        )}
+
+                        {isBuyerLoggedIn && !isSupplierUnlocked && (
+                          <div className="alert alert-info border-0 mt-2 mb-2" style={{fontSize: '0.7rem', padding: '6px'}}>
+                            <i className="fas fa-lock me-1"></i>
+                            Pay Rs 200 to unlock supplier contact
+                          </div>
+                        )}
+
+                        {isBuyerLoggedIn && isSupplierUnlocked && (
+                          <div className="alert alert-success border-0 mt-2 mb-2" style={{fontSize: '0.7rem', padding: '6px'}}>
+                            <i className="fas fa-unlock me-1"></i>
+                            Supplier contact unlocked!
+                          </div>
+                        )}
                       </>
-                    )}
+                    ) : null}
                     
-                    {!isBuyerLoggedIn && (
-                      <div className="alert alert-warning border-0 mt-2 mb-2" style={{fontSize: '0.7rem', padding: '6px'}}>
-                        <i className="fas fa-lock me-1"></i>
-                        Join to see full contact details
+                    {/* Only show buttons for non-admin users */}
+                    {!isAdmin && (
+                      <div className="d-grid gap-1">
+                        {isBuyerLoggedIn ? (
+                          <button 
+                            onClick={handleContactSupplier}
+                            className={`btn ${isSupplierUnlocked ? 'btn-success' : 'btn-warning'} btn-sm`}
+                            style={{fontSize: '0.7rem', padding: '6px'}}
+                          >
+                            <i className={`${isSupplierUnlocked ? 'fab fa-whatsapp' : 'fas fa-lock'} me-1`}></i>
+                            {isSupplierUnlocked ? 'Contact Supplier' : 'Unlock Contact (Rs 200)'}
+                          </button>
+                        ) : (
+                          <Link to="/join-now" className="btn btn-primary btn-sm" style={{fontSize: '0.7rem', padding: '6px'}}>
+                            <i className="fas fa-user-plus me-1"></i>Join Now
+                          </Link>
+                        )}
                       </div>
                     )}
-
-                    {isBuyerLoggedIn && !isSupplierUnlocked && (
-                      <div className="alert alert-info border-0 mt-2 mb-2" style={{fontSize: '0.7rem', padding: '6px'}}>
-                        <i className="fas fa-lock me-1"></i>
-                        Pay Rs 200 to unlock supplier contact
-                      </div>
-                    )}
-
-                    {isBuyerLoggedIn && isSupplierUnlocked && (
-                      <div className="alert alert-success border-0 mt-2 mb-2" style={{fontSize: '0.7rem', padding: '6px'}}>
-                        <i className="fas fa-unlock me-1"></i>
-                        Supplier contact unlocked!
-                      </div>
-                    )}
-                    
-                    <div className="d-grid gap-1">
-                      {isBuyerLoggedIn ? (
-                        <button 
-                          onClick={handleContactSupplier}
-                          className={`btn ${isSupplierUnlocked ? 'btn-success' : 'btn-warning'} btn-sm`}
-                          style={{fontSize: '0.7rem', padding: '6px'}}
-                        >
-                          <i className={`${isSupplierUnlocked ? 'fab fa-whatsapp' : 'fas fa-lock'} me-1`}></i>
-                          {isSupplierUnlocked ? 'Contact Supplier' : 'Unlock Contact (Rs 200)'}
-                        </button>
-                      ) : (
-                        <Link to="/join-now" className="btn btn-primary btn-sm" style={{fontSize: '0.7rem', padding: '6px'}}>
-                          <i className="fas fa-user-plus me-1"></i>Join Now
-                        </Link>
-                      )}
-                    </div>
                   </div>
 
                   <hr />
@@ -1156,96 +1276,6 @@ const ProductDetail = () => {
               </div>
             )}
             
-            {/* Customer Testimonials - Enhanced */}
-          {product.testimonials && product.testimonials.length > 0 && (
-            <div className="testimonials-section animate__animated animate__fadeInUp" style={{marginTop: '20px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '16px', padding: '25px', boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'}}>
-              <div className="text-center mb-3">
-                <h3 style={{fontSize: '1.3rem', fontWeight: '700', color: 'white', marginBottom: '8px'}}>
-                  <i className="fas fa-star text-warning me-2"></i>What Our Customers Say
-                </h3>
-                <p style={{fontSize: '0.85rem', color: 'rgba(255,255,255,0.9)', marginBottom: 0}}>
-                  Real reviews from verified buyers
-                </p>
-              </div>
-              <div className="row g-3">
-                {product.testimonials.map((testimonial, idx) => (
-                  <div key={idx} className="col-md-4">
-                    <div className="testimonial-card" style={{
-                      background: 'white', 
-                      borderRadius: '12px', 
-                      padding: '20px', 
-                      height: '100%', 
-                      boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-                      transition: 'transform 0.3s ease',
-                      position: 'relative',
-                      overflow: 'hidden'
-                    }}>
-                      <div className="position-absolute" style={{
-                        top: '-10px',
-                        right: '-10px',
-                        fontSize: '4rem',
-                        color: '#f0f0f0',
-                        opacity: 0.3,
-                        fontFamily: 'Georgia, serif'
-                      }}>
-                        "
-                      </div>
-                      <div className="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                          <div className="fw-bold" style={{fontSize: '0.95rem', color: '#2d3748'}}>{testimonial.name}</div>
-                          <div className="text-muted" style={{fontSize: '0.75rem'}}>
-                            <i className="fas fa-map-marker-alt me-1"></i>{testimonial.location}
-                          </div>
-                        </div>
-                        <div className="text-warning" style={{fontSize: '0.85rem'}}>
-                          {[...Array(testimonial.rating)].map((_, i) => (
-                            <i key={i} className="fas fa-star"></i>
-                          ))}
-                        </div>
-                      </div>
-                      <p style={{fontSize: '0.85rem', color: '#4a5568', marginBottom: '12px', lineHeight: '1.6', fontStyle: 'italic'}}>
-                        "{testimonial.comment}"
-                      </p>
-                      <div className="d-flex justify-content-between align-items-center pt-2" style={{borderTop: '1px solid #e5e7eb'}}>
-                        <small className="text-muted" style={{fontSize: '0.7rem'}}>
-                          <i className="far fa-clock me-1"></i>{testimonial.date}
-                        </small>
-                        <span className="badge bg-success" style={{fontSize: '0.65rem'}}>
-                          <i className="fas fa-check-circle me-1"></i>Verified
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Trust Indicators */}
-              <div className="row g-2 mt-3">
-                <div className="col-md-4">
-                  <div className="text-center text-white">
-                    <i className="fas fa-users" style={{fontSize: '1.5rem', marginBottom: '8px'}}></i>
-                    <div className="fw-bold" style={{fontSize: '1.1rem'}}>1000+</div>
-                    <small style={{fontSize: '0.75rem', opacity: 0.9}}>Happy Customers</small>
-                  </div>
-                </div>
-                <div className="col-md-4">
-                  <div className="text-center text-white">
-                    <i className="fas fa-star" style={{fontSize: '1.5rem', marginBottom: '8px'}}></i>
-                    <div className="fw-bold" style={{fontSize: '1.1rem'}}>4.5/5</div>
-                    <small style={{fontSize: '0.75rem', opacity: 0.9}}>Average Rating</small>
-                  </div>
-                </div>
-                <div className="col-md-4">
-                  <div className="text-center text-white">
-                    <i className="fas fa-shield-alt" style={{fontSize: '1.5rem', marginBottom: '8px'}}></i>
-                    <div className="fw-bold" style={{fontSize: '1.1rem'}}>100%</div>
-                    <small style={{fontSize: '0.75rem', opacity: 0.9}}>Satisfaction Guarantee</small>
-                  </div>
-                </div>
-              </div>
-              </div>
-            )}
-            
             {/* Product Specifications */}
           {product.specifications && (
             <div className="product-specs" style={{marginTop: '20px', background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)'}}>
@@ -1355,6 +1385,8 @@ const ProductDetail = () => {
                   <Link 
                     key={relatedProduct.id}
                     to={`/product/${relatedProduct.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="related-card"
                     style={{background: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', cursor: 'pointer', textDecoration: 'none', color: 'inherit'}}
                   >
@@ -1386,7 +1418,13 @@ const ProductDetail = () => {
             <div className="row g-3">
               {topDeals.map((deal, idx) => (
                 <div key={deal.id} className="col-lg-2 col-md-3 col-sm-4 col-6">
-                  <Link to={`/product/${deal.id}`} className="card border-0 shadow-sm h-100 text-decoration-none" style={{transition: 'all 0.3s ease'}}>
+                  <Link 
+                    to={`/product/${deal.id}?name=${encodeURIComponent(deal.name)}&img=${encodeURIComponent(deal.image)}&price=${parseFloat(deal.price.replace(/[£$₨]/g, ''))}&rating=${deal.rating}&reviews=${deal.reviews || 100}&category=${encodeURIComponent(deal.category || 'General')}&brand=${encodeURIComponent(deal.brand || '')}&discount=${deal.markup || '250%'}`}
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="card border-0 shadow-sm h-100 text-decoration-none" 
+                    style={{transition: 'all 0.3s ease'}}
+                  >
                     <div className="position-relative">
                       <span className="badge bg-danger position-absolute top-0 end-0 m-2" style={{fontSize: '0.65rem', zIndex: 2}}>
                         {deal.markup}
@@ -1421,7 +1459,13 @@ const ProductDetail = () => {
             <div className="row g-3">
               {mostPopular.map((popular, idx) => (
                 <div key={popular.id} className="col-lg-2 col-md-3 col-sm-4 col-6">
-                  <Link to={`/product/${popular.id}`} className="card border-0 shadow-sm h-100 text-decoration-none" style={{transition: 'all 0.3s ease'}}>
+                  <Link 
+                    to={`/product/${popular.id}?name=${encodeURIComponent(popular.name)}&img=${encodeURIComponent(popular.image)}&price=${parseFloat(popular.price.replace(/[£$₨]/g, ''))}&rating=${popular.rating}&reviews=${popular.reviews || 100}&category=${encodeURIComponent(popular.category || 'General')}&brand=${encodeURIComponent(popular.brand || '')}&discount=${popular.markup || '250%'}`}
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="card border-0 shadow-sm h-100 text-decoration-none" 
+                    style={{transition: 'all 0.3s ease'}}
+                  >
                     <div className="position-relative">
                       <span className="badge bg-success position-absolute top-0 end-0 m-2" style={{fontSize: '0.65rem', zIndex: 2}}>
                         <i className="fas fa-fire me-1"></i>Popular
@@ -1447,6 +1491,96 @@ const ProductDetail = () => {
               ))}
               </div>
             </div>
+            
+            {/* Customer Testimonials - Enhanced - MOVED TO END */}
+          {product.testimonials && product.testimonials.length > 0 && (
+            <div className="testimonials-section animate__animated animate__fadeInUp" style={{marginTop: '40px', paddingTop: '30px', borderTop: '2px solid #e2e8f0', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '16px', padding: '25px', boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'}}>
+              <div className="text-center mb-3">
+                <h3 style={{fontSize: '1.3rem', fontWeight: '700', color: 'white', marginBottom: '8px'}}>
+                  <i className="fas fa-star text-warning me-2"></i>What Our Customers Say
+                </h3>
+                <p style={{fontSize: '0.85rem', color: 'rgba(255,255,255,0.9)', marginBottom: 0}}>
+                  Real reviews from verified buyers
+                </p>
+              </div>
+              <div className="row g-3">
+                {product.testimonials.map((testimonial, idx) => (
+                  <div key={idx} className="col-md-4">
+                    <div className="testimonial-card" style={{
+                      background: 'white', 
+                      borderRadius: '12px', 
+                      padding: '20px', 
+                      height: '100%', 
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+                      transition: 'transform 0.3s ease',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}>
+                      <div className="position-absolute" style={{
+                        top: '-10px',
+                        right: '-10px',
+                        fontSize: '4rem',
+                        color: '#f0f0f0',
+                        opacity: 0.3,
+                        fontFamily: 'Georgia, serif'
+                      }}>
+                        "
+                      </div>
+                      <div className="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                          <div className="fw-bold" style={{fontSize: '0.95rem', color: '#2d3748'}}>{testimonial.name}</div>
+                          <div className="text-muted" style={{fontSize: '0.75rem'}}>
+                            <i className="fas fa-map-marker-alt me-1"></i>{testimonial.location}
+                          </div>
+                        </div>
+                        <div className="text-warning" style={{fontSize: '0.85rem'}}>
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <i key={i} className="fas fa-star"></i>
+                          ))}
+                        </div>
+                      </div>
+                      <p style={{fontSize: '0.85rem', color: '#4a5568', marginBottom: '12px', lineHeight: '1.6', fontStyle: 'italic'}}>
+                        "{testimonial.comment}"
+                      </p>
+                      <div className="d-flex justify-content-between align-items-center pt-2" style={{borderTop: '1px solid #e5e7eb'}}>
+                        <small className="text-muted" style={{fontSize: '0.7rem'}}>
+                          <i className="far fa-clock me-1"></i>{testimonial.date}
+                        </small>
+                        <span className="badge bg-success" style={{fontSize: '0.65rem'}}>
+                          <i className="fas fa-check-circle me-1"></i>Verified
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Trust Indicators */}
+              <div className="row g-2 mt-3">
+                <div className="col-md-4">
+                  <div className="text-center text-white">
+                    <i className="fas fa-users" style={{fontSize: '1.5rem', marginBottom: '8px'}}></i>
+                    <div className="fw-bold" style={{fontSize: '1.1rem'}}>1000+</div>
+                    <small style={{fontSize: '0.75rem', opacity: 0.9}}>Happy Customers</small>
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="text-center text-white">
+                    <i className="fas fa-star" style={{fontSize: '1.5rem', marginBottom: '8px'}}></i>
+                    <div className="fw-bold" style={{fontSize: '1.1rem'}}>4.5/5</div>
+                    <small style={{fontSize: '0.75rem', opacity: 0.9}}>Average Rating</small>
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="text-center text-white">
+                    <i className="fas fa-shield-alt" style={{fontSize: '1.5rem', marginBottom: '8px'}}></i>
+                    <div className="fw-bold" style={{fontSize: '1.1rem'}}>100%</div>
+                    <small style={{fontSize: '0.75rem', opacity: 0.9}}>Satisfaction Guarantee</small>
+                  </div>
+                </div>
+              </div>
+              </div>
+            )}
             </div>
           </div>
         </div>
