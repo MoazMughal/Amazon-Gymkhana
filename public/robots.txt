@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /seller/dashboard
+Disallow: /buyer/dashboard
+
+Sitemap: https://genericwholesale.pk/sitemap.xml
