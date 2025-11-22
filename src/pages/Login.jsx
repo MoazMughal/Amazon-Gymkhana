@@ -83,7 +83,7 @@ const Login = () => {
                 <div className="card-body p-4">
                   <div className="text-center mb-4">
                     <h3 className="card-title modern-title" style={{fontSize: '1.8rem', marginBottom: '0.5rem'}}>Welcome Back</h3>
-                    <p className="text-muted section-subtitle" style={{fontSize: '0.9rem', marginBottom: '0'}}>Sign in to your Amazon Gymkhana account</p>
+                    <p className="text-muted section-subtitle" style={{fontSize: '0.9rem', marginBottom: '0'}}>Sign in to your Generic Wholesale account</p>
                   </div>
 
                   <form onSubmit={handleSubmit}>

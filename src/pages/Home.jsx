@@ -619,12 +619,12 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Amazon Gymkhana Best Seller's Choice Section */}
+      {/* Generic Wholesale Best Seller's Choice Section */}
       <section className="section-padding">
         <div className="container">
           <div className="wholesale-section">
             <div className="wholesale-header">
-              <h2 className="wholesale-title">Amazon Gymkhana Best Seller's Choice</h2>
+              <h2 className="wholesale-title">Generic Wholesale Best Seller's Choice</h2>
               <p className="wholesale-subtitle">High-margin products with proven sales performance. Perfect for resellers and retailers.</p>
             </div>
             <div className="wholesale-products">

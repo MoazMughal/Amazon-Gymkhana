@@ -10,7 +10,7 @@ const createAdmin = async () => {
     
     const adminData = {
       username: 'admin',
-      email: 'admin@amazon-gymkhana.com',
+      email: 'admin@genericwholesale.pk',
       password: 'admin123',
       role: 'superadmin'
     };

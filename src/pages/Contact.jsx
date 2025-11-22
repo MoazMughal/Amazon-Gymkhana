@@ -149,7 +149,7 @@ const Contact = () => {
                     <div className="contact-icon"><i className="fas fa-map-marker-alt"></i></div>
                     <div className="contact-info">
                       <h5>Our Location</h5>
-                      <p><strong>Amazon Gymkhana Pvt Ltd</strong></p>
+                      <p><strong>Generic Wholesale Pvt Ltd</strong></p>
                       <p>Dilawer Cheema Khurd, 52061</p>
                       <p>Pakistan</p>
                     </div>

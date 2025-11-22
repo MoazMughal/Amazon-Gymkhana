@@ -94,16 +94,7 @@ const JoinNow = () => {
             description: "All suppliers maintain 95%+ quality ratings with return protection",
             color: "warning"
           }
-        ],
-        welcomeBonus: {
-          title: "Welcome Bonus: Free Starter Kit",
-          items: [
-            "Access to 100+ Amazon's Choice products",
-            "Supplier contact database worth $299",
-            "Free product research consultation",
-            "30-day premium support"
-          ]
-        }
+        ]
       }
     } else {
       return {
@@ -131,19 +122,10 @@ const JoinNow = () => {
           {
             icon: "fas fa-graduation-cap",
             title: "Training & Support",
-            description: "Complete Amazon selling course and dedicated account manager",
+            description: "Complete wholesale business course and dedicated account manager",
             color: "warning"
           }
-        ],
-        welcomeBonus: {
-          title: "Welcome Bonus: Supplier Success Package",
-          items: [
-            "Free product listing (worth $199)",
-            "Market analysis report for your category",
-            "Direct buyer introductions",
-            "60-day premium seller support"
-          ]
-        }
+        ]
       }
     }
   }
@@ -152,8 +134,8 @@ const JoinNow = () => {
     <div className="row justify-content-center">
       <div className="col-lg-10">
         <div className="text-center mb-4">
-          <h2 className="fw-bold mb-2">Join Amazon Choice Community</h2>
-          <p className="text-muted small">Choose your path to success in the Amazon marketplace</p>
+          <h2 className="fw-bold mb-2">Join Generic Wholesale Community</h2>
+          <p className="text-muted small">Choose your path to success in the wholesale marketplace</p>
         </div>
 
         <div className="row g-4">
@@ -410,28 +392,6 @@ const JoinNow = () => {
             ))}
           </div>
 
-          {/* Welcome Bonus */}
-          <div className="card border-warning shadow-lg mb-5">
-            <div className="card-header bg-warning text-dark text-center py-3">
-              <h4 className="fw-bold mb-0">
-                <i className="fas fa-gift me-2"></i>
-                {benefits.welcomeBonus.title}
-              </h4>
-            </div>
-            <div className="card-body p-4">
-              <div className="row">
-                {benefits.welcomeBonus.items.map((item, index) => (
-                  <div key={index} className="col-md-6 mb-2">
-                    <div className="d-flex align-items-center">
-                      <i className="fas fa-check-circle text-success me-2"></i>
-                      <span>{item}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
           {/* CTA Buttons */}
           <div className="text-center">
             <div className="d-flex gap-3 justify-content-center flex-wrap">
@@ -440,7 +400,7 @@ const JoinNow = () => {
                 className={`btn ${selectedUserType === 'buyer' ? 'btn-primary' : 'btn-success'} btn-lg px-5`}
               >
                 <i className="fas fa-rocket me-2"></i>
-                Claim My Welcome Bonus
+                Get Started Now
               </Link>
               <button 
                 className="btn btn-outline-secondary btn-lg px-4"

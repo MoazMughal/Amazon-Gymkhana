@@ -11,11 +11,11 @@ const BenefitsComparison = () => {
   ]
 
   const supplierBenefits = [
-    { icon: "fas fa-users", title: "Buyer Network", desc: "2000+ active Amazon sellers" },
+    { icon: "fas fa-users", title: "Buyer Network", desc: "2000+ active wholesale buyers" },
     { icon: "fas fa-store", title: "Free Listings", desc: "Professional product listings" },
     { icon: "fas fa-handshake", title: "Direct Connect", desc: "WhatsApp business integration" },
     { icon: "fas fa-chart-bar", title: "Analytics", desc: "Market insights and trends" },
-    { icon: "fas fa-graduation-cap", title: "Training", desc: "Amazon selling masterclass" },
+    { icon: "fas fa-graduation-cap", title: "Training", desc: "Wholesale business masterclass" },
     { icon: "fas fa-dollar-sign", title: "Higher Margins", desc: "Cut out middlemen costs" }
   ]
 
@@ -23,7 +23,7 @@ const BenefitsComparison = () => {
     <div className="benefits-comparison py-5">
       <div className="container">
         <div className="text-center mb-5">
-          <h2 className="fw-bold mb-3">Why Choose Amazon Choice?</h2>
+          <h2 className="fw-bold mb-3">Why Choose Generic Wholesale?</h2>
           <p className="text-muted">Compare what you get as a buyer vs supplier</p>
         </div>
 

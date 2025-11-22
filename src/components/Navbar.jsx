@@ -64,7 +64,7 @@ const Navbar = () => {
       <div className="container">
         <Link className="navbar-brand" to="/">
           <span className="brand-text">
-            Amazon <span className="gymkhana-text">Gymkhana</span>
+            Generic <span className="gymkhana-text">Wholesale</span>
           </span>
         </Link>
         

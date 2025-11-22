@@ -6,8 +6,8 @@ const Footer = () => {
       <div className="container">
         <div className="row">
           <div className="col-lg-4 col-md-6 mb-4">
-            <h5>About Amazon Choice</h5>
-            <p>Connecting Pakistan's Amazon sellers, suppliers, and service providers under one platform to foster growth and collaboration.</p>
+            <h5>About Generic Wholesale</h5>
+            <p>Pakistan's premier wholesale marketplace connecting suppliers, retailers, and businesses for seamless B2B transactions and growth.</p>
             <div className="social-icons mt-4">
               <a href="#" aria-label="Facebook">
                 <i className="fab fa-facebook-f"></i>
@@ -52,16 +52,16 @@ const Footer = () => {
           <div className="col-lg-3 col-md-6 mb-4">
             <h5>Contact Info</h5>
             <ul>
-              <li><i className="fas fa-map-marker-alt me-2"></i> Islamabad, Pakistan</li>
-              <li><i className="fas fa-envelope me-2"></i> info@amazonchoice.pk</li>
-              <li><i className="fas fa-phone me-2"></i> +92 300 1234567</li>
-              <li><i className="fab fa-whatsapp me-2"></i> +92 300 1234567</li>
+              <li><i className="fas fa-map-marker-alt me-2"></i> Dilawer Cheema Khurd, Pakistan</li>
+              <li><i className="fas fa-envelope me-2"></i> info@genericwholesale.pk</li>
+              <li><i className="fas fa-phone me-2"></i> +92-303-4928000</li>
+              <li><i className="fas fa-phone me-2"></i> +92-304-4928000</li>
             </ul>
           </div>
         </div>
         
         <div className="copyright">
-          <p>&copy; 2023 Amazon Choice. All rights reserved.</p>
+          <p>&copy; 2025 Generic Wholesale. All rights reserved.</p>
         </div>
       </div>
     </footer>

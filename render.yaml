@@ -1,7 +1,7 @@
 services:
   # Backend API Service
   - type: web
-    name: amazon-gymkhana-backend
+    name: generic-wholesale-backend
     env: node
     region: singapore
     plan: free
@@ -37,7 +37,7 @@ services:
 
   # Frontend Static Site
   - type: web
-    name: amazon-gymkhana-frontend
+    name: generic-wholesale-frontend
     env: static
     region: singapore
     buildCommand: npm install && npm run build
@@ -52,7 +52,7 @@ services:
 
   # MongoDB Database
   - type: pserv
-    name: amazon-gymkhana-db
+    name: generic-wholesale-db
     env: docker
     region: singapore
     plan: free

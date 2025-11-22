@@ -107,7 +107,7 @@ const Register = () => {
                 <div className="card-body p-3">
                   <div className="text-center mb-2">
                     <h3 className="card-title modern-title" style={{fontSize: '1.3rem', marginBottom: '0.3rem'}}>Create Account</h3>
-                    <p className="text-muted section-subtitle" style={{fontSize: '0.75rem', marginBottom: '0.3rem'}}>Join Amazon Gymkhana community today</p>
+                    <p className="text-muted section-subtitle" style={{fontSize: '0.75rem', marginBottom: '0.3rem'}}>Join Generic Wholesale community today</p>
                   </div>
 
                   <form onSubmit={handleSubmit}>
