@@ -4,7 +4,8 @@
 // Get API base URL from environment variable
 // In development: uses .env file (VITE_API_URL=http://localhost:5000/api)
 // In production: uses Render environment variable
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.PROD ? 'https://generic-wholesale-backend.onrender.com/api' : 'http://localhost:5000/api');
 
 // Remove /api suffix if present to get base server URL
 export const SERVER_BASE_URL = API_BASE_URL.replace('/api', '');
