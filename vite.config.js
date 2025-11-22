@@ -8,13 +8,10 @@ export default defineConfig({
   build: {
     assetsInlineLimit: 4096, // Inline small assets (4kb)
     // Optimize build
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove console.logs in production
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info']
-      }
+    minify: 'esbuild', // Use esbuild (faster and built-in)
+    // Remove console.logs in production
+    esbuild: {
+      drop: ['console', 'debugger']
     },
     // Code splitting for better caching
     rollupOptions: {
