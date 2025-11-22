@@ -5,8 +5,13 @@ const createTransporter = () => {
   // Check if email credentials are configured
   if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.warn('⚠️  Email credentials not configured. Password reset emails will not be sent.');
+    console.warn('EMAIL_HOST:', process.env.EMAIL_HOST);
+    console.warn('EMAIL_USER:', process.env.EMAIL_USER);
+    console.warn('EMAIL_PASS:', process.env.EMAIL_PASS ? '***configured***' : 'NOT SET');
     return null;
   }
+
+  console.log('✅ Email configuration found - attempting to create transporter');
 
 
 
@@ -92,10 +97,13 @@ export const sendEmailOTP = async (email, otp, userName = 'User') => {
     };
 
     await transporter.sendMail(mailOptions);
+    console.log(`✅ OTP email sent successfully to ${email}`);
     return { success: true, message: 'OTP sent successfully' };
 
   } catch (error) {
-    return { success: false, message: 'Failed to send OTP email' };
+    console.error('❌ Failed to send OTP email:', error.message);
+    console.error('Error details:', error);
+    return { success: false, message: `Failed to send OTP email: ${error.message}` };
   }
 };
 
@@ -170,9 +178,12 @@ export const sendPasswordResetEmail = async (email, userName, resetUrl) => {
     };
 
     await transporter.sendMail(mailOptions);
+    console.log(`✅ Password reset email sent successfully to ${email}`);
     return true;
 
   } catch (error) {
+    console.error('❌ Failed to send password reset email:', error.message);
+    console.error('Error details:', error);
     return false;
   }
 };

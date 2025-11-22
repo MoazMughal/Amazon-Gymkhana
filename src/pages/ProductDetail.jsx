@@ -5,6 +5,7 @@ import { products } from '../data/allProducts'
 import { getImageUrl } from '../utils/imageImports'
 import ScrollToTop from '../components/ScrollToTop'
 import PaymentModal from '../components/PaymentModal'
+import apiConfig from '../config/api.config'
 
 const ProductDetail = () => {
   const { id } = useParams()
@@ -76,7 +77,7 @@ const ProductDetail = () => {
         return;
       }
       
-      const response = await fetch(`http://localhost:5000/api/sellers/${sellerId}`, {
+      const response = await fetch(apiConfig.getApiUrl(`sellers/${sellerId}`), {
         headers: {
           'Authorization': `Bearer ${adminToken}`
         }
@@ -228,7 +229,7 @@ const ProductDetail = () => {
       
       // Try to fetch from database API
       try {
-        const response = await fetch(`http://localhost:5000/api/products/public?limit=1000`)
+        const response = await fetch(apiConfig.getApiUrl('products/public?limit=1000'))
         if (response.ok) {
           const data = await response.json()
           const foundProduct = data.products.find(p => p._id === id)
@@ -481,7 +482,7 @@ const ProductDetail = () => {
 
       if (token && product?.supplierId) {
         try {
-          const response = await fetch(`http://localhost:5000/api/buyer/check-unlock/${product.supplierId}`, {
+          const response = await fetch(apiConfig.getApiUrl(`buyer/check-unlock/${product.supplierId}`), {
             headers: {
               'Authorization': `Bearer ${token}`
             }
