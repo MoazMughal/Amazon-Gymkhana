@@ -601,10 +601,14 @@ router.get('/uae-products', async (req, res) => {
     });
     
   } catch (error) {
+    console.error('❌ UAE Excel Error:', error);
+    console.error('Error details:', error.message);
+    console.error('File path attempted:', path.join(__dirname, '../../uae-asin.xlsx'));
     res.status(500).json({
       success: false,
       message: 'Error reading UAE Excel file',
-      error: error.message
+      error: error.message,
+      details: 'Make sure uae-asin.xlsx exists in the root directory'
     });
   }
 });

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { getApiUrl } from '../../utils/api'
 import { useSeller } from '../../context/SellerContext'
 
 const SupplierLogin = () => {
@@ -27,7 +28,7 @@ const SupplierLogin = () => {
     setError('')
     
     try {
-      const response = await fetch('http://localhost:5000/api/sellers/login', {
+      const response = await fetch(getApiUrl('sellers/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

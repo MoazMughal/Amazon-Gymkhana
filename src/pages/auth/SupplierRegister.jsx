@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { getApiUrl } from '../../utils/api'
 
 const SupplierRegister = () => {
   const navigate = useNavigate()
@@ -48,7 +49,7 @@ const SupplierRegister = () => {
     setLoading(true)
     
     try {
-      const response = await fetch('http://localhost:5000/api/sellers/register', {
+      const response = await fetch(getApiUrl('sellers/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

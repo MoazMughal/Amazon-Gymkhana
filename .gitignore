@@ -29,7 +29,7 @@ dist-ssr
 .env.production
 
 # Excel files (if not needed in production)
-*.xlsx
+# *.xlsx - COMMENTED OUT - We need these files in production!
 
 # Documentation files (keep local only)
 *.md
