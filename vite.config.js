@@ -1,9 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// Plugin to replace localhost URLs in production
+const replaceLocalhostPlugin = () => ({
+  name: 'replace-localhost',
+  transform(code, id) {
+    if (process.env.NODE_ENV === 'production' && (id.endsWith('.js') || id.endsWith('.jsx'))) {
+      return code.replace(/http:\/\/localhost:5000/g, 'https://generic-wholesale-backend.onrender.com')
+    }
+    return code
+  }
+})
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), replaceLocalhostPlugin()],
   assetsInclude: ['**/*.jpg', '**/*.jpeg', '**/*.png', '**/*.gif', '**/*.svg', '**/*.webp'],
   build: {
     assetsInlineLimit: 4096, // Inline small assets (4kb)
@@ -36,6 +47,12 @@ export default defineConfig({
   server: {
     port: 3000,
     strictPort: false,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
+      }
+    },
     fs: {
       // Allow serving files from assets
       allow: ['..']
