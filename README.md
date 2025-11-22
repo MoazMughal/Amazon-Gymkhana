@@ -82,7 +82,7 @@ VITE_API_URL=http://localhost:5000/api
 #### Backend (server/.env)
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/generic-wholesale
+MONGODB_URI=mongodb://localhost:27017/amazon-gymkhana
 JWT_SECRET=your_jwt_secret_key_here
 NODE_ENV=development
 
