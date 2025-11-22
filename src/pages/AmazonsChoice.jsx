@@ -6,6 +6,7 @@ import CurrencySelector from '../components/CurrencySelector'
 import { useCurrency } from '../context/CurrencyContext'
 import { useSeller } from '../context/SellerContext'
 import { getImageUrl } from '../utils/imageImports'
+import { getApiUrl } from '../utils/api'
 
 const AmazonsChoice = () => {
   const [searchParams] = useSearchParams()
@@ -85,7 +86,7 @@ const AmazonsChoice = () => {
         setLoading(true)
         
         // Fetch categorized products from Excel
-        const excelResponse = await fetch('http://localhost:5000/api/excel/products-by-category')
+        const excelResponse = await fetch(getApiUrl('excel/products-by-category'))
         
         if (excelResponse.ok) {
           const excelData = await excelResponse.json()
@@ -136,7 +137,7 @@ const AmazonsChoice = () => {
         }
         
         // Also fetch regular products from database
-        const response = await fetch('http://localhost:5000/api/products/public?isAmazonsChoice=true&limit=1000')
+        const response = await fetch(getApiUrl('products/public?isAmazonsChoice=true&limit=1000'))
         
         if (response.ok) {
           const data = await response.json()
@@ -457,7 +458,7 @@ const AmazonsChoice = () => {
         status: paymentMethod === 'jazzcash' ? 'pending' : 'completed' // JazzCash needs admin approval
       }
 
-      const response = await fetch('http://localhost:5000/api/sellers/payment', {
+      const response = await fetch(getApiUrl('sellers/payment'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -470,7 +471,7 @@ const AmazonsChoice = () => {
 
       if (response.ok) {
         // Add product to seller's inventory
-        const addProductResponse = await fetch('http://localhost:5000/api/products/seller/list-admin-product', {
+        const addProductResponse = await fetch(getApiUrl('products/seller/list-admin-product'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

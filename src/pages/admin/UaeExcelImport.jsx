@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../../context/AdminContext';
+import { getApiUrl } from '../../utils/api';
 
 const UaeExcelImport = () => {
   const { isLoggedIn: isAdminLoggedIn, loading: adminLoading } = useAdmin();
@@ -55,7 +56,7 @@ const UaeExcelImport = () => {
   const loadUaeProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/excel/uae-products');
+      const response = await fetch(getApiUrl('excel/uae-products'));
       const data = await response.json();
       
       if (data.success) {
@@ -90,7 +91,7 @@ const UaeExcelImport = () => {
       }
       
       // Load ALL sellers (verified and unverified)
-      const response = await fetch('http://localhost:5000/api/sellers?status=all', {
+      const response = await fetch(getApiUrl('sellers?status=all'), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -199,7 +200,7 @@ const UaeExcelImport = () => {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
       
-      const response = await fetch('http://localhost:5000/api/products/admin/bulk-import', {
+      const response = await fetch(getApiUrl('products/admin/bulk-import'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

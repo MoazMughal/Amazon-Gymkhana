@@ -25,7 +25,10 @@ const createTransporter = () => {
     },
     tls: {
       rejectUnauthorized: false // Allow self-signed certificates
-    }
+    },
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000,
+    socketTimeout: 10000
   });
   
   return transporter;
