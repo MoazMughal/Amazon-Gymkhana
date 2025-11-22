@@ -229,10 +229,16 @@ const ProductDetail = () => {
       
       // Try to fetch from database API
       try {
-        const response = await fetch(apiConfig.getApiUrl('products/public?limit=1000'))
+        console.log('Fetching product with ID:', id);
+        console.log('API URL:', apiConfig.getApiUrl('products/public?limit=5000'));
+        const response = await fetch(apiConfig.getApiUrl('products/public?limit=5000'))
+        console.log('Response status:', response.status);
         if (response.ok) {
           const data = await response.json()
+          console.log('Total products fetched:', data.products.length);
+          console.log('Looking for product ID:', id);
           const foundProduct = data.products.find(p => p._id === id)
+          console.log('Found product:', foundProduct ? 'YES' : 'NO');
           
           if (foundProduct) {
             // Transform database product to display format
@@ -357,8 +363,97 @@ const ProductDetail = () => {
         }
       } catch (error) {
         console.error('Error fetching product:', error)
-        setLoading(false)
       }
+      
+      // If still not found, try fetching specific product by ID
+      if (!product) {
+        try {
+          console.log('Product not found in list, trying direct fetch...');
+          const response = await fetch(apiConfig.getApiUrl(`products/public/${id}`))
+          if (response.ok) {
+            const foundProduct = await response.json()
+            console.log('Direct fetch result:', foundProduct);
+            
+            if (foundProduct) {
+              const shouldShowEvaluation = 
+                foundProduct.name.toLowerCase().includes('nose ring') ||
+                foundProduct.name.toLowerCase().includes('bulb') ||
+                foundProduct.name.toLowerCase().includes('fuse') ||
+                foundProduct.name.toLowerCase().includes('lampshade')
+              
+              const productImage = foundProduct.images && foundProduct.images.length > 0 
+                ? getImageUrl(foundProduct.images[0]) 
+                : ''
+              
+              const productData = {
+                id: foundProduct._id,
+                name: foundProduct.name,
+                price: `£${foundProduct.price}`,
+                rrp: foundProduct.originalPrice ? `£${foundProduct.originalPrice}` : '£420.99',
+                rating: foundProduct.rating || 4.5,
+                reviews: foundProduct.reviews || 100,
+                image: productImage,
+                images: foundProduct.images ? foundProduct.images.map(img => getImageUrl(img)) : [productImage],
+                category: foundProduct.category,
+                brand: foundProduct.brand || '',
+                markup: foundProduct.discount ? `${foundProduct.discount}%` : '250%',
+                showEvaluation: shouldShowEvaluation,
+                seller: foundProduct.seller,
+                platforms: [
+                  { name: 'RRP', price: '£420.99', grossProfit: '£328.39', markup: '354.63%' },
+                  { name: 'Amazon', price: '£419.00', grossProfit: '£326.40', markup: '352.48%' },
+                  { name: 'eBay', price: '£199.00', grossProfit: '£106.40', markup: '114.90%' }
+                ],
+                dealInfo: {
+                  location: 'Pakistan',
+                  flag: '🇵🇰',
+                  minOrder: '100 Unit',
+                  condition: 'New'
+                },
+                specifications: {
+                  'Material': 'Premium Quality',
+                  'Condition': 'New',
+                  'Origin': 'Pakistan'
+                },
+                description: foundProduct.description || `High-quality ${foundProduct.name} available at wholesale prices.`,
+                features: [
+                  'Amazon\'s Choice Product',
+                  'Fast Shipping Available',
+                  'Quality Guaranteed',
+                  'Verified Supplier',
+                  'Bulk Orders Welcome'
+                ],
+                testimonials: [
+                  {
+                    name: 'Ahmed K.',
+                    location: 'Karachi, Pakistan',
+                    rating: 5,
+                    comment: 'Excellent quality product!',
+                    date: '2 weeks ago'
+                  }
+                ]
+              }
+              
+              setProduct(productData)
+              
+              if (foundProduct.seller) {
+                const adminToken = localStorage.getItem('adminToken');
+                if (adminToken) {
+                  await fetchSellerInfo(foundProduct.seller);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching product by ID:', error)
+        }
+      }
+      
+      setLoading(false)
+    }
+    
+    fetchProduct()
+  }, [id, searchParams])
       
       // Fallback: Try to get product from complete data
       let productData = getProductById(id)

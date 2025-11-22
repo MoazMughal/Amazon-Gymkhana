@@ -57,6 +57,27 @@ router.get('/public', async (req, res) => {
   }
 });
 
+// Public endpoint to get single product by ID (no auth required)
+router.get('/public/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    
+    // Only return if product is active
+    if (product.status !== 'active') {
+      return res.status(404).json({ message: 'Product not available' });
+    }
+    
+    res.json(product);
+  } catch (error) {
+    console.error('Error fetching product by ID:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Specific endpoint for Excel products (for sellers)
 router.get('/excel-products', async (req, res) => {
   try {
