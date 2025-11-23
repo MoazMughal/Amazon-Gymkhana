@@ -84,9 +84,14 @@ const AmazonsChoice = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true)
+        console.log('🔍 Starting to fetch products...')
+        console.log('🌐 API Base URL:', getApiUrl(''))
+        console.log('🔧 Environment:', import.meta.env.MODE)
         
         // Fetch categorized products from Excel
+        console.log('📊 Fetching Excel products from:', getApiUrl('excel/products-by-category'))
         const excelResponse = await fetch(getApiUrl('excel/products-by-category'))
+        console.log('📊 Excel response status:', excelResponse.status)
         
         if (excelResponse.ok) {
           const excelData = await excelResponse.json()
@@ -137,7 +142,9 @@ const AmazonsChoice = () => {
         }
         
         // Also fetch regular products from database
+        console.log('🗄️ Fetching database products from:', getApiUrl('products/public?isAmazonsChoice=true&limit=1000'))
         const response = await fetch(getApiUrl('products/public?isAmazonsChoice=true&limit=1000'))
+        console.log('🗄️ Database response status:', response.status)
         
         if (response.ok) {
           const data = await response.json()
@@ -207,8 +214,10 @@ const AmazonsChoice = () => {
           console.error('Failed to fetch products')
         }
       } catch (error) {
-        console.error('Error fetching products:', error)
+        console.error('❌ Error fetching products:', error)
+        console.error('❌ Error details:', error.message)
       } finally {
+        console.log('✅ Finished fetching products. Total products:', products.length)
         setLoading(false)
       }
     }

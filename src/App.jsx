@@ -10,6 +10,7 @@ import { SellerProvider } from './context/SellerContext'
 import { AdminProvider } from './context/AdminContext'
 import authSessionManager from './utils/authSession'
 import './App.css'
+import './styles/mobile-responsive.css'
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'))

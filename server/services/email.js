@@ -12,8 +12,12 @@ const createTransporter = () => {
   }
 
   console.log('✅ Email configuration found - attempting to create transporter');
-
-
+  console.log('📧 Email Config:', {
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT || 587,
+    secure: process.env.EMAIL_SECURE === 'true',
+    user: process.env.EMAIL_USER
+  });
 
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
@@ -26,22 +30,55 @@ const createTransporter = () => {
     tls: {
       rejectUnauthorized: false // Allow self-signed certificates
     },
-    connectionTimeout: 10000, // 10 seconds
-    greetingTimeout: 10000,
-    socketTimeout: 10000
+    connectionTimeout: 15000, // 15 seconds
+    greetingTimeout: 15000,
+    socketTimeout: 15000,
+    // Add debug for troubleshooting
+    debug: process.env.NODE_ENV === 'development',
+    logger: process.env.NODE_ENV === 'development'
   });
   
   return transporter;
 };
 
+// Test email connection
+const testEmailConnection = async () => {
+  try {
+    const transporter = createTransporter();
+    if (!transporter) {
+      return { success: false, message: 'Email not configured' };
+    }
+
+    console.log('🔍 Testing email connection...');
+    await transporter.verify();
+    console.log('✅ Email connection successful');
+    return { success: true, message: 'Email connection verified' };
+  } catch (error) {
+    console.error('❌ Email connection failed:', error.message);
+    return { success: false, message: error.message };
+  }
+};
+
 // Send OTP email (for OTP-based password reset)
 export const sendEmailOTP = async (email, otp, userName = 'User') => {
   try {
+    console.log(`📧 Attempting to send OTP to: ${email}`);
+    
     const transporter = createTransporter();
     
     // If no transporter (email not configured), return error
     if (!transporter) {
+      console.error('❌ No email transporter available');
       return { success: false, message: 'Email service not configured' };
+    }
+
+    // Test connection first
+    try {
+      await transporter.verify();
+      console.log('✅ Email connection verified');
+    } catch (verifyError) {
+      console.error('❌ Email connection verification failed:', verifyError.message);
+      return { success: false, message: `Email connection failed: ${verifyError.message}` };
     }
 
     const mailOptions = {
@@ -190,3 +227,6 @@ export const sendPasswordResetEmail = async (email, userName, resetUrl) => {
     return false;
   }
 };
+
+// Export test function
+export { testEmailConnection };

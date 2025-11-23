@@ -56,7 +56,8 @@ const Navbar = () => {
     localStorage.removeItem('buyerData')
     setIsBuyerLoggedIn(false)
     setBuyerData(null)
-    navigate('/login/buyer')
+    // Navigate to auth landing page instead of specific login
+    navigate('/auth')
   }
 
   return (

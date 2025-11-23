@@ -16,10 +16,20 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_SECURE
+        value: false
       - key: EMAIL_USER
-        sync: false
+        value: moazmughal786@gmail.com
       - key: EMAIL_PASS
-        sync: false
+        value: jzepgkmxmhiuuykx
+      - key: EMAIL_FROM_NAME
+        value: Generic Wholesale
+      - key: FRONTEND_URL
+        value: https://www.genericwholesale.pk
       - key: TWILIO_ACCOUNT_SID
         sync: false
       - key: TWILIO_AUTH_TOKEN
@@ -31,8 +41,6 @@ services:
       - key: EASYPAISA_STORE_ID
         sync: false
       - key: EASYPAISA_SECRET_KEY
-        sync: false
-      - key: FRONTEND_URL
         sync: false
 
   # Frontend Static Site
@@ -48,12 +56,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        sync: false
-
-  # MongoDB Database
-  - type: pserv
-    name: generic-wholesale-db
-    env: docker
-    region: singapore
-    plan: free
-    dockerfilePath: ./Dockerfile.mongo
+        value: https://generic-wholesale-backend.onrender.com/api

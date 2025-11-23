@@ -31,38 +31,35 @@ const Home = () => {
   const [isBuyerLoggedIn, setIsBuyerLoggedIn] = useState(false)
   const { formatPrice } = useCurrency()
   
-  // Background image sets with product images
+  // Background image sets with multiple small product images - expanded to fill entire background
+  const allProductImages = [
+    noseRingImg, watchStrapImg, lampshadeImg, fairyImg, forksImg, cableImg, 
+    bulbImg, glassImg, tapeImg, lacesImg, sunglassesImg, carBulbImg,
+    spoonImg, balloonImg, remoteImg, watchImg
+  ]
+
+  // Create larger image sets by repeating and shuffling images to fill 48 slots (8x6 grid)
+  const createImageSet = (baseImages, seed = 0) => {
+    const extendedImages = []
+    // Repeat images 3 times to get 48 images
+    for (let i = 0; i < 3; i++) {
+      extendedImages.push(...baseImages)
+    }
+    
+    // Shuffle based on seed for different arrangements
+    const shuffled = [...extendedImages]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor((Math.sin(seed + i) * 10000) % (i + 1))
+      ;[shuffled[i], shuffled[Math.abs(j)]] = [shuffled[Math.abs(j)], shuffled[i]]
+    }
+    
+    return shuffled
+  }
+
   const imageSets = [
-    [
-      noseRingImg,
-      watchStrapImg,
-      lampshadeImg,
-      fairyImg,
-      forksImg,
-      cableImg,
-      bulbImg,
-      glassImg
-    ],
-    [
-      tapeImg,
-      lacesImg,
-      sunglassesImg,
-      carBulbImg,
-      spoonImg,
-      balloonImg,
-      remoteImg,
-      watchImg
-    ],
-    [
-      glassImg,
-      noseRingImg,
-      fairyImg,
-      cableImg,
-      lampshadeImg,
-      forksImg,
-      bulbImg,
-      watchStrapImg
-    ]
+    createImageSet(allProductImages, 1),
+    createImageSet([...allProductImages].reverse(), 2),
+    createImageSet(allProductImages.sort(() => 0.5 - Math.random()), 3)
   ]
 
   const subtitles = [
@@ -263,27 +260,29 @@ const Home = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          opacity: 0.2,
+          opacity: 0.12,
           zIndex: 0,
           pointerEvents: 'none'
         }}>
           <div className="background-grid" style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gridTemplateRows: 'repeat(2, 1fr)',
-            gap: '20px',
-            padding: '20px',
+            gridTemplateColumns: 'repeat(8, 1fr)',
+            gridTemplateRows: 'repeat(6, 1fr)',
+            gap: '6px',
+            padding: '5px',
             height: '100%',
-            width: '100%'
+            width: '100%',
+            minHeight: '100vh'
           }}>
             {imageSets[currentImageSet].map((image, index) => (
-              <div key={index} className={`grid-item item-${index + 1}`} style={{
-                borderRadius: '20px',
+              <div key={index} className={`grid-item small-item-${index + 1}`} style={{
+                borderRadius: '10px',
                 overflow: 'hidden',
                 transition: 'all 0.8s ease',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                boxShadow: '0 3px 12px rgba(0,0,0,0.15)',
                 transform: 'scale(1)',
-                animation: `float ${3 + (index * 0.5)}s ease-in-out infinite`
+                animation: `float ${2 + (index * 0.1)}s ease-in-out infinite`,
+                animationDelay: `${index * 0.1}s`
               }}>
                 <img 
                   src={image} 
@@ -292,9 +291,50 @@ const Home = () => {
                   style={{
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover',
-                    filter: 'brightness(1.2) contrast(1.15) saturate(1.1)',
-                    display: 'block'
+                    objectFit: 'contain',
+                    filter: 'brightness(1.05) contrast(1.05) saturate(1.02)',
+                    display: 'block',
+                    padding: '3px',
+                    background: 'rgba(255,255,255,0.85)',
+                    borderRadius: '7px'
+                  }} 
+                />
+              </div>
+            ))}
+          </div>
+          
+          {/* Additional floating images for extra coverage */}
+          <div className="floating-images" style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            opacity: 0.08,
+            zIndex: -1
+          }}>
+            {allProductImages.slice(0, 12).map((image, index) => (
+              <div key={`floating-${index}`} style={{
+                position: 'absolute',
+                width: '60px',
+                height: '60px',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                left: `${Math.random() * 90}%`,
+                top: `${Math.random() * 90}%`,
+                animation: `floatSlow ${8 + (index * 0.5)}s ease-in-out infinite`,
+                animationDelay: `${index * 0.3}s`
+              }}>
+                <img 
+                  src={image} 
+                  alt={`Floating ${index + 1}`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    background: 'rgba(255,255,255,0.7)',
+                    borderRadius: '6px',
+                    padding: '2px'
                   }} 
                 />
               </div>
@@ -470,7 +510,7 @@ const Home = () => {
                 e.currentTarget.style.boxShadow = '0 10px 40px rgba(245, 158, 11, 0.3)'
               }}>
                 <div className="stat-heading" style={{color: 'rgba(255,255,255,0.9)', fontSize: '1rem', marginBottom: '15px', fontWeight: '600'}}>Active Deals</div>
-                <div className="stat-value" style={{color: 'white', fontSize: '3rem', fontWeight: '800', marginBottom: '10px'}}>21,674+</div>
+                <div className="active-deals-number" style={{color: '#ff0000 !important', fontSize: '3rem', fontWeight: '800', marginBottom: '10px', fontFamily: 'Poppins, sans-serif'}}>21,674+</div>
                 <div className="stat-sub" style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem'}}>as of today</div>
               </div>
             </div>

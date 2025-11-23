@@ -18,9 +18,15 @@ const app = express();
 // Enable gzip compression for all responses
 app.use(compression());
 
-// CORS configuration for production
+// CORS configuration for both development and production
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173', 
+    'https://www.genericwholesale.pk',
+    'https://generic-wholesale-frontend.onrender.com',
+    process.env.FRONTEND_URL
+  ].filter(Boolean), // Remove any undefined values
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -47,6 +53,49 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/excel', excelRoutes);
 app.use('/api/buyer', buyerRoutes);
 app.use('/api/easypaisa', easypaisaRoutes);
+
+// Test endpoint for email service
+app.post('/api/test-email', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email is required' 
+      });
+    }
+
+    // Import email service
+    const { sendEmailOTP, testEmailConnection } = await import('./services/email.js');
+    
+    // Test connection first
+    const connectionTest = await testEmailConnection();
+    if (!connectionTest.success) {
+      return res.status(500).json({
+        success: false,
+        message: `Email connection failed: ${connectionTest.message}`
+      });
+    }
+
+    // Send test OTP
+    const testOTP = '123456';
+    const result = await sendEmailOTP(email, testOTP, 'Test User');
+    
+    res.json({
+      success: result.success,
+      message: result.message,
+      connectionTest: connectionTest.message
+    });
+    
+  } catch (error) {
+    console.error('Test email error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
