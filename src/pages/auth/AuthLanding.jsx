@@ -1,7 +1,24 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useBuyer } from '../../context/BuyerContext'
+import { useSeller } from '../../context/SellerContext'
+import GoogleAuthButton from '../../components/GoogleAuthButton'
 import '../../styles/AuthLanding.css'
 
 const AuthLanding = () => {
+  const navigate = useNavigate()
+  const { login: buyerLogin } = useBuyer()
+  const { login: sellerLogin } = useSeller()
+
+  const handleBuyerGoogle = (data) => {
+    buyerLogin(data.buyer, data.token)
+    navigate('/buyer/dashboard')
+  }
+
+  const handleSellerGoogle = async (data) => {
+    await sellerLogin(data.seller, data.token)
+    navigate('/seller/dashboard')
+  }
+
   return (
     <div className="min-vh-100 d-flex align-items-center bg-light">
       <div className="container">
@@ -46,6 +63,16 @@ const AuthLanding = () => {
                     </div>
 
                     <div className="d-grid gap-2">
+                      <GoogleAuthButton
+                        userType="buyer"
+                        onSuccess={handleBuyerGoogle}
+                        onError={() => {}}
+                      />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 0' }}>
+                        <div style={{ flex: 1, height: '1px', background: '#dee2e6' }} />
+                        <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>or</span>
+                        <div style={{ flex: 1, height: '1px', background: '#dee2e6' }} />
+                      </div>
                       <Link to="/login/buyer" className="btn btn-primary rounded-3">
                         <i className="fas fa-sign-in-alt me-2"></i>
                         Login as Buyer
@@ -89,6 +116,17 @@ const AuthLanding = () => {
                     </div>
 
                     <div className="d-grid gap-2">
+                      <GoogleAuthButton
+                        userType="seller"
+                        onSuccess={handleSellerGoogle}
+                        onError={() => {}}
+                        accentColor="#16a34a"
+                      />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 0' }}>
+                        <div style={{ flex: 1, height: '1px', background: '#dee2e6' }} />
+                        <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>or</span>
+                        <div style={{ flex: 1, height: '1px', background: '#dee2e6' }} />
+                      </div>
                       <Link to="/login/supplier" className="btn btn-success rounded-3">
                         <i className="fas fa-sign-in-alt me-2"></i>
                         Login as Supplier

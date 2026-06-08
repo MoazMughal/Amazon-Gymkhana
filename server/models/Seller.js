@@ -14,7 +14,7 @@ const sellerSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: false // Optional for Google OAuth users
   },
   contactNo: {
     type: String,
@@ -155,6 +155,17 @@ const sellerSchema = new mongoose.Schema({
       default: []
     }
   }],
+  // Google OAuth
+  googleId: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
+  },
   // Password reset fields (OTP-based)
   passwordResetOTP: String,
   passwordResetOTPSalt: String,
@@ -177,7 +188,7 @@ sellerSchema.pre('save', async function(next) {
   if (!this.isModified('password') && this.supplierId) return next();
   
   // Hash password
-  if (this.isModified('password')) {
+  if (this.isModified('password') && this.password) {
     this.password = await bcrypt.hash(this.password, 12);
   }
   

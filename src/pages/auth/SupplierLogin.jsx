@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getApiUrl } from '../../utils/api'
 import { useSeller } from '../../context/SellerContext'
+import GoogleAuthButton from '../../components/GoogleAuthButton'
 
 const SupplierLogin = () => {
   const navigate = useNavigate()
@@ -43,6 +44,16 @@ const SupplierLogin = () => {
       setLoading(false)
     }
   }
+
+  const handleGoogleSuccess = async (data) => {
+    await sellerLogin(data.seller, data.token)
+    if (data.isNewUser) {
+      // New Google sellers need to complete their profile
+      navigate('/seller/dashboard')
+    }
+  }
+
+  const handleGoogleError = (msg) => setError(msg)
 
   const inputWrap = {
     display: 'flex', alignItems: 'center',
@@ -124,6 +135,23 @@ const SupplierLogin = () => {
           )}
 
           <form onSubmit={handleSubmit}>
+
+            {/* Google One-Click */}
+            <div style={{ marginBottom: '16px' }}>
+              <GoogleAuthButton
+                userType="seller"
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                accentColor="#16a34a"
+              />
+            </div>
+
+            {/* OR divider */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+              <span style={{ fontSize: '0.75rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>or sign in with email</span>
+              <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+            </div>
 
             {/* Username field */}
             <div style={{ marginBottom: '12px' }}>

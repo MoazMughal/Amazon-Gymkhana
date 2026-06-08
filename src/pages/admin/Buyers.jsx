@@ -167,6 +167,15 @@ const AdminBuyers = () => {
                 <tr key={buyer.id}>
                   <td>
                     <strong>{buyer.firstName} {buyer.lastName}</strong>
+                    {buyer.authProvider === 'google' && (
+                      <span title="Signed up via Google" style={{
+                        marginLeft: '5px',
+                        display: 'inline-flex', alignItems: 'center',
+                        background: '#fff3e0', border: '1px solid #ffcc80',
+                        borderRadius: '4px', padding: '1px 4px',
+                        fontSize: '0.6rem', color: '#e65100', fontWeight: '700'
+                      }}>G</span>
+                    )}
                   </td>
                   <td>{buyer.email}</td>
                   <td>

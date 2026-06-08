@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getApiUrl } from '../../utils/api'
+import { useSeller } from '../../context/SellerContext'
+import GoogleAuthButton from '../../components/GoogleAuthButton'
 import '../../styles/AuthLanding.css'
 
 const SupplierRegister = () => {
   const navigate = useNavigate()
+  const { login: sellerLogin } = useSeller()
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -85,6 +88,13 @@ const SupplierRegister = () => {
     }
   }
 
+  const handleGoogleSuccess = async (data) => {
+    await sellerLogin(data.seller, data.token)
+    navigate('/seller/dashboard')
+  }
+
+  const handleGoogleError = (msg) => setError(msg)
+
   return (
     <div className="min-vh-100 d-flex align-items-center bg-light py-2">
       <div className="container">
@@ -129,6 +139,23 @@ const SupplierRegister = () => {
                       className="btn-close" 
                       onClick={() => setError('')}
                     ></button>
+                  </div>
+                )}
+
+                {/* Google One-Click Sign Up */}
+                {!success && (
+                  <div className="mb-3">
+                    <GoogleAuthButton
+                      userType="seller"
+                      onSuccess={handleGoogleSuccess}
+                      onError={handleGoogleError}
+                      accentColor="#16a34a"
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '12px 0' }}>
+                      <div style={{ flex: 1, height: '1px', background: '#dee2e6' }} />
+                      <span style={{ fontSize: '0.72rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>or register with email</span>
+                      <div style={{ flex: 1, height: '1px', background: '#dee2e6' }} />
+                    </div>
                   </div>
                 )}
 

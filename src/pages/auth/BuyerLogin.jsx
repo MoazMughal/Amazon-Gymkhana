@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getApiUrl } from '../../utils/api'
 import { useBuyer } from '../../context/BuyerContext'
+import GoogleAuthButton from '../../components/GoogleAuthButton'
 
 const BuyerLogin = () => {
   const navigate = useNavigate()
@@ -43,6 +44,13 @@ const BuyerLogin = () => {
       setLoading(false)
     }
   }
+
+  const handleGoogleSuccess = (data) => {
+    login(data.buyer, data.token)
+    navigate('/buyer/dashboard')
+  }
+
+  const handleGoogleError = (msg) => setError(msg)
 
   return (
     <div style={{
@@ -107,6 +115,23 @@ const BuyerLogin = () => {
               {error}
             </div>
           )}
+
+          {/* Google One-Click */}
+          <div style={{ marginBottom: '16px' }}>
+            <GoogleAuthButton
+              userType="buyer"
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              accentColor="#ff6600"
+            />
+          </div>
+
+          {/* OR divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+            <span style={{ fontSize: '0.75rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>or sign in with email</span>
+            <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+          </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit}>

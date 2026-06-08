@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getApiUrl } from '../../utils/api'
+import { useBuyer } from '../../context/BuyerContext'
+import GoogleAuthButton from '../../components/GoogleAuthButton'
 import '../../styles/AuthLanding.css'
 
 const BuyerRegister = () => {
   const navigate = useNavigate()
+  const { login } = useBuyer()
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -82,6 +85,13 @@ const BuyerRegister = () => {
     }
   }
 
+  const handleGoogleSuccess = (data) => {
+    login(data.buyer, data.token)
+    navigate('/buyer/dashboard')
+  }
+
+  const handleGoogleError = (msg) => setError(msg)
+
   return (
     <div className="min-vh-100 d-flex align-items-center bg-light py-2">
       <div className="container">
@@ -126,6 +136,22 @@ const BuyerRegister = () => {
                       className="btn-close" 
                       onClick={() => setError('')}
                     ></button>
+                  </div>
+                )}
+
+                {/* Google One-Click Sign Up */}
+                {!success && (
+                  <div className="mb-3">
+                    <GoogleAuthButton
+                      userType="buyer"
+                      onSuccess={handleGoogleSuccess}
+                      onError={handleGoogleError}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '12px 0' }}>
+                      <div style={{ flex: 1, height: '1px', background: '#dee2e6' }} />
+                      <span style={{ fontSize: '0.72rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>or register with email</span>
+                      <div style={{ flex: 1, height: '1px', background: '#dee2e6' }} />
+                    </div>
                   </div>
                 )}
 

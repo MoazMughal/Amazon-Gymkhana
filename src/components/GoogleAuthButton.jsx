@@ -1,0 +1,100 @@
+import { useGoogleLogin } from '@react-oauth/google'
+import { getApiUrl } from '../utils/api'
+
+/**
+ * Reusable Google One-Click Auth Button
+ *
+ * Props:
+ *  - userType: 'buyer' | 'seller'
+ *  - onSuccess(data): called with { token, buyer|seller, isNewUser }
+ *  - onError(message): called with error string
+ *  - accentColor: hex string for button border/text (default '#4285F4')
+ *  - label: optional override label
+ */
+const GoogleAuthButton = ({
+  userType,
+  onSuccess,
+  onError,
+  accentColor = '#4285F4',
+  label,
+}) => {
+  const login = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        // Exchange Google access token for an ID token via userinfo
+        // @react-oauth/google gives us an access_token; we send it to our backend
+        // which uses google-auth-library to verify via the tokeninfo endpoint.
+        // However, the recommended approach is to use the credential (ID token) flow.
+        // This component uses the implicit flow which returns access_token.
+        // We send the access_token to our backend and verify it there.
+        const res = await fetch(getApiUrl('auth/google'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            credential: tokenResponse.access_token,
+            userType,
+            flow: 'access_token',
+          }),
+        })
+        const data = await res.json()
+        if (res.ok) {
+          onSuccess(data)
+        } else {
+          onError(data.message || 'Google sign-in failed. Please try again.')
+        }
+      } catch {
+        onError('Connection error. Please try again.')
+      }
+    },
+    onError: () => {
+      onError('Google sign-in was cancelled or failed.')
+    },
+    flow: 'implicit',
+  })
+
+  const defaultLabel = userType === 'buyer' ? 'Continue with Google' : 'Continue with Google'
+
+  return (
+    <button
+      type="button"
+      onClick={login}
+      style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '10px',
+        padding: '11px 16px',
+        background: '#fff',
+        border: `1.5px solid #e5e7eb`,
+        borderRadius: '10px',
+        cursor: 'pointer',
+        fontSize: '0.88rem',
+        fontWeight: '600',
+        color: '#374151',
+        transition: 'all 0.2s',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = accentColor
+        e.currentTarget.style.boxShadow = `0 2px 8px rgba(66,133,244,0.18)`
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = '#e5e7eb'
+        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)'
+      }}
+    >
+      {/* Google SVG logo */}
+      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        <path fill="none" d="M0 0h48v48H0z"/>
+      </svg>
+      {label || defaultLabel}
+    </button>
+  )
+}
+
+export default GoogleAuthButton

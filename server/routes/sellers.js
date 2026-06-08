@@ -149,7 +149,8 @@ router.post('/login', async (req, res) => {
         dashboardAccess: dashboardAccess,
         dashboardAccessExpiry: seller.dashboardAccessExpiry,
         paymentHistory: seller.paymentHistory || [],
-        productListingRequests: seller.productListingRequests || []
+        productListingRequests: seller.productListingRequests || [],
+        authProvider: seller.authProvider || 'local'
       }
     });
   } catch (error) {
@@ -312,22 +313,22 @@ router.get('/profile', authenticateSeller, async (req, res) => {
 router.put('/profile', authenticateSeller, async (req, res) => {
   try {
     const { whatsappNo, contactNo, country, city, productCategory, password, username } = req.body;
-    
-    // Require password for profile updates
-    if (!password) {
-      return res.status(400).json({ message: 'Password is required to update profile' });
-    }
-    
-    // Find seller and verify password
+
+    // Find seller
     const seller = await Seller.findById(req.seller._id);
     if (!seller) {
       return res.status(404).json({ message: 'Seller not found' });
     }
-    
-    // Verify password
-    const isPasswordValid = await seller.comparePassword(password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid password. Please enter your correct password to update profile.' });
+
+    // Google OAuth sellers have no password — skip password check
+    if (seller.authProvider !== 'google') {
+      if (!password) {
+        return res.status(400).json({ message: 'Password is required to update profile' });
+      }
+      const isPasswordValid = await seller.comparePassword(password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: 'Invalid password. Please enter your correct password to update profile.' });
+      }
     }
     
     // Build update object — only include username if provided and non-empty
@@ -2078,7 +2079,6 @@ router.get('/listing-requests', authenticateSeller, async (req, res) => {
 router.get('/my-stats', authenticateSeller, async (req, res) => {
   try {
     const Product = (await import('../models/Product.js')).default;
-    const Quotation = (await import('../models/Quotation.js')).default;
 
     const sellerId = req.seller._id;
 
@@ -2089,16 +2089,22 @@ router.get('/my-stats', authenticateSeller, async (req, res) => {
       Product.countDocuments({ 'sellers.sellerId': sellerId, approvalStatus: 'pending' }),
     ]);
 
-    // Quotations received by this seller
-    const [totalQuotations, pendingQuotations, recentQuotations] = await Promise.all([
-      Quotation.countDocuments({ sellerId }),
-      Quotation.countDocuments({ sellerId, status: 'pending' }),
-      Quotation.find({ sellerId })
-        .sort({ submittedAt: -1 })
-        .limit(5)
-        .select('productName buyerName buyerPhone quantity submittedAt status senderType')
-        .lean(),
-    ]);
+    // Quotations — wrapped separately so a missing collection doesn't break the whole response
+    let totalQuotations = 0, pendingQuotations = 0, recentQuotations = [];
+    try {
+      const Quotation = (await import('../models/Quotation.js')).default;
+      [totalQuotations, pendingQuotations, recentQuotations] = await Promise.all([
+        Quotation.countDocuments({ sellerId }),
+        Quotation.countDocuments({ sellerId, status: 'pending' }),
+        Quotation.find({ sellerId })
+          .sort({ submittedAt: -1 })
+          .limit(5)
+          .select('productName buyerName buyerPhone quantity submittedAt status senderType')
+          .lean(),
+      ]);
+    } catch (qErr) {
+      console.warn('Quotation stats unavailable:', qErr.message);
+    }
 
     // Listing requests count from seller doc
     const seller = await Seller.findById(sellerId).select('productListingRequests').lean();

@@ -20,7 +20,7 @@ const buyerSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: false // Optional for Google OAuth users
   },
   userType: {
     type: String,
@@ -124,6 +124,17 @@ const buyerSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  // Google OAuth
+  googleId: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
+  },
   // Password reset fields (Token-based)
   passwordResetToken: String,
   passwordResetTokenExpiry: Date,
@@ -134,7 +145,7 @@ const buyerSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 buyerSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) return next();
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
