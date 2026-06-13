@@ -43,7 +43,7 @@ const AmazonsChoice = () => {
       const isHomepage = window.location.pathname === '/'
       
       if (isHomepage && isExternalReferrer) {
-        console.log('🔒 Homepage accessed from external source - clearing any existing auth for security')
+        console.log('ðŸ”’ Homepage accessed from external source - clearing any existing auth for security')
         
         // Clear all authentication data to ensure clean state
         const keysToRemove = [
@@ -71,7 +71,7 @@ const AmazonsChoice = () => {
     clearAuthOnPublicAccess()
   }, [])
 
-  // Track visit to home/AmazonsChoice page (guests, buyers, sellers — not admins)
+  // Track visit to home/AmazonsChoice page (guests, buyers, sellers "” not admins)
   useEffect(() => {
     // Skip if admin is logged in
     if (localStorage.getItem('adminToken')) return;
@@ -671,11 +671,11 @@ const AmazonsChoice = () => {
             currency,
             category: product.category || '',
             imageUrl: product.image || '',
-            notes: wishlistForm.notes || `Requested from Amazon's Choice page — product currently out of stock.`
+            notes: wishlistForm.notes || `Requested from Amazon's Choice page "” product currently out of stock.`
           })
         })
         if (res.ok) { setWishlistSuccess(true) }
-        else { const d = await res.json(); alert('❌ ' + (d.message || 'Failed to submit wishlist query')) }
+        else { const d = await res.json(); alert('Œ ' + (d.message || 'Failed to submit wishlist query')) }
       } else {
         // Guest route
         if (!wishlistForm.guestName.trim()) { alert('Please enter your name.'); setWishlistSubmitting(false); return; }
@@ -692,17 +692,17 @@ const AmazonsChoice = () => {
             currency,
             category: product.category || '',
             imageUrl: product.image || '',
-            notes: wishlistForm.notes || `Requested from Amazon's Choice page — product currently out of stock.`,
+            notes: wishlistForm.notes || `Requested from Amazon's Choice page "” product currently out of stock.`,
             guestName: wishlistForm.guestName.trim(),
             guestPhone: wishlistForm.guestPhone.trim(),
             guestEmail: wishlistForm.guestEmail.trim()
           })
         })
         if (res.ok) { setWishlistSuccess(true) }
-        else { const d = await res.json(); alert('❌ ' + (d.message || 'Failed to submit wishlist query')) }
+        else { const d = await res.json(); alert('Œ ' + (d.message || 'Failed to submit wishlist query')) }
       }
     } catch (err) {
-      alert('❌ Failed to submit wishlist query')
+      alert('Œ Failed to submit wishlist query')
     } finally {
       setWishlistSubmitting(false)
     }
@@ -745,14 +745,14 @@ const AmazonsChoice = () => {
     
     // Unique badges for each product (based on index)
     const uniqueBadges = [
-      { text: 'Best Seller', color: '#e74c3c', icon: '🏆' },
-      { text: 'Top Rated', color: '#f39c12', icon: '⭐' },
-      { text: 'Hot Deal', color: '#e91e63', icon: '💥' },
-      { text: 'Limited Time', color: '#3498db', icon: '⚡' },
-      { text: 'Trending', color: '#1abc9c', icon: '📈' },
-      { text: 'New Arrival', color: '#27ae60', icon: '✨' },
-      { text: 'Very Popular', color: '#9b59b6', icon: '💎' },
-      { text: 'Staff Pick', color: '#e67e22', icon: '🔥' }
+      { text: 'Best Seller', color: '#e74c3c', icon: '' },
+      { text: 'Top Rated', color: '#f39c12', icon: '' },
+      { text: 'Hot Deal', color: '#e91e63', icon: '' },
+      { text: 'Limited Time', color: '#3498db', icon: '' },
+      { text: 'Trending', color: '#1abc9c', icon: '' },
+      { text: 'New Arrival', color: '#27ae60', icon: '' },
+      { text: 'Very Popular', color: '#9b59b6', icon: '' },
+      { text: 'Staff Pick', color: '#e67e22', icon: '' }
     ]
     
     // Get unique badge for this product (consistent per product)
@@ -786,9 +786,9 @@ const AmazonsChoice = () => {
   const currentProducts = [...baseProducts].sort((a, b) => {
     switch (sortBy) {
       case 'price_asc':
-        return (a.rawPrice || 0) - (b.rawPrice || 0)
+        return (a.rawPrice ?? Infinity) - (b.rawPrice ?? Infinity)
       case 'price_desc':
-        return (b.rawPrice || 0) - (a.rawPrice || 0)
+        return (b.rawPrice ?? -Infinity) - (a.rawPrice ?? -Infinity)
       case 'reviews':
         return (b.reviews || 0) - (a.reviews || 0)
       case 'sellers':
@@ -809,7 +809,7 @@ const AmazonsChoice = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // Handle seller "Request to List" for out-of-stock products — opens advanced modal
+  // Handle seller "Request to List" for out-of-stock products "” opens advanced modal
   const handleRequestToList = (product) => {
     const rawPrice = product.rawPrice || 0
     const lowestPrice = product.sellers && product.sellers.length > 0
@@ -833,9 +833,9 @@ const AmazonsChoice = () => {
     const sellerShipping = parseFloat(listingForm.shipping)
     const sellerMoq = parseInt(listingForm.moq)
 
-    if (isNaN(sellerPrice) || sellerPrice <= 0) { alert('❌ Please enter a valid price.'); return }
-    if (isNaN(sellerShipping) || sellerShipping < 0) { alert('❌ Please enter a valid shipping cost.'); return }
-    if (isNaN(sellerMoq) || sellerMoq < 1) { alert('❌ MOQ must be at least 1.'); return }
+    if (isNaN(sellerPrice) || sellerPrice <= 0) { alert('Œ Please enter a valid price.'); return }
+    if (isNaN(sellerShipping) || sellerShipping < 0) { alert('Œ Please enter a valid shipping cost.'); return }
+    if (isNaN(sellerMoq) || sellerMoq < 1) { alert('Œ MOQ must be at least 1.'); return }
 
     setListingSubmitting(true)
     try {
@@ -858,13 +858,13 @@ const AmazonsChoice = () => {
       if (response.ok) {
         setListingSuccess(true)
       } else {
-        if (data.error === 'REQUEST_EXISTS') alert('⚠️ You already have a pending or approved request for this product.')
-        else if (data.error === 'ALREADY_LISTED') alert('⚠️ You have already listed this product.')
-        else alert('❌ ' + (data.message || 'Failed to submit listing request'))
+        if (data.error === 'REQUEST_EXISTS') alert('âš ï¸ You already have a pending or approved request for this product.')
+        else if (data.error === 'ALREADY_LISTED') alert('âš ï¸ You have already listed this product.')
+        else alert('Œ ' + (data.message || 'Failed to submit listing request'))
       }
     } catch (err) {
       console.error('Request to list error:', err)
-      alert('❌ Failed to submit listing request')
+      alert('Œ Failed to submit listing request')
     } finally {
       setListingSubmitting(false)
     }
@@ -1055,7 +1055,7 @@ const AmazonsChoice = () => {
         if (data.products && data.products.length > 0) {
           // Debug: Log first product to see what seller fields are available
           if (data.products[0]) {
-            console.log('🔍 First product from API:', {
+            console.log('ðŸ” First product from API:', {
               name: data.products[0].name,
               sellers: data.products[0].sellers,
               sellersCount: data.products[0].sellers ? data.products[0].sellers.length : 0,
@@ -1069,12 +1069,10 @@ const AmazonsChoice = () => {
             // Debug specific products
             const isWatchStrap = p.name && p.name.toLowerCase().includes('leather watch strap');
 
-            // ── Compute lowest seller price (same logic as ProductDetail getLowestPriceBreakdown) ──
-            const mainPrice    = parseFloat(p.price    || 0);
-            const mainShipping = parseFloat(p.shipping || 0);
-            let lowestTotal    = mainPrice + mainShipping;
-            let lowestPrice    = mainPrice;
-            let lowestShipping = mainShipping;
+            // â”€â”€ Compute lowest seller price (same logic as ProductDetail getLowestPriceBreakdown) â”€â”€
+            let lowestPrice    = null; // null = no sellers listed
+            let lowestShipping = 0;
+            let lowestTotal    = Infinity;
             let lowestMoq      = 1;
 
             if (p.sellers && p.sellers.length > 0) {
@@ -1097,7 +1095,7 @@ const AmazonsChoice = () => {
               name: p.name,
               asin: p.asin, // Ensure ASIN is included for image loading
               // Use lowest seller price for display (matches ProductDetail)
-              price: `£${lowestPrice.toFixed(2)}`,
+              price: lowestPrice !== null ? `£${lowestPrice.toFixed(2)}` : null,
               rawPrice: lowestPrice,
               rawShipping: lowestShipping,
               lowestMoq,
@@ -1180,11 +1178,11 @@ const AmazonsChoice = () => {
         throw new Error(`Failed to fetch products: ${response.status}`)
       }
     } catch (error) {
-      console.error('❌ Error fetching products:', error);
+      console.error('Œ Error fetching products:', error);
       
       // Production: Retry logic for network errors
       if (process.env.NODE_ENV === 'production' && error.name !== 'AbortError') {
-        console.log('🔄 Retrying product fetch...');
+        console.log('ðŸ”„ Retrying product fetch...');
         try {
           // Retry with simpler parameters
           const retryParams = new URLSearchParams()
@@ -1204,16 +1202,38 @@ const AmazonsChoice = () => {
             if (retryData.products && retryData.products.length > 0) {
               // Process retry data same way
               const transformedProducts = retryData.products.map(p => {
+                // Compute lowest seller price same as main fetch
+                let lowestPrice    = null;
+                let lowestShipping = 0;
+                let lowestTotal    = Infinity;
+                let lowestMoq      = 1;
+                if (p.sellers && p.sellers.length > 0) {
+                  p.sellers.forEach(se => {
+                    const sp = parseFloat(se.sellerPrice);
+                    if (isNaN(sp) || sp <= 0) return;
+                    const ss    = parseFloat(se.sellerShipping) || 0;
+                    const total = sp + ss;
+                    if (total < lowestTotal) {
+                      lowestTotal    = total;
+                      lowestPrice    = sp;
+                      lowestShipping = ss;
+                      lowestMoq      = se.moq || 1;
+                    }
+                  });
+                }
                 return {
                   id: p._id,
                   name: p.name,
                   asin: p.asin,
-                  price: `£${parseFloat(p.price || 0).toFixed(2)}`,
-                  rawPrice: parseFloat(p.price || 0),
+                  price: lowestPrice !== null ? `£${lowestPrice.toFixed(2)}` : null,
+                  rawPrice: lowestPrice,
+                  rawShipping: lowestShipping,
+                  lowestMoq,
                   originalPrice: p.originalPrice ? `£${parseFloat(p.originalPrice).toFixed(2)}` : null,
                   category: p.category,
                   brand: p.brand,
                   sku: p.sku || '',
+                  sellers: p.sellers || [],
                   image: (() => {
                     // Use database images first, then fallback to ASIN
                     let imageUrl = '';
@@ -1258,7 +1278,7 @@ const AmazonsChoice = () => {
             }
           }
         } catch (retryError) {
-          console.error('❌ Retry also failed:', retryError);
+          console.error('Œ Retry also failed:', retryError);
         }
       }
       
@@ -1309,7 +1329,7 @@ const AmazonsChoice = () => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Listen for Algolia suggestion clicks — reset loading guard and force fresh fetch
+  // Listen for Algolia suggestion clicks "” reset loading guard and force fresh fetch
   useEffect(() => {
     const handleAlgoliaSearch = (e) => {
       const query = e.detail?.query || ''
@@ -1395,11 +1415,11 @@ const AmazonsChoice = () => {
         
         // In production, log connection quality
         if (process.env.NODE_ENV === 'production') {
-          console.log('🌐 API Health:', healthData.tests?.query?.productCount || 0, 'products available');
+          console.log('ðŸŒ API Health:', healthData.tests?.query?.productCount || 0, 'products available');
         }
       } catch (error) {
         if (process.env.NODE_ENV === 'production') {
-          console.warn('⚠️ API health check failed - may affect image loading');
+          console.warn('âš ï¸ API health check failed - may affect image loading');
         }
       }
     };
@@ -1409,7 +1429,7 @@ const AmazonsChoice = () => {
 
   // Initial load - will be triggered by URL params useEffect
 
-  // Loading state — only show full loading screen on very first load
+  // Loading state "” only show full loading screen on very first load
   if (loading && !hasLoadedOnce) {
     return (
       <div className="container products-container enhanced-container" style={{
@@ -1460,17 +1480,6 @@ const AmazonsChoice = () => {
           }} />
           
           <div style={{ position: 'relative', zIndex: 2 }}>
-            {/* Main loading icon with pulse animation */}
-            <div style={{
-              fontSize: windowWidth < 576 ? '2.5rem' : '3.5rem',
-              marginBottom: windowWidth < 576 ? '12px' : '18px',
-              display: 'inline-block',
-              animation: 'pulse 1.5s ease-in-out infinite, bounce 2s ease-in-out infinite',
-              filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))'
-            }}>
-              🛍️
-            </div>
-            
             {/* Loading dots animation */}
             <div style={{
               display: 'flex',
@@ -1646,7 +1655,7 @@ const AmazonsChoice = () => {
             animation: 'bounce 2s ease-in-out infinite',
             filter: 'drop-shadow(0 4px 8px rgba(255, 102, 0, 0.3))'
           }}>
-            🛍️
+            ðŸ›ï¸
           </div>
           <h2 style={{ 
             fontSize: '2rem', 
@@ -1666,9 +1675,9 @@ const AmazonsChoice = () => {
             fontWeight: '500'
           }}>
             We're working hard to bring you the best deals! This might be because:
-            <br />• 🔄 Products are being updated
-            <br />• 🛠️ System maintenance in progress
-            <br />• 🌐 Connection issues
+            <br />"¢ ðŸ”„ Products are being updated
+            <br />"¢ ðŸ› ï¸ System maintenance in progress
+            <br />"¢ ðŸŒ Connection issues
           </p>
           <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
@@ -1697,7 +1706,7 @@ const AmazonsChoice = () => {
                 e.target.style.boxShadow = '0 8px 20px rgba(255, 102, 0, 0.4)';
               }}
             >
-              🔄 Try Again
+              ðŸ”„ Try Again
             </button>
             <button
               onClick={() => navigate('/api-debug')}
@@ -1727,7 +1736,7 @@ const AmazonsChoice = () => {
                 e.target.style.borderColor = '#ff6600';
               }}
             >
-              🔧 Debug Info
+              ðŸ”§ Debug Info
             </button>
           </div>
         </div>
@@ -1739,7 +1748,7 @@ const AmazonsChoice = () => {
 
   return (
     <>
-      {/* ── Bulk Request Modal ── */}
+      {/* â”€â”€ Bulk Request Modal â”€â”€ */}
       {isSellerLoggedIn && bulkModal && (
         <div onClick={() => !bulkSubmitting && !bulkResults && setBulkModal(false)}
           style={{ position:'fixed', inset:0, zIndex:99999, background:'rgba(0,0,0,0.55)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}>
@@ -1774,7 +1783,7 @@ const AmazonsChoice = () => {
                       <i className="fas fa-check-circle me-2"></i>{bulkResults.success.length} request{bulkResults.success.length > 1 ? 's' : ''} submitted
                     </div>
                     {bulkResults.success.map((name, i) => (
-                      <div key={i} style={{ fontSize:'0.8rem', color:'#155724', padding:'2px 0' }}>• {name}</div>
+                      <div key={i} style={{ fontSize:'0.8rem', color:'#155724', padding:'2px 0' }}>"¢ {name}</div>
                     ))}
                   </div>
                 )}
@@ -1784,7 +1793,7 @@ const AmazonsChoice = () => {
                       <i className="fas fa-exclamation-circle me-2"></i>{bulkResults.failed.length} failed
                     </div>
                     {bulkResults.failed.map((f, i) => (
-                      <div key={i} style={{ fontSize:'0.8rem', color:'#721c24', padding:'2px 0' }}>• {f.name} — {f.reason}</div>
+                      <div key={i} style={{ fontSize:'0.8rem', color:'#721c24', padding:'2px 0' }}>"¢ {f.name} "” {f.reason}</div>
                     ))}
                   </div>
                 )}
@@ -1877,7 +1886,7 @@ const AmazonsChoice = () => {
         </div>
       )}
 
-      {/* ── Request-to-List Modal ── */}
+      {/* â”€â”€ Request-to-List Modal â”€â”€ */}
       {listingModal.open && listingModal.product && (
         <div
           onClick={() => !listingSubmitting && setListingModal({ open: false, product: null })}
@@ -1944,7 +1953,7 @@ const AmazonsChoice = () => {
             </div>
 
             {listingSuccess ? (
-              /* ── Success State ── */
+              /* â”€â”€ Success State â”€â”€ */
               <div style={{ padding: '40px 24px', textAlign: 'center' }}>
                 <div style={{
                   width: '64px', height: '64px', borderRadius: '50%',
@@ -1976,7 +1985,7 @@ const AmazonsChoice = () => {
                     { label: 'Your Price', value: `£${parseFloat(listingForm.price).toFixed(2)}`, icon: 'fa-tag', color: '#28a745' },
                     { label: 'Shipping', value: `£${parseFloat(listingForm.shipping).toFixed(2)}`, icon: 'fa-truck', color: '#007bff' },
                     { label: 'MOQ', value: `${listingForm.moq} unit${parseInt(listingForm.moq) > 1 ? 's' : ''}`, icon: 'fa-boxes', color: '#6f42c1' },
-                    { label: 'Countries', value: listingForm.listingCountries.length === 0 ? '🌍 All' : listingForm.listingCountries.map(c => ({ GBP: '🇬🇧', PKR: '🇵🇰', AED: '🇦🇪', USD: '🇺🇸' })[c]).join(' '), icon: 'fa-globe', color: '#ff6600' }
+                    { label: 'Countries', value: listingForm.listingCountries.length === 0 ? 'ðŸŒ All' : listingForm.listingCountries.map(c => ({ GBP: '🇬🇧', PKR: '🇵🇰', AED: '🇦🇪', USD: '🇺🇸' })[c]).join(' '), icon: 'fa-globe', color: '#ff6600' }
                   ].map(item => (
                     <div key={item.label} style={{
                       background: '#f8f9fa', borderRadius: '10px',
@@ -2011,7 +2020,7 @@ const AmazonsChoice = () => {
                 </button>
               </div>
             ) : (
-              /* ── Form State ── */
+              /* â”€â”€ Form State â”€â”€ */
               <div style={{ padding: '14px 18px 16px', overflowY: 'auto', flex: 1 }}>
                 {/* Product info strip */}
                 <div style={{
@@ -2040,7 +2049,7 @@ const AmazonsChoice = () => {
                       Admin price: <strong style={{ color: '#ff6600' }}>£{(listingModal.product.rawPrice || 0).toFixed(2)}</strong>
                       {listingModal.product.sellers && listingModal.product.sellers.length > 0 && (
                         <span style={{ marginLeft: '8px', color: '#6c757d' }}>
-                          · {listingModal.product.sellers.length} existing seller{listingModal.product.sellers.length > 1 ? 's' : ''}
+                          Â· {listingModal.product.sellers.length} existing seller{listingModal.product.sellers.length > 1 ? 's' : ''}
                         </span>
                       )}
                     </div>
@@ -2163,7 +2172,7 @@ const AmazonsChoice = () => {
                       }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = '#6f42c1'; e.currentTarget.style.color = '#6f42c1' }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = '#e9ecef'; e.currentTarget.style.color = '#495057' }}
-                    >−</button>
+                    >âˆ’</button>
                     <input
                       type="number"
                       min="1"
@@ -2200,7 +2209,7 @@ const AmazonsChoice = () => {
                 <div style={{ marginBottom: '14px' }}>
                   <label style={{ fontSize: '11px', fontWeight: '700', color: '#495057', display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                     <i className="fas fa-globe" style={{ marginRight: '4px', color: '#ff6600' }}></i>
-                    List For Countries <span style={{ fontSize: '10px', color: '#aaa', textTransform: 'none', fontWeight: '400' }}>(select one or more — leave empty for all)</span>
+                    List For Countries <span style={{ fontSize: '10px', color: '#aaa', textTransform: 'none', fontWeight: '400' }}>(select one or more "” leave empty for all)</span>
                   </label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                     {[
@@ -2353,7 +2362,7 @@ const AmazonsChoice = () => {
       }}>
         <ProductionStatus />
 
-        {/* Subtle top loading bar — only shown during category switches, not initial load */}
+        {/* Subtle top loading bar "” only shown during category switches, not initial load */}
         {loading && hasLoadedOnce && (
           <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, height: '3px',
@@ -2370,7 +2379,7 @@ const AmazonsChoice = () => {
           }
         `}</style>
 
-        {/* SEO Header Section removed — tagline moved to footer */}
+        {/* SEO Header Section removed "” tagline moved to footer */}
 
         {/* Data Source Indicator for Debugging - Only show for problematic sources */}
         {dataSource && dataSource !== 'database' && dataSource !== 'fast' && dataSource !== 'database_random' && (
@@ -2387,7 +2396,7 @@ const AmazonsChoice = () => {
             alignItems: 'center'
           }}>
             <span>
-              ⚠️ Using {dataSource} data source. Real products may not be loading properly.
+              âš ï¸ Using {dataSource} data source. Real products may not be loading properly.
               {dataSource === 'fallback' && ' Check your internet connection.'}
               {dataSource === 'cache' && ' Showing cached data.'}
             </span>
@@ -2410,7 +2419,7 @@ const AmazonsChoice = () => {
                 cursor: 'pointer'
               }}
             >
-              🔄 Retry
+              ðŸ”„ Retry
             </button>
           </div>
         )}
@@ -2419,15 +2428,15 @@ const AmazonsChoice = () => {
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
+            gap: '8px',
             marginBottom: '15px',
-            padding: '8px 15px',
+            padding: '8px 12px',
             background: 'white',
             borderRadius: '8px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             border: '1px solid #e1e5e9',
-            flexWrap: 'nowrap',
-            overflow: 'hidden'
+            flexWrap: 'wrap',
+            overflow: 'visible'
           }}>
             {/* Checkbox */}
             <input
@@ -2441,47 +2450,52 @@ const AmazonsChoice = () => {
                 setLastFetchKey('')
                 applyFilters(selectedCategory, searchQuery, 1, newVal)
               }}
-              style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#ff6600' }}
+              style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#ff6600', flexShrink: 0 }}
             />
             <label htmlFor="showAllProducts" style={{
-              fontSize: '0.78rem', fontWeight: '500', color: '#232f3e',
-              cursor: 'pointer', userSelect: 'none', margin: 0, whiteSpace: 'nowrap'
+              fontSize: windowWidth < 576 ? '0.72rem' : '0.78rem',
+              fontWeight: '500', color: '#232f3e',
+              cursor: 'pointer', userSelect: 'none', margin: 0,
+              whiteSpace: 'nowrap', flexShrink: 0
             }}>
-              Include out of stock products
+              Include out of stock
             </label>
 
-            {/* Divider */}
-            <div style={{ width: '1px', height: '20px', background: '#e1e5e9', margin: '0 4px' }} />
+            {/* Divider — hide on very small screens */}
+            {windowWidth >= 400 && (
+              <div style={{ width: '1px', height: '18px', background: '#e1e5e9', flexShrink: 0 }} />
+            )}
 
             {/* Sort Dropdown */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <i className="fas fa-sort" style={{ fontSize: '0.75rem', color: '#666' }}></i>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
+              <i className="fas fa-sort" style={{ fontSize: '0.72rem', color: '#666' }}></i>
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
                 style={{
-                  fontSize: '0.8rem',
+                  fontSize: windowWidth < 576 ? '0.72rem' : '0.8rem',
                   fontWeight: '500',
                   color: '#232f3e',
                   border: '1px solid #d1d5db',
                   borderRadius: '6px',
-                  padding: '4px 8px',
+                  padding: windowWidth < 576 ? '3px 6px' : '4px 8px',
                   background: '#fff',
                   cursor: 'pointer',
                   outline: 'none',
-                  appearance: 'auto'
+                  appearance: 'auto',
+                  maxWidth: windowWidth < 400 ? '130px' : 'none'
                 }}
               >
-                <option value="default">Sort: Default</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
+                <option value="default">Default</option>
+                <option value="price_asc">Price: Low → High</option>
+                <option value="price_desc">Price: High → Low</option>
                 <option value="reviews">Most Reviews</option>
                 <option value="sellers">Most Sellers</option>
               </select>
             </div>
 
-            <span style={{ fontSize: '0.75rem', color: '#888', marginLeft: 'auto' }}>
-              {currentProducts.length} products shown
+            <span style={{ fontSize: '0.7rem', color: '#888', marginLeft: 'auto', whiteSpace: 'nowrap' }}>
+              {currentProducts.length} shown
             </span>
           </div>
 
@@ -2497,7 +2511,7 @@ const AmazonsChoice = () => {
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             marginBottom: '20px'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📦</div>
+            <div style={{ fontSize: '3rem', marginBottom: '15px' }}>ðŸ“¦</div>
             <h3 style={{ color: '#232f3e', marginBottom: '10px' }}>No products with sellers</h3>
             <p style={{ color: '#666', marginBottom: '15px' }}>
               All products are currently out of stock (no sellers available).
@@ -2548,7 +2562,7 @@ const AmazonsChoice = () => {
           </div>
         )}
 
-        {/* Select All bar — shown when seller is logged in and products are loaded */}
+        {/* Select All bar "” shown when seller is logged in and products are loaded */}
         {isSellerLoggedIn && selectedProducts.length === 0 && currentProducts.length > 0 && (
           <div style={{ margin:'0 0 8px', display:'flex', justifyContent:'flex-end' }}>
             <label style={{ display:'flex', alignItems:'center', gap:'6px', cursor:'pointer', fontSize:'0.82rem', color:'#ff6600', fontWeight:'700', userSelect:'none', background:'#fff5f0', border:'1.5px solid #ff6600', borderRadius:'8px', padding:'6px 14px' }}>
@@ -2563,9 +2577,9 @@ const AmazonsChoice = () => {
         {selectedSubcategory && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', marginBottom: '8px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '8px', fontSize: '13px', flexWrap: 'wrap' }}>
             <Link to="/" style={{ color: '#9ca3af', textDecoration: 'none' }}>All</Link>
-            <span style={{ color: '#d1d5db' }}>›</span>
+            <span style={{ color: '#d1d5db' }}>"º</span>
             <Link to={`/?cat=${encodeURIComponent(selectedCategory)}`} style={{ color: '#ff9900', textDecoration: 'none', fontWeight: '600' }}>{selectedCategory}</Link>
-            <span style={{ color: '#d1d5db' }}>›</span>
+            <span style={{ color: '#d1d5db' }}>"º</span>
             {selectedSubSubcategory ? (
               <Link to={`/?cat=${encodeURIComponent(selectedCategory)}&subcat=${encodeURIComponent(selectedSubcategory)}`} style={{ color: '#ff9900', textDecoration: 'none', fontWeight: '600' }}>{selectedSubcategory}</Link>
             ) : (
@@ -2573,7 +2587,7 @@ const AmazonsChoice = () => {
             )}
             {selectedSubSubcategory && (
               <>
-                <span style={{ color: '#d1d5db' }}>›</span>
+                <span style={{ color: '#d1d5db' }}>"º</span>
                 <span style={{ color: '#c2410c', fontWeight: '700' }}>{selectedSubSubcategory}</span>
               </>
             )}
@@ -2581,7 +2595,7 @@ const AmazonsChoice = () => {
               to={`/?cat=${encodeURIComponent(selectedCategory)}`}
               style={{ marginLeft: 'auto', color: '#6b7280', textDecoration: 'none', fontSize: '11px', background: '#f3f4f6', padding: '2px 8px', borderRadius: '4px' }}
             >
-              ✕ Clear
+              âœ• Clear
             </Link>
           </div>
         )}
@@ -2724,7 +2738,7 @@ const AmazonsChoice = () => {
                 aria-label={`View ${product.name}`}
               />
 
-              {/* Heart / Wishlist button — sits above the overlay, always clickable */}
+              {/* Heart / Wishlist button "” sits above the overlay, always clickable */}
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToWishlist(product) }}
                 style={{
@@ -2768,7 +2782,7 @@ const AmazonsChoice = () => {
                 overflow: 'visible',
                 marginBottom: '0px' // Removed margin bottom to eliminate space
               }}>
-                {/* Bulk select checkbox — only for logged-in sellers */}
+                {/* Bulk select checkbox "” only for logged-in sellers */}
                 {isSellerLoggedIn && (
                   <div
                     onClick={e => { e.preventDefault(); e.stopPropagation(); toggleSelectProduct(product) }}
@@ -2895,7 +2909,7 @@ const AmazonsChoice = () => {
                         SKU: {product.sku}
                       </div>
                     ) : <div />}
-                    {/* Seller count badge — mobile only (≤768px) */}
+                    {/* Seller count badge "” mobile only (â‰¤768px) */}
                     {windowWidth <= 768 && product.sellers && product.sellers.length > 0 && (
                       <div style={{
                         fontSize: '9px', fontWeight: '700', color: '#16a34a',
@@ -3046,7 +3060,7 @@ const AmazonsChoice = () => {
                   {/* Left side - Compact Enhanced Price or Out of Stock */}
                   {(() => {
                     // Check product availability - only show as available if there are sellers
-                    const hasSellers = product.sellers && product.sellers.some(s => !s.listingCountries || s.listingCountries.length === 0 || s.listingCountries.includes(currency));
+                    const hasSellers = product.sellers && product.sellers.some(s => { const matchesCurrency = !s.listingCountries || s.listingCountries.length === 0 || s.listingCountries.includes(currency); return matchesCurrency && parseFloat(s.sellerPrice) > 0; });
                     const isAvailable = hasSellers;
                     
                     // If not available, show "Out of Stock"
@@ -3075,9 +3089,9 @@ const AmazonsChoice = () => {
                               zIndex: 100
                             }}
                           >
-                            ⚠️ Out of Stock
+                            âš ï¸ Out of Stock
                           </div>
-                          {/* Seller count — desktop only, shown below price */}
+                          {/* Seller count "” desktop only, shown below price */}
                           {windowWidth > 768 && product.sellers && product.sellers.length > 0 && (
                             <div style={{ fontSize: '6px', color: '#666', fontStyle: 'italic' }}>
                               No of sellers: {product.sellers.length}
@@ -3197,12 +3211,15 @@ const AmazonsChoice = () => {
                       }}
                       >
                         {(() => {
-                          const total = (product.rawPrice || 0) + (product.rawShipping || 0);
+                          if (product.rawPrice === null || product.rawPrice === undefined) {
+                            return <span style={{ fontSize: '0.72rem', color: '#aaa', fontStyle: 'italic' }}>No price</span>;
+                          }
+                          const total = product.rawPrice + (product.rawShipping || 0);
                           return `${formatPrice(total)}/unit`;
                         })()}
                       </div>
                       
-                      {/* Seller count — desktop only */}
+                      {/* Seller count "” desktop only */}
                       {windowWidth > 768 && product.sellers && product.sellers.length > 0 && (
                         <div style={{ fontSize: '8px', color: '#16a34a', fontWeight: '600', marginTop: '2px' }}>
                           No of sellers: {product.sellers.length}
@@ -3216,7 +3233,7 @@ const AmazonsChoice = () => {
                   {(() => {
                     // Check product availability using same logic as ProductDetail page
                     // Check product availability - only show as available if there are sellers
-                    const hasSellers = product.sellers && product.sellers.some(s => !s.listingCountries || s.listingCountries.length === 0 || s.listingCountries.includes(currency));
+                    const hasSellers = product.sellers && product.sellers.some(s => { const matchesCurrency = !s.listingCountries || s.listingCountries.length === 0 || s.listingCountries.includes(currency); return matchesCurrency && parseFloat(s.sellerPrice) > 0; });
                     const isAvailable = hasSellers;
                     
                     // Don't show profit for out of stock products
@@ -3435,7 +3452,7 @@ const AmazonsChoice = () => {
                           document.querySelectorAll('.custom-tooltip-profit').forEach(t => t.remove());
                         }}
                         >
-                          💰 {formatPrice(profitPerUnit)}/unit
+                          {formatPrice(profitPerUnit)}/unit
                         </div>
                         
                         {/* Basket button below Profit/unit in right column */}
@@ -3507,7 +3524,7 @@ const AmazonsChoice = () => {
                 {(() => {
                   // Check product availability using same logic as ProductDetail page
                   // Check product availability - only show as available if there are sellers
-                  const hasSellers = product.sellers && product.sellers.some(s => !s.listingCountries || s.listingCountries.length === 0 || s.listingCountries.includes(currency));
+                  const hasSellers = product.sellers && product.sellers.some(s => { const matchesCurrency = !s.listingCountries || s.listingCountries.length === 0 || s.listingCountries.includes(currency); return matchesCurrency && parseFloat(s.sellerPrice) > 0; });
                   const isAvailable = hasSellers;
                   
                   // Don't show deal cost for out of stock products
@@ -3541,7 +3558,7 @@ const AmazonsChoice = () => {
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap'
                     }}>
-                      💰 Deal Cost Price / {product.dealUnits || 1} unit{(product.dealUnits || 1) !== 1 ? 's' : ''}:
+                      Deal Cost Price / {product.dealUnits || 1} unit{(product.dealUnits || 1) !== 1 ? 's' : ''}:
                     </span>
                     <span style={{
                       fontSize: windowWidth < 576 ? '7px' : '8px',
@@ -3606,10 +3623,10 @@ const AmazonsChoice = () => {
                 {/* Profit for Deal Units Display - Below Deal Section */}
                 {(() => {
                   // Check product availability - only show as available if there are sellers
-                  const hasSellers = product.sellers && product.sellers.some(s => !s.listingCountries || s.listingCountries.length === 0 || s.listingCountries.includes(currency));
+                  const hasSellers = product.sellers && product.sellers.some(s => { const matchesCurrency = !s.listingCountries || s.listingCountries.length === 0 || s.listingCountries.includes(currency); return matchesCurrency && parseFloat(s.sellerPrice) > 0; });
                   if (!hasSellers) return null;
 
-                  // Only use real profit data from admin panel — no guesses
+                  // Only use real profit data from admin panel "” no guesses
                   const profitPerUnit = product?.profitCalculations?.profitPerUnit
                     ? parseFloat(String(product.profitCalculations.profitPerUnit).replace(/[£₨$€]/g, ''))
                     : product?.profitEvaluation?.netProfit
@@ -3633,7 +3650,7 @@ const AmazonsChoice = () => {
                         width: '100%', gap: '4px', boxSizing: 'border-box', overflow: 'hidden'
                       }}>
                         <span style={{ fontSize: windowWidth < 576 ? '6px' : '7px', color: '#1a1a1a', fontWeight: '700', flex: '1 1 0', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          📈 Profit Cost Price / {dealUnits} unit{dealUnits !== 1 ? 's' : ''}:
+                          Profit Cost Price / {dealUnits} unit{dealUnits !== 1 ? 's' : ''}:
                         </span>
                         <span style={{ fontSize: windowWidth < 576 ? '7px' : '8px', fontWeight: '800', color: '#1a1a1a', flex: '0 0 auto', whiteSpace: 'nowrap' }}>
                           {formatPrice(totalProfit)}
@@ -3728,7 +3745,7 @@ const AmazonsChoice = () => {
         )}
       </div>
 
-      {/* Wishlist Modal — buyers + guests */}
+      {/* Wishlist Modal "” buyers + guests */}
       {wishlistModal.open && (() => {
         const isActualBuyer = isBuyerLoggedIn && !!(buyer?.firstName || buyer?.lastName || buyer?.name || buyer?.email)
         return (
@@ -3743,7 +3760,7 @@ const AmazonsChoice = () => {
           }} onClick={e => e.stopPropagation()}>
             {wishlistSuccess ? (
               <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>✅</div>
+                <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>âœ…</div>
                 <h3 style={{ margin: '0 0 8px', color: '#1f2937' }}>Wishlist Submitted!</h3>
                 <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0 0 20px' }}>
                   {isActualBuyer
@@ -3760,14 +3777,14 @@ const AmazonsChoice = () => {
             ) : (
               <>
                 <h3 style={{ margin: '0 0 4px', fontSize: '1rem', color: '#1f2937' }}>
-                  💜 {isActualBuyer ? 'Add to Wishlist' : 'Send Wishlist & Demand'}
+                  ðŸ’œ {isActualBuyer ? 'Add to Wishlist' : 'Send Wishlist & Demand'}
                 </h3>
                 <p style={{ margin: '0 0 16px', fontSize: '0.8rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {wishlistModal.product?.name}
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {/* Guest fields — only shown when not a verified logged-in buyer */}
+                  {/* Guest fields "” only shown when not a verified logged-in buyer */}
                   {!isActualBuyer && (
                     <>
                       <div>
@@ -3791,7 +3808,7 @@ const AmazonsChoice = () => {
                         />
                       </div>
                       <div>
-                        <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#374151', display: 'block', marginBottom: '4px' }}>Email — optional</label>
+                        <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#374151', display: 'block', marginBottom: '4px' }}>Email "” optional</label>
                         <input
                           type="email"
                           placeholder="your@email.com"
@@ -3813,7 +3830,7 @@ const AmazonsChoice = () => {
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#374151', display: 'block', marginBottom: '4px' }}>Target price per unit ({currency}) — optional</label>
+                    <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#374151', display: 'block', marginBottom: '4px' }}>Target price per unit ({currency}) "” optional</label>
                     <input
                       type="number" min="0" step="0.01"
                       value={wishlistForm.targetPrice}
@@ -3823,7 +3840,7 @@ const AmazonsChoice = () => {
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#374151', display: 'block', marginBottom: '4px' }}>Notes — optional</label>
+                    <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#374151', display: 'block', marginBottom: '4px' }}>Notes "” optional</label>
                     <textarea
                       rows={2}
                       value={wishlistForm.notes}
@@ -3846,7 +3863,7 @@ const AmazonsChoice = () => {
                     disabled={wishlistSubmitting}
                     style={{ flex: 2, padding: '10px', background: 'linear-gradient(135deg, #7c3aed, #a855f7)', border: 'none', borderRadius: '8px', cursor: wishlistSubmitting ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontWeight: '700', color: '#fff', opacity: wishlistSubmitting ? 0.7 : 1 }}
                   >
-                    {wishlistSubmitting ? 'Submitting...' : '💜 Submit Wishlist & Demand'}
+                    {wishlistSubmitting ? 'Submitting...' : 'ðŸ’œ Submit Wishlist & Demand'}
                   </button>
                 </div>
 
