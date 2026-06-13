@@ -875,7 +875,7 @@ const AdminProducts = () => {
           <div style={{ position:'relative', flex:1, minWidth:0 }}>
             <i className="fas fa-search" style={{ position:'absolute', left:'10px', top:'50%', transform:'translateY(-50%)', color:'#aaa', fontSize:'0.8rem', pointerEvents:'none' }}></i>
             <input className="ap-search" style={{ paddingLeft:'30px', paddingRight: searchQuery ? '30px' : '12px' }}
-              placeholder="Search by name, ASIN, SKU..."
+              placeholder="Search by name, SKU..."
               value={searchQuery}
               onChange={handleSearchInputChange}
               onFocus={() => setShowSuggestions(true)}
@@ -1024,10 +1024,14 @@ const AdminProducts = () => {
                     {product.category && (
                       <span className="ap-badge" style={{ background:'#e9ecef', color:'#6b7280' }}>{product.category}</span>
                     )}
-                    <div className="ap-price">£{parseFloat(product.price||0).toFixed(2)}</div>
+                    {lowestSeller ? (
+                      <div className="ap-price">£{parseFloat(lowestSeller.sellerPrice||0).toFixed(2)}</div>
+                    ) : (
+                      <div style={{ fontSize:'0.72rem', color:'#aaa', fontStyle:'italic', margin:'4px 0' }}>No sellers yet</div>
+                    )}
                     {lowestSeller && (
                       <div style={{ fontSize:'0.62rem', color:'#6b7280' }}>
-                        <i className="fas fa-user me-1"></i>{lowestSeller.username} · £{parseFloat(lowestSeller.sellerPrice||0).toFixed(2)}
+                        <i className="fas fa-user me-1"></i>{lowestSeller.username}
                       </div>
                     )}
                     {product.sellers?.length > 0 && (

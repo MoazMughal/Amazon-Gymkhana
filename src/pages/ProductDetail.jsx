@@ -290,6 +290,8 @@ const ProductDetail = () => {
     const mainTotal = mainPrice + mainShipping;
     
     const countrySellers = getCountrySellers();
+
+    // No sellers — fall back to admin price
     if (countrySellers.length === 0) return mainTotal;
     
     const sellerTotals = countrySellers
@@ -300,9 +302,10 @@ const ProductDetail = () => {
         return total;
       })
       .filter(total => total > 0);
-    
-    const allTotals = [mainTotal, ...sellerTotals];
-    const result = Math.min(...allTotals);
+
+    // Sellers exist — show lowest seller price only (ignore admin price)
+    if (sellerTotals.length === 0) return mainTotal;
+    const result = Math.min(...sellerTotals);
     return isNaN(result) ? mainTotal : result;
   };
 
@@ -313,21 +316,27 @@ const ProductDetail = () => {
     const mainShipping = parseFloat(product.shipping) || 0;
     const mainTotal = mainPrice + mainShipping;
 
-    let lowest = {
-      price: mainPrice,
-      shipping: mainShipping,
-      total: mainTotal,
-      isSellerPrice: false,
-      moq: 1
-    };
-
     const countrySellers = getCountrySellers();
+
+    // No sellers — fall back to admin price
+    if (countrySellers.length === 0) {
+      return {
+        price: mainPrice,
+        shipping: mainShipping,
+        total: mainTotal,
+        isSellerPrice: false,
+        moq: 1
+      };
+    }
+
+    // Sellers exist — find lowest seller price only (admin price excluded)
+    let lowest = null;
     countrySellers.forEach(seller => {
       const sellerPrice = parseFloat(seller.sellerPrice);
       if (isNaN(sellerPrice)) return;
       const sellerShipping = parseFloat(seller.sellerShipping) || 0;
       const sellerTotal = sellerPrice + sellerShipping;
-      if (sellerTotal < lowest.total) {
+      if (!lowest || sellerTotal < lowest.total) {
         lowest = {
           price: sellerPrice,
           shipping: sellerShipping,
@@ -337,6 +346,17 @@ const ProductDetail = () => {
         };
       }
     });
+
+    // If all sellers had invalid prices, fall back to admin
+    if (!lowest) {
+      return {
+        price: mainPrice,
+        shipping: mainShipping,
+        total: mainTotal,
+        isSellerPrice: false,
+        moq: 1
+      };
+    }
 
     return lowest;
   };

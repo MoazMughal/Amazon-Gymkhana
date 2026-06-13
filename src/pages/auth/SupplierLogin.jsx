@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getApiUrl } from '../../utils/api'
 import { useSeller } from '../../context/SellerContext'
 import GoogleAuthButton from '../../components/GoogleAuthButton'
+import FacebookAuthButton from '../../components/FacebookAuthButton'
+import PhoneAuthForm from '../../components/PhoneAuthForm'
 
 const SupplierLogin = () => {
   const navigate = useNavigate()
@@ -12,6 +14,7 @@ const SupplierLogin = () => {
     if (authResolved && isLoggedIn) navigate('/seller/dashboard', { replace: true })
   }, [isLoggedIn, authResolved, navigate])
 
+  const [tab, setTab] = useState('email')
   const [formData, setFormData] = useState({ username: '', password: '', rememberMe: false })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -47,13 +50,30 @@ const SupplierLogin = () => {
 
   const handleGoogleSuccess = async (data) => {
     await sellerLogin(data.seller, data.token)
-    if (data.isNewUser) {
-      // New Google sellers need to complete their profile
-      navigate('/seller/dashboard')
-    }
+    if (data.isNewUser) navigate('/seller/dashboard')
+  }
+  const handleGoogleError = (msg) => setError(msg)
+
+  const handleFacebookSuccess = async (data) => {
+    await sellerLogin(data.seller, data.token)
+    navigate('/seller/dashboard')
+  }
+  const handleFacebookError = (msg) => setError(msg)
+
+  const handlePhoneSuccess = async (data) => {
+    await sellerLogin(data.seller, data.token)
+    navigate('/seller/dashboard')
   }
 
-  const handleGoogleError = (msg) => setError(msg)
+  const accentColor = '#16a34a'
+
+  const tabStyle = (active) => ({
+    flex: 1, padding: '8px', border: 'none',
+    background: active ? accentColor : '#f3f4f6',
+    color: active ? '#fff' : '#6b7280',
+    fontWeight: '600', fontSize: '0.82rem',
+    cursor: 'pointer', transition: 'all 0.2s', borderRadius: '8px'
+  })
 
   const inputWrap = {
     display: 'flex', alignItems: 'center',
@@ -137,7 +157,7 @@ const SupplierLogin = () => {
           <form onSubmit={handleSubmit}>
 
             {/* Google One-Click */}
-            <div style={{ marginBottom: '16px' }}>
+            <div style={{ marginBottom: '8px' }}>
               <GoogleAuthButton
                 userType="seller"
                 onSuccess={handleGoogleSuccess}
@@ -146,13 +166,44 @@ const SupplierLogin = () => {
               />
             </div>
 
+            {/* Facebook One-Click */}
+            <div style={{ marginBottom: '16px' }}>
+              <FacebookAuthButton
+                userType="seller"
+                onSuccess={handleFacebookSuccess}
+                onError={handleFacebookError}
+              />
+            </div>
+
             {/* OR divider */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
               <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
-              <span style={{ fontSize: '0.75rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>or sign in with email</span>
+              <span style={{ fontSize: '0.75rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>or sign in</span>
               <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
             </div>
 
+            {/* Tab switcher */}
+            <div style={{ display: 'flex', gap: '4px', background: '#f3f4f6', padding: '4px', borderRadius: '10px', marginBottom: '16px' }}>
+              <button type="button" onClick={() => { setTab('email'); setError('') }} style={tabStyle(tab === 'email')}>
+                <i className="fas fa-user" style={{ marginRight: '5px' }}></i> Email / Username
+              </button>
+              <button type="button" onClick={() => { setTab('phone'); setError('') }} style={tabStyle(tab === 'phone')}>
+                <i className="fas fa-mobile-alt" style={{ marginRight: '5px' }}></i> Phone
+              </button>
+            </div>
+
+            {/* Phone login */}
+            {tab === 'phone' && (
+              <PhoneAuthForm
+                mode="login"
+                userType="seller"
+                accentColor={accentColor}
+                onSuccess={handlePhoneSuccess}
+                onError={setError}
+              />
+            )}
+
+            {tab === 'email' && <>
             {/* Username field */}
             <div style={{ marginBottom: '12px' }}>
               <div style={inputWrap}
@@ -236,6 +287,7 @@ const SupplierLogin = () => {
                 : <><i className="fas fa-sign-in-alt"></i> Sign In as Supplier</>
               }
             </button>
+          </>}
           </form>
 
           {/* Divider */}

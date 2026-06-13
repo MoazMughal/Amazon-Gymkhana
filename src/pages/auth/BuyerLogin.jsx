@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getApiUrl } from '../../utils/api'
 import { useBuyer } from '../../context/BuyerContext'
 import GoogleAuthButton from '../../components/GoogleAuthButton'
+import FacebookAuthButton from '../../components/FacebookAuthButton'
+import PhoneAuthForm from '../../components/PhoneAuthForm'
 
 const BuyerLogin = () => {
   const navigate = useNavigate()
@@ -12,6 +14,7 @@ const BuyerLogin = () => {
     if (authResolved && isLoggedIn) navigate('/buyer/dashboard', { replace: true })
   }, [isLoggedIn, authResolved, navigate])
 
+  const [tab, setTab] = useState('email') // 'email' | 'phone'
   const [formData, setFormData] = useState({ email: '', password: '', rememberMe: false })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -45,13 +48,24 @@ const BuyerLogin = () => {
     }
   }
 
-  const handleGoogleSuccess = (data) => {
+  const handleGoogleSuccess = (data) => { login(data.buyer, data.token); navigate('/buyer/dashboard') }
+  const handleGoogleError = (msg) => setError(msg)
+  const handleFacebookSuccess = (data) => { login(data.buyer, data.token); navigate('/buyer/dashboard') }
+  const handleFacebookError = (msg) => setError(msg)
+
+  const handlePhoneSuccess = (data) => {
     login(data.buyer, data.token)
     navigate('/buyer/dashboard')
   }
 
-  const handleGoogleError = (msg) => setError(msg)
+  const accentColor = '#ff6600'
 
+  const tabStyle = (active) => ({
+    flex: 1, padding: '8px', border: 'none', background: active ? accentColor : '#f3f4f6',
+    color: active ? '#fff' : '#6b7280', fontWeight: '600', fontSize: '0.82rem',
+    cursor: 'pointer', transition: 'all 0.2s',
+    borderRadius: active ? '8px' : '8px'
+  })
   return (
     <div style={{
       minHeight: '100vh',
@@ -117,7 +131,7 @@ const BuyerLogin = () => {
           )}
 
           {/* Google One-Click */}
-          <div style={{ marginBottom: '16px' }}>
+          <div style={{ marginBottom: '8px' }}>
             <GoogleAuthButton
               userType="buyer"
               onSuccess={handleGoogleSuccess}
@@ -126,15 +140,45 @@ const BuyerLogin = () => {
             />
           </div>
 
+          {/* Facebook One-Click */}
+          <div style={{ marginBottom: '16px' }}>
+            <FacebookAuthButton
+              userType="buyer"
+              onSuccess={handleFacebookSuccess}
+              onError={handleFacebookError}
+            />
+          </div>
+
           {/* OR divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
             <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
-            <span style={{ fontSize: '0.75rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>or sign in with email</span>
+            <span style={{ fontSize: '0.75rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>or sign in</span>
             <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit}>
+          {/* Tab switcher: Email vs Phone */}
+          <div style={{ display: 'flex', gap: '4px', background: '#f3f4f6', padding: '4px', borderRadius: '10px', marginBottom: '16px' }}>
+            <button type="button" onClick={() => { setTab('email'); setError('') }} style={tabStyle(tab === 'email')}>
+              <i className="fas fa-envelope" style={{ marginRight: '5px' }}></i> Email
+            </button>
+            <button type="button" onClick={() => { setTab('phone'); setError('') }} style={tabStyle(tab === 'phone')}>
+              <i className="fas fa-mobile-alt" style={{ marginRight: '5px' }}></i> Phone
+            </button>
+          </div>
+
+          {/* Phone auth */}
+          {tab === 'phone' && (
+            <PhoneAuthForm
+              mode="login"
+              userType="buyer"
+              accentColor={accentColor}
+              onSuccess={handlePhoneSuccess}
+              onError={setError}
+            />
+          )}
+
+          {/* Email / password form */}
+          {tab === 'email' && <form onSubmit={handleSubmit}>
 
             {/* Email */}
             <div style={{ marginBottom: '12px' }}>
@@ -239,7 +283,7 @@ const BuyerLogin = () => {
                 : <><i className="fas fa-sign-in-alt"></i> Sign In as Buyer</>
               }
             </button>
-          </form>
+          </form>}
 
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>

@@ -12,6 +12,7 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import googleAuthRoutes from './routes/google-auth.js';
+import facebookAuthRoutes from './routes/facebook-auth.js';
 import productRoutes from './routes/products.js';
 import sellerRoutes from './routes/sellers.js';
 import dashboardRoutes from './routes/dashboard.js';
@@ -186,6 +187,7 @@ connectWithRetry();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', googleAuthRoutes);
+app.use('/api/auth', facebookAuthRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/sellers', sellerRoutes);
 app.use('/api/dashboard', dashboardRoutes);

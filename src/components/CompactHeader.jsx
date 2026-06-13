@@ -165,6 +165,7 @@ const CompactHeader = () => {
     const handleCategoryRefresh = () => {
       console.log('🔄 Refreshing header categories...');
       fetchCategories();
+      fetchHierarchy(); // also refresh subcategory dropdowns
     };
 
     // Listen for custom event to refresh categories
@@ -748,7 +749,6 @@ const CategoryItem = ({ cat, hierarchy }) => {
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const timerRef = useRef(null);
   const itemRef = useRef(null);
-  // Keep a ref to the latest hierarchy so the show handler is never stale
   const hierarchyRef = useRef(hierarchy);
   hierarchyRef.current = hierarchy;
 
@@ -758,7 +758,6 @@ const CategoryItem = ({ cat, hierarchy }) => {
     if (timerRef.current) clearTimeout(timerRef.current);
     const latest = hierarchyRef.current;
     const kids = latest[cat.label] || latest[cat.value] || [];
-    console.log(`[Header] hover "${cat.label}" | kids:`, kids, '| hierarchy keys:', Object.keys(latest));
     if (kids.length > 0 && itemRef.current) {
       const rect = itemRef.current.getBoundingClientRect();
       setPos({ top: rect.bottom + 2, left: rect.left });
@@ -766,13 +765,10 @@ const CategoryItem = ({ cat, hierarchy }) => {
     }
   };
 
-  const hide = () => {
-    timerRef.current = setTimeout(() => setOpen(false), 150);
-  };
+  const hide = () => { timerRef.current = setTimeout(() => setOpen(false), 150); };
+  const keepOpen = () => { if (timerRef.current) clearTimeout(timerRef.current); };
 
-  const keepOpen = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-  };
+  const catUrl = cat.value === 'all' ? '/' : `/?cat=${encodeURIComponent(cat.label)}`;
 
   return (
     <>
@@ -783,7 +779,7 @@ const CategoryItem = ({ cat, hierarchy }) => {
         onMouseLeave={hide}
       >
         <Link
-          to={cat.value === 'all' ? '/' : `/?cat=${encodeURIComponent(cat.label)}`}
+          to={catUrl}
           style={{
             fontSize: '10px', color: '#111', textDecoration: 'none', fontWeight: '600',
             padding: '4px 0', display: 'inline-flex', alignItems: 'center', gap: '3px',
@@ -800,22 +796,17 @@ const CategoryItem = ({ cat, hierarchy }) => {
       {open && children.length > 0 && createPortal(
         <div
           style={{
-            position: 'fixed',
-            top: pos.top,
-            left: pos.left,
-            background: 'white',
-            borderRadius: '8px',
-            minWidth: '200px',
-            boxShadow: '0 8px 28px rgba(0,0,0,0.2)',
-            zIndex: 999999,
-            border: '1px solid #e5e7eb',
-            overflow: 'hidden'
+            position: 'fixed', top: pos.top, left: pos.left,
+            background: 'white', borderRadius: '8px', minWidth: '200px',
+            boxShadow: '0 8px 28px rgba(0,0,0,0.2)', zIndex: 999999,
+            border: '1px solid #e5e7eb', overflow: 'hidden'
           }}
           onMouseEnter={keepOpen}
           onMouseLeave={hide}
         >
+          {/* "All [Category]" link — goes to homepage with cat filter */}
           <Link
-            to={`/?cat=${encodeURIComponent(cat.label)}`}
+            to={catUrl}
             onClick={() => setOpen(false)}
             style={{
               display: 'block', padding: '11px 16px', fontSize: '13px',
@@ -827,10 +818,11 @@ const CategoryItem = ({ cat, hierarchy }) => {
           >
             All {cat.label}
           </Link>
+          {/* Subcategory links — go to dedicated category page */}
           {children.map(child => (
             <Link
               key={child}
-              to={`/?cat=${encodeURIComponent(child)}`}
+              to={`/category/${encodeURIComponent(cat.label)}/${encodeURIComponent(child)}`}
               onClick={() => setOpen(false)}
               style={{
                 display: 'block', padding: '10px 16px 10px 28px', fontSize: '13px',

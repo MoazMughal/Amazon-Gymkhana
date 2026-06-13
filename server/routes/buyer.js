@@ -3,12 +3,14 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import Buyer from '../models/Buyer.js';
 import { authenticateBuyer } from '../middleware/auth.js';
 import { processCardPaymentWithPaymob } from '../services/paymob.js';
 import { sendWhatsAppOTP, generateOTP, validatePhoneNumber } from '../services/whatsapp.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
 import { validateBuyerRegister } from '../middleware/validation.js';
+import { sendSmsOTP, validatePhone } from '../services/sms.js';
 
 const router = express.Router();
 
@@ -149,24 +151,29 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Support login with email or WhatsApp number
+    // Support login with email, phone number, or WhatsApp number
     const buyer = await Buyer.findOne({
       $or: [
         { email },
+        { phone: email },
         { whatsappNo: email }
       ]
     });
     if (!buyer) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     if (buyer.status !== 'active') {
       return res.status(403).json({ message: 'Account is not active. Please contact support.' });
     }
 
+    if (!buyer.password) {
+      return res.status(401).json({ message: 'This account uses social login. Please sign in with Google or Facebook.' });
+    }
+
     const isPasswordValid = await buyer.comparePassword(password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     buyer.lastLogin = new Date();
@@ -1067,6 +1074,242 @@ router.get('/quotations', authenticateBuyer, async (req, res) => {
 });
 
 export default router;
+
+// ============================================================
+// PHONE-BASED REGISTRATION & LOGIN (SMS OTP via Twilio)
+// ============================================================
+
+// POST /buyer/register-phone  — register with phone + password
+router.post('/register-phone', authLimiter, async (req, res) => {
+  try {
+    const { firstName, lastName, phone, password } = req.body;
+
+    if (!firstName || !lastName || !phone || !password) {
+      return res.status(400).json({ message: 'firstName, lastName, phone and password are required' });
+    }
+
+    const cleanPhone = phone.trim();
+    if (!validatePhone(cleanPhone)) {
+      return res.status(400).json({ message: 'Phone must be in E.164 format, e.g. +447911123456' });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters' });
+    }
+
+    const existing = await Buyer.findOne({ phone: cleanPhone });
+    if (existing) {
+      return res.status(400).json({ message: 'Phone number already registered' });
+    }
+
+    // Create buyer without email (email optional for phone-based accounts)
+    const buyer = new Buyer({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      phone: cleanPhone,
+      password,
+      userType: 'buyer',
+      email: `phone_${cleanPhone.replace(/\+/g, '')}@placeholder.local`
+    });
+
+    // Generate & send SMS OTP to verify phone
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+
+    const { hash, salt } = hashString(otp);
+    buyer.phoneOTP = hash;
+    buyer.phoneOTPSalt = salt;
+    buyer.phoneOTPExpiry = otpExpiry;
+    buyer.phoneOTPAttempts = 0;
+    buyer.phoneVerified = false;
+
+    await buyer.save();
+
+    const smsResult = await sendSmsOTP(cleanPhone, otp);
+    if (!smsResult.success && process.env.NODE_ENV === 'production') {
+      await Buyer.deleteOne({ _id: buyer._id });
+      return res.status(500).json({ message: 'Failed to send SMS OTP. Please try again.' });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'OTP sent to your phone. Please verify to complete registration.',
+      phone: maskPhone(cleanPhone),
+      requiresVerification: true
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'Phone number already registered' });
+    }
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// POST /buyer/verify-phone-otp  — verify OTP after phone registration
+router.post('/verify-phone-otp', authLimiter, async (req, res) => {
+  try {
+    const { phone, otp } = req.body;
+    if (!phone || !otp) {
+      return res.status(400).json({ message: 'phone and otp are required' });
+    }
+
+    const buyer = await Buyer.findOne({ phone: phone.trim() });
+    if (!buyer) return res.status(404).json({ message: 'Account not found' });
+
+    const check = checkOTPRecord(buyer, 'phone');
+    if (!check.valid) return res.status(400).json({ message: check.message });
+
+    const valid = verifyHash(otp, buyer.phoneOTP, buyer.phoneOTPSalt);
+    if (!valid) {
+      buyer.phoneOTPAttempts = (buyer.phoneOTPAttempts || 0) + 1;
+      await buyer.save();
+      const remaining = 3 - buyer.phoneOTPAttempts;
+      return res.status(400).json({
+        message: remaining > 0 ? `Invalid OTP. ${remaining} attempts remaining.` : 'Too many attempts. Request a new OTP.'
+      });
+    }
+
+    // Mark verified, clear OTP
+    buyer.phoneVerified = true;
+    buyer.phoneOTP = undefined;
+    buyer.phoneOTPSalt = undefined;
+    buyer.phoneOTPExpiry = undefined;
+    buyer.phoneOTPAttempts = 0;
+    buyer.lastLogin = new Date();
+    await buyer.save();
+
+    const token = jwt.sign({ id: buyer._id, role: 'buyer' }, process.env.JWT_SECRET, { expiresIn: '12h' });
+
+    res.json({
+      success: true,
+      message: 'Phone verified! Registration complete.',
+      token,
+      buyer: formatBuyer(buyer)
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// POST /buyer/send-phone-otp  — send/resend OTP for login or verification
+router.post('/send-phone-otp', authLimiter, async (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ message: 'phone is required' });
+
+    const cleanPhone = phone.trim();
+    if (!validatePhone(cleanPhone)) {
+      return res.status(400).json({ message: 'Invalid phone number format (use E.164, e.g. +447911123456)' });
+    }
+
+    const buyer = await Buyer.findOne({ phone: cleanPhone });
+    if (!buyer) return res.status(404).json({ message: 'No account found with this phone number' });
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const { hash, salt } = hashString(otp);
+
+    buyer.phoneOTP = hash;
+    buyer.phoneOTPSalt = salt;
+    buyer.phoneOTPExpiry = new Date(Date.now() + 5 * 60 * 1000);
+    buyer.phoneOTPAttempts = 0;
+    await buyer.save();
+
+    const result = await sendSmsOTP(cleanPhone, otp);
+
+    if (process.env.NODE_ENV === 'development') {
+      return res.json({ success: true, message: `OTP sent (dev: ${otp})`, phone: maskPhone(cleanPhone) });
+    }
+
+    res.json({ success: result.success, message: result.success ? 'OTP sent to your phone' : result.message, phone: maskPhone(cleanPhone) });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// POST /buyer/login-phone  — login with phone + OTP (passwordless)
+router.post('/login-phone', authLimiter, async (req, res) => {
+  try {
+    const { phone, otp } = req.body;
+    if (!phone || !otp) return res.status(400).json({ message: 'phone and otp are required' });
+
+    const buyer = await Buyer.findOne({ phone: phone.trim() });
+    if (!buyer) return res.status(404).json({ message: 'No account found with this phone number' });
+
+    if (buyer.status !== 'active') {
+      return res.status(403).json({ message: 'Account is not active. Please contact support.' });
+    }
+
+    const check = checkOTPRecord(buyer, 'phone');
+    if (!check.valid) return res.status(400).json({ message: check.message });
+
+    const valid = verifyHash(otp, buyer.phoneOTP, buyer.phoneOTPSalt);
+    if (!valid) {
+      buyer.phoneOTPAttempts = (buyer.phoneOTPAttempts || 0) + 1;
+      await buyer.save();
+      const remaining = 3 - buyer.phoneOTPAttempts;
+      return res.status(400).json({
+        message: remaining > 0 ? `Invalid OTP. ${remaining} attempts remaining.` : 'Too many attempts. Request a new OTP.'
+      });
+    }
+
+    buyer.phoneOTP = undefined;
+    buyer.phoneOTPSalt = undefined;
+    buyer.phoneOTPExpiry = undefined;
+    buyer.phoneOTPAttempts = 0;
+    buyer.phoneVerified = true;
+    buyer.lastLogin = new Date();
+    await buyer.save();
+
+    const token = jwt.sign({ id: buyer._id, role: 'buyer' }, process.env.JWT_SECRET, { expiresIn: '12h' });
+
+    res.json({ success: true, message: 'Login successful', token, buyer: formatBuyer(buyer) });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// ---- helpers ----
+function hashString(value) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(value, salt, 10000, 64, 'sha512').toString('hex');
+  return { hash, salt };
+}
+
+function verifyHash(value, storedHash, storedSalt) {
+  const hash = crypto.pbkdf2Sync(value, storedSalt, 10000, 64, 'sha512').toString('hex');
+  return hash === storedHash;
+}
+
+function checkOTPRecord(user, prefix) {
+  const otp = user[`${prefix}OTP`];
+  const expiry = user[`${prefix}OTPExpiry`];
+  const attempts = user[`${prefix}OTPAttempts`] || 0;
+
+  if (!otp || !expiry) return { valid: false, message: 'No OTP request found. Please request a new one.' };
+  if (new Date() > expiry) return { valid: false, message: 'OTP has expired. Please request a new one.' };
+  if (attempts >= 3) return { valid: false, message: 'Too many failed attempts. Please request a new OTP.' };
+  return { valid: true };
+}
+
+function maskPhone(phone) {
+  return phone.replace(/(\+\d{2,3})\d+(\d{4})$/, '$1****$2');
+}
+
+function formatBuyer(b) {
+  return {
+    id: b._id,
+    name: b.getFullName(),
+    firstName: b.firstName,
+    lastName: b.lastName,
+    email: b.email?.includes('@placeholder.local') ? '' : b.email,
+    phone: b.phone || '',
+    phoneVerified: b.phoneVerified || false,
+    whatsappNo: b.whatsappNo || '',
+    userType: b.userType,
+    status: b.status,
+    lastLogin: b.lastLogin
+  };
+}
 
 // Admin: Get all pending payments
 router.get('/admin/pending-payments', async (req, res) => {

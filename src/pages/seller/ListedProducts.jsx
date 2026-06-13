@@ -532,7 +532,7 @@ const ListedProducts = () => {
           <input
             type="text"
             className="form-control form-control-sm"
-            placeholder="Search by name, ASIN or SKU..."
+            placeholder="Search by name or SKU..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             style={{ paddingLeft: '30px', fontSize: '0.82rem', border: '1px solid #dee2e6', backgroundColor: '#fff', color: '#212529' }}
@@ -746,7 +746,7 @@ const ListedProducts = () => {
                             </a>
                           )}
                           {product.asin && (
-                            <small className="text-muted">ASIN: {product.asin}</small>
+                            <></>
                           )}
                         </div>
                       </td>

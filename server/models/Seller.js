@@ -20,9 +20,21 @@ const sellerSchema = new mongoose.Schema({
     type: String,
     required: false // Made optional since we're adding WhatsApp
   },
+  phone: {
+    type: String,
+    trim: true,
+    sparse: true,
+    unique: true
+  },
+  // Phone-based auth OTP fields
+  phoneOTP: String,
+  phoneOTPSalt: String,
+  phoneOTPExpiry: Date,
+  phoneOTPAttempts: { type: Number, default: 0 },
+  phoneVerified: { type: Boolean, default: false },
   whatsappNo: {
     type: String,
-    required: true
+    required: false // Optional when using phone-based auth
   },
   country: {
     type: String,
@@ -155,15 +167,20 @@ const sellerSchema = new mongoose.Schema({
       default: []
     }
   }],
-  // Google OAuth
+  // Social OAuth
   googleId: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
+  facebookId: {
     type: String,
     sparse: true,
     unique: true
   },
   authProvider: {
     type: String,
-    enum: ['local', 'google'],
+    enum: ['local', 'google', 'facebook'],
     default: 'local'
   },
   // Password reset fields (OTP-based)

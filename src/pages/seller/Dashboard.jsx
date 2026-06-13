@@ -73,13 +73,15 @@ const SellerDashboard = () => {
     setDashboardLoading(true)
     setLoadingPreview(true)
     try {
-      const [accessRes, paymentsRes, listingRes, previewRes, statsRes, listedPreviewRes] = await Promise.allSettled([
+      const [accessRes, paymentsRes, listingRes, previewRes, statsRes, listedPreviewRes, countsRes] = await Promise.allSettled([
         fetch(getApiUrl('sellers/dashboard-access'), { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(getApiUrl('sellers/payments'), { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(getApiUrl('sellers/listing-requests'), { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(getApiUrl('products/admin/available?limit=6'), { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(getApiUrl('sellers/my-stats'), { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(getApiUrl('sellers/my-listed-preview'), { headers: { 'Authorization': `Bearer ${token}` } }),
+        // Direct counts from listed-products endpoint (same source as listed-products page)
+        fetch(getApiUrl('products/seller/listed-products?limit=1&page=1&status=approved'), { headers: { 'Authorization': `Bearer ${token}` } }),
       ])
       if (accessRes.status === 'fulfilled' && accessRes.value.ok) setDashboardAccess(await accessRes.value.json())
       if (paymentsRes.status === 'fulfilled' && paymentsRes.value.ok) setPaymentHistory(await paymentsRes.value.json())
@@ -87,10 +89,23 @@ const SellerDashboard = () => {
       if (previewRes.status === 'fulfilled' && previewRes.value.ok) { const d = await previewRes.value.json(); setPreviewProducts(d.products || []) }
       if (statsRes.status === 'fulfilled' && statsRes.value.ok) {
         const d = await statsRes.value.json()
-        setMyStats(d)
-        setStats(prev => ({ ...prev, totalProducts: d.listedProducts?.total || 0 }))
+        if (d.success !== false) {
+          setMyStats(d)
+        }
       }
       if (listedPreviewRes.status === 'fulfilled' && listedPreviewRes.value.ok) { const d = await listedPreviewRes.value.json(); setMyListedPreview(d.products || []) }
+      // Use counts from listed-products endpoint as the reliable source
+      if (countsRes.status === 'fulfilled' && countsRes.value.ok) {
+        const d = await countsRes.value.json()
+        if (d.counts) {
+          setStats(prev => ({ ...prev, totalProducts: d.counts.approved || 0 }))
+          setMyStats(prev => ({
+            ...(prev || {}),
+            listedProducts: { total: d.counts.total || 0, approved: d.counts.approved || 0, pending: d.counts.pending || 0 },
+            listingRequests: d.counts.pending || (prev?.listingRequests ?? 0),
+          }))
+        }
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
@@ -479,7 +494,7 @@ const SellerDashboard = () => {
             <div className="sd-stat" style={{background: 'linear-gradient(135deg, #17a2b8, #007bff)', padding: '8px 12px'}}>
               <div>
                 <div style={{fontSize: '0.6rem', opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.5px'}}>Total Products</div>
-                <div style={{fontSize: '0.85rem', fontWeight: 800}}>{myStats?.listedProducts?.approved ?? myStats?.listedProducts?.total ?? stats.totalProducts}</div>
+                <div style={{fontSize: '0.85rem', fontWeight: 800}}>{stats.totalProducts}</div>
               </div>
               <i className="fas fa-box" style={{fontSize: '1.2rem', opacity: 0.4}}></i>
             </div>
@@ -488,7 +503,7 @@ const SellerDashboard = () => {
             <div className="sd-stat" style={{background: 'linear-gradient(135deg, #ffc107, #fd7e14)', padding: '8px 12px'}}>
               <div>
                 <div style={{fontSize: '0.6rem', opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.5px'}}>Listing Requests</div>
-                <div style={{fontSize: '0.85rem', fontWeight: 800}}>{myStats?.listingRequests ?? listingRequests.length}</div>
+                <div style={{fontSize: '0.85rem', fontWeight: 800}}>{listingRequests.length}</div>
               </div>
               <i className="fas fa-list-alt" style={{fontSize: '1.2rem', opacity: 0.4}}></i>
             </div>

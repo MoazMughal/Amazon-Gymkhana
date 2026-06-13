@@ -25,6 +25,7 @@ const productSchema = new mongoose.Schema({
     required: true
   },
   subcategory: String,
+  subsubcategory: String,
   brand: String,
   images: [String],
   rating: {

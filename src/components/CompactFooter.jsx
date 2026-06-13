@@ -16,7 +16,9 @@ const FooterLink = ({ to, children }) => (
       display: 'block',
       color: 'rgba(255,255,255,0.75)',
       textDecoration: 'none',
-      fontSize: '0.875rem',
+      fontSize: '0.82rem',
+      lineHeight: 1.5,
+      py: '2px',
       transition: 'all 0.2s ease',
       '&:hover': { color: '#ff9900', transform: 'translateX(5px)', textDecoration: 'none' },
     }}
@@ -28,7 +30,7 @@ const FooterLink = ({ to, children }) => (
 // Section heading with orange underline
 const SectionHeading = ({ children }) => (
   <Box sx={{ mb: 2 }}>
-    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#fff', mb: 0.5 }}>
+    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#fff', mb: 0.5, fontSize: '0.9rem', lineHeight: 1.5 }}>
       {children}
     </Typography>
     <Box sx={{ width: 36, height: 3, background: '#ff9900', borderRadius: 1 }} />
@@ -56,7 +58,7 @@ const CompactFooter = () => (
         {/* About */}
         <Grid item xs={12} sm={6} md={3}>
           <SectionHeading>About Us</SectionHeading>
-          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.75)', lineHeight: 1.7 }}>
+          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.82rem', lineHeight: 1.5, py: '2px' }}>
             Your trusted wholesale marketplace connecting suppliers with global retailers.
           </Typography>
         </Grid>
@@ -64,7 +66,7 @@ const CompactFooter = () => (
         {/* Quick Links */}
         <Grid item xs={12} sm={6} md={3}>
           <SectionHeading>Quick Links</SectionHeading>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <FooterLink to="/">Home</FooterLink>
             <FooterLink to="/about-us">About Us</FooterLink>
             <FooterLink to="/basket">Basket</FooterLink>
@@ -75,7 +77,7 @@ const CompactFooter = () => (
         {/* Legal */}
         <Grid item xs={12} sm={6} md={3}>
           <SectionHeading>Legal</SectionHeading>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <FooterLink to="/terms-of-service">Terms of Service</FooterLink>
             <FooterLink to="/privacy-policy">Privacy Policy</FooterLink>
             <FooterLink to="/help-center">Help Center</FooterLink>
@@ -86,16 +88,16 @@ const CompactFooter = () => (
         {/* Contact */}
         <Grid item xs={12} sm={6} md={3}>
           <SectionHeading>Contact</SectionHeading>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {[
               { icon: 'fa-envelope', text: 'poundlandwholesale@gmail.com' },
               { icon: 'fa-phone',   text: '+92 304 4928000' },
               { icon: 'fa-phone',   text: '+92 303 4928000' },
               { icon: 'fa-map-marker-alt', text: 'London, United Kingdom' },
             ].map(({ icon, text }) => (
-              <Box key={text} sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+              <Box key={text} sx={{ display: 'flex', alignItems: 'center', gap: 1.2, py: '2px' }}>
                 <i className={`fas ${icon}`} style={{ color: '#ff9900', fontSize: '13px', width: 16, flexShrink: 0 }} />
-                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.82rem' }}>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.82rem', lineHeight: 1.5 }}>
                   {text}
                 </Typography>
               </Box>

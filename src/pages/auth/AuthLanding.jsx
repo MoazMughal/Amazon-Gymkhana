@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useBuyer } from '../../context/BuyerContext'
 import { useSeller } from '../../context/SellerContext'
 import GoogleAuthButton from '../../components/GoogleAuthButton'
+import FacebookAuthButton from '../../components/FacebookAuthButton'
 import '../../styles/AuthLanding.css'
 
 const AuthLanding = () => {
@@ -15,6 +16,16 @@ const AuthLanding = () => {
   }
 
   const handleSellerGoogle = async (data) => {
+    await sellerLogin(data.seller, data.token)
+    navigate('/seller/dashboard')
+  }
+
+  const handleBuyerFacebook = (data) => {
+    buyerLogin(data.buyer, data.token)
+    navigate('/buyer/dashboard')
+  }
+
+  const handleSellerFacebook = async (data) => {
     await sellerLogin(data.seller, data.token)
     navigate('/seller/dashboard')
   }
@@ -66,6 +77,11 @@ const AuthLanding = () => {
                       <GoogleAuthButton
                         userType="buyer"
                         onSuccess={handleBuyerGoogle}
+                        onError={() => {}}
+                      />
+                      <FacebookAuthButton
+                        userType="buyer"
+                        onSuccess={handleBuyerFacebook}
                         onError={() => {}}
                       />
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 0' }}>
@@ -121,6 +137,11 @@ const AuthLanding = () => {
                         onSuccess={handleSellerGoogle}
                         onError={() => {}}
                         accentColor="#16a34a"
+                      />
+                      <FacebookAuthButton
+                        userType="seller"
+                        onSuccess={handleSellerFacebook}
+                        onError={() => {}}
                       />
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 0' }}>
                         <div style={{ flex: 1, height: '1px', background: '#dee2e6' }} />

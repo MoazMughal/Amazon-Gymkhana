@@ -3,11 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getApiUrl } from '../../utils/api'
 import { useSeller } from '../../context/SellerContext'
 import GoogleAuthButton from '../../components/GoogleAuthButton'
+import FacebookAuthButton from '../../components/FacebookAuthButton'
+import PhoneAuthForm from '../../components/PhoneAuthForm'
 import '../../styles/AuthLanding.css'
 
 const SupplierRegister = () => {
   const navigate = useNavigate()
   const { login: sellerLogin } = useSeller()
+  const [registerTab, setRegisterTab] = useState('email')
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -95,6 +98,13 @@ const SupplierRegister = () => {
 
   const handleGoogleError = (msg) => setError(msg)
 
+  const handleFacebookSuccess = async (data) => {
+    await sellerLogin(data.seller, data.token)
+    navigate('/seller/dashboard')
+  }
+
+  const handleFacebookError = (msg) => setError(msg)
+
   return (
     <div className="min-vh-100 d-flex align-items-center bg-light py-2">
       <div className="container">
@@ -142,25 +152,52 @@ const SupplierRegister = () => {
                   </div>
                 )}
 
-                {/* Google One-Click Sign Up */}
+                {/* Google + Facebook One-Click Sign Up */}
                 {!success && (
                   <div className="mb-3">
-                    <GoogleAuthButton
+                    <div style={{ marginBottom: '8px' }}>
+                      <GoogleAuthButton
+                        userType="seller"
+                        onSuccess={handleGoogleSuccess}
+                        onError={handleGoogleError}
+                        accentColor="#16a34a"
+                      />
+                    </div>
+                    <FacebookAuthButton
                       userType="seller"
-                      onSuccess={handleGoogleSuccess}
-                      onError={handleGoogleError}
-                      accentColor="#16a34a"
+                      onSuccess={handleFacebookSuccess}
+                      onError={handleFacebookError}
                     />
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '12px 0' }}>
                       <div style={{ flex: 1, height: '1px', background: '#dee2e6' }} />
-                      <span style={{ fontSize: '0.72rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>or register with email</span>
+                      <span style={{ fontSize: '0.72rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>or register with</span>
                       <div style={{ flex: 1, height: '1px', background: '#dee2e6' }} />
                     </div>
+                    {/* Tab: email vs phone */}
+                    <div style={{ display: 'flex', gap: '4px', background: '#f3f4f6', padding: '4px', borderRadius: '8px', marginBottom: '12px' }}>
+                      {['email','phone'].map(t => (
+                        <button key={t} type="button"
+                          onClick={() => setRegisterTab(t)}
+                          style={{ flex:1, padding:'6px', border:'none', borderRadius:'6px', fontSize:'0.78rem', fontWeight:'600', cursor:'pointer',
+                            background: registerTab===t ? '#16a34a' : 'transparent', color: registerTab===t ? '#fff' : '#6b7280' }}>
+                          {t === 'email' ? '✉ Email' : '📱 Phone'}
+                        </button>
+                      ))}
+                    </div>
+                    {registerTab === 'phone' && (
+                      <PhoneAuthForm
+                        mode="register"
+                        userType="seller"
+                        accentColor="#16a34a"
+                        onSuccess={async (data) => { await sellerLogin(data.seller, data.token); navigate('/seller/dashboard') }}
+                        onError={setError}
+                      />
+                    )}
                   </div>
                 )}
 
                 {/* Registration Form */}
-                <form onSubmit={handleSubmit} style={{ display: success ? 'none' : 'block' }}>
+                <form onSubmit={handleSubmit} style={{ display: (success || registerTab === 'phone') ? 'none' : 'block' }}>
                   <div className="row">
                     <div className="col-md-6 mb-3">
                       <label htmlFor="username" className="form-label fw-semibold">

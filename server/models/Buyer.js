@@ -29,12 +29,20 @@ const buyerSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    trim: true
+    trim: true,
+    sparse: true,   // allow multiple null values
+    unique: true
   },
   whatsappNo: {
     type: String,
     trim: true
   },
+  // Phone-based auth OTP fields
+  phoneOTP: String,
+  phoneOTPSalt: String,
+  phoneOTPExpiry: Date,
+  phoneOTPAttempts: { type: Number, default: 0 },
+  phoneVerified: { type: Boolean, default: false },
   address: {
     street: String,
     city: String,
@@ -124,15 +132,20 @@ const buyerSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  // Google OAuth
+  // Social OAuth
   googleId: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
+  facebookId: {
     type: String,
     sparse: true,
     unique: true
   },
   authProvider: {
     type: String,
-    enum: ['local', 'google'],
+    enum: ['local', 'google', 'facebook'],
     default: 'local'
   },
   // Password reset fields (Token-based)

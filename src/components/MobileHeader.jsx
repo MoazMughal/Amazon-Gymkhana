@@ -1379,9 +1379,6 @@ const MobileHeader = () => {
               <Link to="/login/supplier" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
                 <i className="fas fa-store"></i> Supplier Login
               </Link>
-              <Link to="/admin/login" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
-                <i className="fas fa-user-shield"></i> Admin Login
-              </Link>
               <Link to="/register/buyer" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
                 <i className="fas fa-user-plus"></i> Register
               </Link>

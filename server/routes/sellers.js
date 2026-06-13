@@ -1,9 +1,11 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import Seller from '../models/Seller.js';
 import { authenticateAdmin, authenticateSeller } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
 import { validateSellerRegister } from '../middleware/validation.js';
+import { sendSmsOTP, validatePhone } from '../services/sms.js';
 
 const router = express.Router();
 
@@ -90,11 +92,12 @@ router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Support login with username, email, or WhatsApp number
+    // Support login with username, email, phone, or WhatsApp number
     const seller = await Seller.findOne({
       $or: [
         { username }, 
         { email: username },
+        { phone: username },
         { whatsappNo: username }
       ]
     });
@@ -320,8 +323,8 @@ router.put('/profile', authenticateSeller, async (req, res) => {
       return res.status(404).json({ message: 'Seller not found' });
     }
 
-    // Google OAuth sellers have no password — skip password check
-    if (seller.authProvider !== 'google') {
+    // Social OAuth sellers (Google/Facebook) have no password — skip password check
+    if (seller.authProvider !== 'google' && seller.authProvider !== 'facebook') {
       if (!password) {
         return res.status(400).json({ message: 'Password is required to update profile' });
       }
@@ -2433,3 +2436,250 @@ router.put('/admin/quotations/:id', authenticateAdmin, async (req, res) => {
 });
 
 export default router;
+
+// ============================================================
+// PHONE-BASED REGISTRATION & LOGIN (SMS OTP via Twilio)
+// ============================================================
+
+// POST /sellers/register-phone  — register seller with phone + password
+router.post('/register-phone', authLimiter, async (req, res) => {
+  try {
+    const { username, phone, password, country, city, productCategory } = req.body;
+
+    if (!username || !phone || !password || !country || !city || !productCategory) {
+      return res.status(400).json({ message: 'username, phone, password, country, city and productCategory are required' });
+    }
+
+    const cleanPhone = phone.trim();
+    if (!validatePhone(cleanPhone)) {
+      return res.status(400).json({ message: 'Phone must be in E.164 format, e.g. +447911123456' });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters' });
+    }
+
+    const existingByUsername = await Seller.findOne({ username: username.trim() });
+    if (existingByUsername) return res.status(400).json({ message: 'Username already taken' });
+
+    const existingByPhone = await Seller.findOne({ phone: cleanPhone });
+    if (existingByPhone) return res.status(400).json({ message: 'Phone number already registered' });
+
+    const seller = new Seller({
+      username: username.trim(),
+      phone: cleanPhone,
+      password,
+      country: country.trim(),
+      city: city.trim(),
+      productCategory: productCategory.trim(),
+      email: `phone_${cleanPhone.replace(/\+/g, '')}@placeholder.local`,
+      whatsappNo: cleanPhone // default whatsapp to phone
+    });
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const { hash, salt } = hashStringSeller(otp);
+    seller.phoneOTP = hash;
+    seller.phoneOTPSalt = salt;
+    seller.phoneOTPExpiry = new Date(Date.now() + 5 * 60 * 1000);
+    seller.phoneOTPAttempts = 0;
+    seller.phoneVerified = false;
+
+    await seller.save();
+
+    const smsResult = await sendSmsOTP(cleanPhone, otp);
+    if (!smsResult.success && process.env.NODE_ENV === 'production') {
+      await Seller.deleteOne({ _id: seller._id });
+      return res.status(500).json({ message: 'Failed to send SMS OTP. Please try again.' });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'OTP sent to your phone. Please verify to complete registration.',
+      phone: maskPhoneSeller(cleanPhone),
+      requiresVerification: true
+    });
+  } catch (error) {
+    if (error.code === 11000) return res.status(400).json({ message: 'Phone number or username already registered' });
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// POST /sellers/verify-phone-otp  — verify OTP after phone registration
+router.post('/verify-phone-otp', authLimiter, async (req, res) => {
+  try {
+    const { phone, otp } = req.body;
+    if (!phone || !otp) return res.status(400).json({ message: 'phone and otp are required' });
+
+    const seller = await Seller.findOne({ phone: phone.trim() });
+    if (!seller) return res.status(404).json({ message: 'Account not found' });
+
+    const check = checkOTPRecordSeller(seller, 'phone');
+    if (!check.valid) return res.status(400).json({ message: check.message });
+
+    const valid = verifyHashSeller(otp, seller.phoneOTP, seller.phoneOTPSalt);
+    if (!valid) {
+      seller.phoneOTPAttempts = (seller.phoneOTPAttempts || 0) + 1;
+      await seller.save();
+      const remaining = 3 - seller.phoneOTPAttempts;
+      return res.status(400).json({
+        message: remaining > 0 ? `Invalid OTP. ${remaining} attempts remaining.` : 'Too many attempts. Request a new OTP.'
+      });
+    }
+
+    seller.phoneVerified = true;
+    seller.phoneOTP = undefined;
+    seller.phoneOTPSalt = undefined;
+    seller.phoneOTPExpiry = undefined;
+    seller.phoneOTPAttempts = 0;
+    await seller.save();
+
+    const dashboardAccess = seller.canAccessDashboard();
+    const token = jwt.sign(
+      { id: seller._id, role: 'seller', supplierId: seller.supplierId },
+      process.env.JWT_SECRET,
+      { expiresIn: '12h' }
+    );
+
+    res.json({
+      success: true,
+      message: 'Phone verified! Registration complete.',
+      token,
+      seller: formatSellerResponse(seller, dashboardAccess)
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// POST /sellers/send-phone-otp  — send OTP to seller phone for login
+router.post('/send-phone-otp', authLimiter, async (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ message: 'phone is required' });
+
+    const cleanPhone = phone.trim();
+    if (!validatePhone(cleanPhone)) {
+      return res.status(400).json({ message: 'Invalid phone number format (use E.164, e.g. +447911123456)' });
+    }
+
+    const seller = await Seller.findOne({ phone: cleanPhone });
+    if (!seller) return res.status(404).json({ message: 'No account found with this phone number' });
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const { hash, salt } = hashStringSeller(otp);
+
+    seller.phoneOTP = hash;
+    seller.phoneOTPSalt = salt;
+    seller.phoneOTPExpiry = new Date(Date.now() + 5 * 60 * 1000);
+    seller.phoneOTPAttempts = 0;
+    await seller.save();
+
+    const result = await sendSmsOTP(cleanPhone, otp);
+
+    if (process.env.NODE_ENV === 'development') {
+      return res.json({ success: true, message: `OTP sent (dev: ${otp})`, phone: maskPhoneSeller(cleanPhone) });
+    }
+
+    res.json({ success: result.success, message: result.success ? 'OTP sent to your phone' : result.message, phone: maskPhoneSeller(cleanPhone) });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// POST /sellers/login-phone  — seller login with phone + OTP
+router.post('/login-phone', authLimiter, async (req, res) => {
+  try {
+    const { phone, otp } = req.body;
+    if (!phone || !otp) return res.status(400).json({ message: 'phone and otp are required' });
+
+    const seller = await Seller.findOne({ phone: phone.trim() });
+    if (!seller) return res.status(404).json({ message: 'No account found with this phone number' });
+
+    if (seller.status === 'suspended' || seller.status === 'rejected') {
+      return res.status(403).json({ message: 'Your account has been suspended. Please contact support.' });
+    }
+
+    const check = checkOTPRecordSeller(seller, 'phone');
+    if (!check.valid) return res.status(400).json({ message: check.message });
+
+    const valid = verifyHashSeller(otp, seller.phoneOTP, seller.phoneOTPSalt);
+    if (!valid) {
+      seller.phoneOTPAttempts = (seller.phoneOTPAttempts || 0) + 1;
+      await seller.save();
+      const remaining = 3 - seller.phoneOTPAttempts;
+      return res.status(400).json({
+        message: remaining > 0 ? `Invalid OTP. ${remaining} attempts remaining.` : 'Too many attempts. Request a new OTP.'
+      });
+    }
+
+    seller.phoneOTP = undefined;
+    seller.phoneOTPSalt = undefined;
+    seller.phoneOTPExpiry = undefined;
+    seller.phoneOTPAttempts = 0;
+    seller.phoneVerified = true;
+    await seller.save();
+
+    const dashboardAccess = seller.canAccessDashboard();
+    const token = jwt.sign(
+      { id: seller._id, role: 'seller', supplierId: seller.supplierId },
+      process.env.JWT_SECRET,
+      { expiresIn: '12h' }
+    );
+
+    res.json({ success: true, message: 'Login successful', token, seller: formatSellerResponse(seller, dashboardAccess) });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// ---- seller helpers ----
+function hashStringSeller(value) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(value, salt, 10000, 64, 'sha512').toString('hex');
+  return { hash, salt };
+}
+
+function verifyHashSeller(value, storedHash, storedSalt) {
+  const hash = crypto.pbkdf2Sync(value, storedSalt, 10000, 64, 'sha512').toString('hex');
+  return hash === storedHash;
+}
+
+function checkOTPRecordSeller(user, prefix) {
+  const otp = user[`${prefix}OTP`];
+  const expiry = user[`${prefix}OTPExpiry`];
+  const attempts = user[`${prefix}OTPAttempts`] || 0;
+  if (!otp || !expiry) return { valid: false, message: 'No OTP request found. Please request a new one.' };
+  if (new Date() > expiry) return { valid: false, message: 'OTP has expired. Please request a new one.' };
+  if (attempts >= 3) return { valid: false, message: 'Too many failed attempts. Please request a new OTP.' };
+  return { valid: true };
+}
+
+function maskPhoneSeller(phone) {
+  return phone.replace(/(\+\d{2,3})\d+(\d{4})$/, '$1****$2');
+}
+
+function formatSellerResponse(seller, dashboardAccess) {
+  return {
+    id: seller._id,
+    _id: seller._id,
+    username: seller.username,
+    email: seller.email?.includes('@placeholder.local') ? '' : seller.email,
+    phone: seller.phone || '',
+    phoneVerified: seller.phoneVerified || false,
+    whatsappNo: seller.whatsappNo,
+    contactNo: seller.contactNo,
+    country: seller.country,
+    city: seller.city,
+    productCategory: seller.productCategory,
+    supplierId: seller.supplierId,
+    status: seller.status,
+    verificationStatus: seller.verificationStatus,
+    canListProducts: seller.canListProducts,
+    hasRegistrationPayment: seller.hasRegistrationPayment,
+    dashboardAccessible: seller.dashboardAccessible,
+    createdAt: seller.createdAt,
+    dashboardAccess,
+    dashboardAccessExpiry: seller.dashboardAccessExpiry,
+    authProvider: seller.authProvider || 'local'
+  };
+}
