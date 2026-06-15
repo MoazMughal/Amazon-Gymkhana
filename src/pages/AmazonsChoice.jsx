@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import ProductCardSkeleton from '../components/ProductCardSkeleton'
 import SearchBar from '../components/SearchBar'
@@ -769,18 +769,21 @@ const AmazonsChoice = () => {
   }
 
   // Server handles seller filtering via hasSellerListings param
-  // Add client-side safety filter: when showAllProducts is false, hide products with no valid sellers
+  // Filter logic:
+  // showAllProducts=false → only products with valid seller listings
+  // showAllProducts=true  → only out-of-stock products (no sellers / admin-listed only)
+  const hasValidSellers = (product) => {
+    if (!product.sellers || product.sellers.length === 0) return false;
+    return product.sellers.some(s => {
+      const matchesCurrency = !s.listingCountries || s.listingCountries.length === 0 || s.listingCountries.includes(currency)
+      const hasValidPrice = parseFloat(s.sellerPrice) > 0
+      return matchesCurrency && hasValidPrice
+    });
+  }
+
   const baseProducts = showAllProducts
-    ? products
-    : products.filter(product => {
-        if (!product.sellers || product.sellers.length === 0) return false;
-        // Check that at least one seller matches the current currency AND has a valid price
-        return product.sellers.some(s => {
-          const matchesCurrency = !s.listingCountries || s.listingCountries.length === 0 || s.listingCountries.includes(currency)
-          const hasValidPrice = parseFloat(s.sellerPrice) > 0
-          return matchesCurrency && hasValidPrice
-        });
-      })
+    ? products.filter(product => !hasValidSellers(product)) // only out-of-stock (no seller) products
+    : products.filter(product => hasValidSellers(product))  // only products with sellers
 
   // Apply sorting
   const currentProducts = [...baseProducts].sort((a, b) => {
@@ -1006,8 +1009,11 @@ const AmazonsChoice = () => {
         params.append('status', 'active')
       } else {
         params.append('isAmazonsChoice', 'true') // normal homepage: only Amazon's Choice
-        // Only fetch products with sellers unless showAll is checked
-        if (!showAll) {
+        if (showAll) {
+          // Show only out-of-stock products (admin-listed, no seller listings)
+          params.append('hasSellerListings', 'false')
+        } else {
+          // Default: only products with active seller listings
           params.append('hasSellerListings', 'true')
           params.append('currency', currency)
         }
@@ -1069,7 +1075,15 @@ const AmazonsChoice = () => {
             // Debug specific products
             const isWatchStrap = p.name && p.name.toLowerCase().includes('leather watch strap');
 
-            // â”€â”€ Compute lowest seller price (same logic as ProductDetail getLowestPriceBreakdown) â”€â”€
+            // Rates relative to PKR (same as CurrencyContext) for normalising sellerPrice to GBP
+            const toGBP = (price, priceCurrency) => {
+              const rates = { PKR: 1, GBP: 0.00272, AED: 0.01310, USD: 0.00353 };
+              const cur = (priceCurrency || 'PKR').toUpperCase();
+              const rateToGBP = rates['GBP'] / (rates[cur] || 1);
+              return price * rateToGBP;
+            };
+
+            // Compute lowest seller price (same logic as ProductDetail getLowestPriceBreakdown)
             let lowestPrice    = null; // null = no sellers listed
             let lowestShipping = 0;
             let lowestTotal    = Infinity;
@@ -1079,11 +1093,13 @@ const AmazonsChoice = () => {
               p.sellers.forEach(se => {
                 const sp = parseFloat(se.sellerPrice);
                 if (isNaN(sp)) return;
+                // Normalise to GBP so downstream convertPrice works correctly
+                const spGBP = toGBP(sp, se.priceCurrency);
                 const ss    = parseFloat(se.sellerShipping) || 0;
-                const total = sp + ss;
+                const total = spGBP + ss;
                 if (total < lowestTotal) {
                   lowestTotal    = total;
-                  lowestPrice    = sp;
+                  lowestPrice    = spGBP;
                   lowestShipping = ss;
                   lowestMoq      = se.moq || 1;
                 }
@@ -2647,7 +2663,7 @@ const AmazonsChoice = () => {
             const params = new URLSearchParams({
               name: product.name,
               img: product.image,
-              price: product.price.replace(/[£$₨]/g, ''),
+              price: product.price ? product.price.replace(/[£$₨]/g, '') : '0',
               rating: product.rating,
               reviews: product.reviews,
               category: product.category,
@@ -3089,7 +3105,7 @@ const AmazonsChoice = () => {
                               zIndex: 100
                             }}
                           >
-                            âš ï¸ Out of Stock
+                            Out of Stock
                           </div>
                           {/* Seller count "” desktop only, shown below price */}
                           {windowWidth > 768 && product.sellers && product.sellers.length > 0 && (

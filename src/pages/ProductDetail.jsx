@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useParams, useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { completeProductsData, getProductById } from '../data/completeProducts'
 import { products } from '../data/allProducts'
@@ -279,6 +279,14 @@ const ProductDetail = () => {
     }
     console.log('❌ Returning 0% markup');
     return '0%';
+  };
+
+  // Normalize any seller price to GBP (our internal calculation base)
+  const toGBP = (price, priceCurrency) => {
+    const rates = { PKR: 1, GBP: 0.00272, AED: 0.01310, USD: 0.00353 };
+    const cur = (priceCurrency || 'PKR').toUpperCase();
+    const rateToGBP = rates['GBP'] / (rates[cur] || 1);
+    return price * rateToGBP;
   };
 
   // Function to get the lowest price from all sellers (including shipping)

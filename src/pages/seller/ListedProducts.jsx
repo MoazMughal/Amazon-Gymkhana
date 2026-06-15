@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSeller } from '../../context/SellerContext';
 import { getApiUrl } from '../../utils/api';
