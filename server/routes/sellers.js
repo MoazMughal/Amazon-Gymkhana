@@ -280,7 +280,15 @@ router.delete('/:id', authenticateAdmin, async (req, res) => {
       return res.status(404).json({ message: 'Seller not found' });
     }
 
-    // Delete the seller
+    const Product = (await import('../models/Product.js')).default;
+
+    // Remove this seller's entry from all products they were listed on
+    await Product.updateMany(
+      { 'sellers.sellerId': req.params.id },
+      { $pull: { sellers: { sellerId: req.params.id } } }
+    );
+
+    // Delete the seller account
     await Seller.findByIdAndDelete(req.params.id);
 
     res.json({ 
@@ -542,6 +550,56 @@ router.get('/dashboard-access', authenticateSeller, async (req, res) => {
 });
 
 // Admin routes for verification management
+
+// Get all sellers for SellerCatalog (admin only)
+router.get('/admin/sellers', authenticateAdmin, async (req, res) => {
+  try {
+    const sellers = await Seller.find({})
+      .select('-password')
+      .sort({ createdAt: -1 });
+    res.json({ sellers });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get a single seller's listed products for SellerCatalog (admin only)
+router.get('/admin/seller/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const Product = (await import('../models/Product.js')).default;
+    const sellerId = req.params.id;
+
+    // Products where this seller is in the sellers array (listed on admin products)
+    const listedProducts = await Product.find(
+      { 'sellers.sellerId': sellerId },
+      { name: 1, images: 1, price: 1, category: 1, asin: 1, sku: 1, isAmazonsChoice: 1, approvalStatus: 1, status: 1, 'sellers.$': 1 }
+    ).lean();
+
+    const products = listedProducts.map(p => {
+      const sellerEntry = p.sellers?.[0] || {};
+      return {
+        _id: p._id,
+        name: p.name,
+        images: p.images,
+        price: p.price,
+        category: p.category,
+        asin: p.asin,
+        sku: p.sku,
+        isAmazonsChoice: p.isAmazonsChoice,
+        approvalStatus: p.approvalStatus,
+        status: p.status,
+        sellerPrice: sellerEntry.sellerPrice,
+        sellerMoq: sellerEntry.moq,
+        listingCountries: sellerEntry.listingCountries,
+        listingType: 'listed'
+      };
+    });
+
+    res.json({ products });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
 // Get sellers requiring verification
 router.get('/admin/verification-pending', authenticateAdmin, async (req, res) => {
@@ -1611,7 +1669,7 @@ router.post('/cleanup-duplicate-sellers', authenticateAdmin, async (req, res) =>
 router.put('/update-inventory/:productId', authenticateSeller, async (req, res) => {
   try {
     const { productId } = req.params;
-    const { price, stock, shipping, moq, listingCountries, asinAvailable, asinYearlyCost, asinReviews, asinYearlyIncome } = req.body;
+    const { price, stock, shipping, moq, listingCountries, asinAvailable, asinYearlyCost, asinReviews, asinYearlyIncome, priceCurrency } = req.body;
     
     // Import Product model
     const Product = (await import('../models/Product.js')).default;

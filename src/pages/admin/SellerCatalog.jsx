@@ -82,7 +82,7 @@ const SellerCatalog = () => {
     return '#dc2626';
   };
 
-  const canDelete = (seller) => seller.verificationStatus !== 'approved';
+  const canDelete = () => true;
 
   return (
     <div style={{ display: 'flex', height: '100vh', fontFamily: 'system-ui, sans-serif', background: '#f9fafb' }}>
@@ -144,7 +144,7 @@ const SellerCatalog = () => {
                     }}>
                       {seller.verificationStatus || 'pending'}
                     </span>
-                    {canDelete(seller) && (
+                    {canDelete() && (
                       <button onClick={e => handleDeleteSeller(seller, e)} disabled={deletingId === seller._id}
                         style={{ padding: '2px 6px', fontSize: '0.58rem', fontWeight: '700', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '4px', cursor: 'pointer' }}>
                         {deletingId === seller._id ? '...' : '🗑️ Delete'}
