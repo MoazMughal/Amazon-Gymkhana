@@ -40,6 +40,8 @@ const ListedProducts = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [asinModal, setAsinModal] = useState(null);
   const [asinSaving, setAsinSaving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const itemsPerPage = 50;
 
   useEffect(() => {
@@ -159,6 +161,51 @@ const ListedProducts = () => {
     } finally {
       setPageLoading(false);
     }
+  };
+
+  const handleBulkUnlist = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Are you sure you want to unlist ${selectedIds.size} product${selectedIds.size > 1 ? 's' : ''}? This cannot be undone.`)) return;
+
+    setBulkDeleting(true);
+    const token = localStorage.getItem('sellerToken');
+    let successCount = 0;
+    let failCount = 0;
+
+    await Promise.all([...selectedIds].map(async (id) => {
+      try {
+        const res = await fetch(getApiUrl(`sellers/unlist-product/${id}`), {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) successCount++;
+        else failCount++;
+      } catch {
+        failCount++;
+      }
+    }));
+
+    setBulkDeleting(false);
+    setSelectedIds(new Set());
+    if (failCount > 0) alert(`✅ ${successCount} unlisted, ❌ ${failCount} failed.`);
+    loadProducts();
+  };
+
+  const toggleSelectAll = () => {
+    const selectableIds = sortedProducts.filter(p => !p.isListingRequest).map(p => p._id);
+    if (selectableIds.length > 0 && selectableIds.every(id => selectedIds.has(id))) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(selectableIds));
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
 
   const handleUnlistProduct = async (product) => {
@@ -570,7 +617,7 @@ const ListedProducts = () => {
             <option value="name">Name</option>
             <option value="price">Price</option>
             <option value="stock">Stock</option>
-            <option value="status">Status</option>
+            <option value="category">Category</option>
           </select>
           <button
             className="btn btn-sm"
@@ -589,6 +636,39 @@ const ListedProducts = () => {
           </span>
         )}
       </div>
+
+      {/* Bulk Action Bar */}
+      {selectedIds.size > 0 && (
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 100,
+          background: '#1e293b', color: '#fff',
+          borderRadius: '8px', padding: '10px 16px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          marginBottom: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+        }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+            <i className="fas fa-check-square me-2" style={{ color: '#60a5fa' }}></i>
+            {selectedIds.size} product{selectedIds.size > 1 ? 's' : ''} selected
+          </span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              style={{ padding: '5px 12px', fontSize: '0.78rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', borderRadius: '5px', cursor: 'pointer' }}
+            >
+              Clear
+            </button>
+            <button
+              onClick={handleBulkUnlist}
+              disabled={bulkDeleting}
+              style={{ padding: '5px 14px', fontSize: '0.78rem', background: '#ef4444', border: 'none', color: '#fff', borderRadius: '5px', cursor: bulkDeleting ? 'not-allowed' : 'pointer', fontWeight: 700, opacity: bulkDeleting ? 0.7 : 1 }}
+            >
+              {bulkDeleting
+                ? <><i className="fas fa-spinner fa-spin me-1"></i>Unlisting...</>
+                : <><i className="fas fa-trash me-1"></i>Unlist Selected</>}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Products Table */}
       {showRetryButton && (
@@ -646,8 +726,17 @@ const ListedProducts = () => {
               <table className="table table-hover table-sm" style={{ fontSize: '0.78rem' }}>
                 <thead className="table-light">
                   <tr>
+                    <th style={{ width: '36px', padding: '6px 4px', textAlign: 'center' }}>
+                      <input
+                        type="checkbox"
+                        title="Select all"
+                        checked={sortedProducts.filter(p => !p.isListingRequest).length > 0 && sortedProducts.filter(p => !p.isListingRequest).every(p => selectedIds.has(p._id))}
+                        onChange={toggleSelectAll}
+                        style={{ cursor: 'pointer', width: '15px', height: '15px' }}
+                      />
+                    </th>
                     <th style={{ width: '44px', padding: '6px 4px' }}>Img</th>
-                    <th style={{ minWidth: '140px', cursor: 'pointer', padding: '6px 4px' }} onClick={() => handleSort('name')}>
+                    <th style={{ minWidth: '200px', width: 'auto', cursor: 'pointer', padding: '6px 4px' }} onClick={() => handleSort('name')}>
                       Product Name <SortIcon field="name" />
                     </th>
                     <th style={{ width: '80px', padding: '6px 4px' }}>SKU</th>
@@ -664,9 +753,6 @@ const ListedProducts = () => {
                       Category <SortIcon field="category" />
                     </th>
                     <th style={{ width: '80px', padding: '6px 4px' }}>ASIN Bulk</th>
-                    <th style={{ width: '90px', cursor: 'pointer', padding: '6px 4px' }} onClick={() => handleSort('status')}>
-                      Status <SortIcon field="status" />
-                    </th>
                     <th style={{ width: '70px', cursor: 'pointer', padding: '6px 4px' }} onClick={() => handleSort('createdAt')}>
                       Date <SortIcon field="createdAt" />
                     </th>
@@ -675,7 +761,17 @@ const ListedProducts = () => {
                 </thead>
                 <tbody>
                   {sortedProducts.map((product) => (
-                    <tr key={product._id} style={{ verticalAlign: 'middle' }}>
+                    <tr key={product._id} style={{ verticalAlign: 'middle', background: selectedIds.has(product._id) ? '#eff6ff' : '' }}>
+                      <td style={{ textAlign: 'center', padding: '4px' }}>
+                        {!product.isListingRequest && (
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(product._id)}
+                            onChange={() => toggleSelectOne(product._id)}
+                            style={{ cursor: 'pointer', width: '15px', height: '15px' }}
+                          />
+                        )}
+                      </td>
                       <td>
                         {!product.isListingRequest ? (
                           <a 
@@ -720,10 +816,10 @@ const ListedProducts = () => {
                         )}
                       </td>
                       <td>
-                        <div style={{ maxWidth: '200px' }}>
+                        <div style={{ minWidth: '200px' }}>
                           {product.isListingRequest ? (
                             <div>
-                              <span className="d-block text-truncate fw-bold" style={{ color: '#0066cc' }} title={product.name}>
+                              <span className="d-block fw-bold" style={{ color: '#0066cc', wordBreak: 'break-word' }} title={product.name}>
                                 {product.name}
                               </span>
                               <small className="badge bg-info">Listing Request</small>
@@ -735,9 +831,10 @@ const ListedProducts = () => {
                                 textDecoration: 'none',
                                 color: '#0066cc',
                                 fontWeight: 'bold',
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                wordBreak: 'break-word',
+                                display: 'block'
                               }}
-                              className="d-block text-truncate"
                               onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                               onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
                               title={product.name}
@@ -1052,16 +1149,6 @@ const ListedProducts = () => {
                             {product.sellerAsinData?.asinAvailable ? '✓ Set' : '+ Set'}
                           </button>
                         ) : <span style={{ color: '#9ca3af', fontSize: '0.7rem' }}>—</span>}
-                      </td>
-                      <td>
-                        <span className={`badge ${getStatusBadge(product.approvalStatus)}`}>
-                          {product.approvalStatus}
-                        </span>
-                        {product.isAmazonsChoice && (
-                          <div>
-                            <small className="badge bg-warning text-dark mt-1">Amazon's Choice</small>
-                          </div>
-                        )}
                       </td>
                       <td>
                         <small className="text-muted">
