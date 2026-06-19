@@ -1689,36 +1689,14 @@ router.put('/update-inventory/:productId', authenticateSeller, async (req, res) 
       return res.status(403).json({ message: 'You have not listed this product' });
     }
 
-    console.log('🔄 Updating seller-specific inventory:', {
-      productId: product._id,
-      sellerId: req.seller._id,
-      sellerUsername: req.seller.username,
-      sellerIndex,
-      currentSellerPrice: product.sellers[sellerIndex].sellerPrice,
-      currentSellerShipping: product.sellers[sellerIndex].sellerShipping,
-      newPrice: price,
-      newStock: stock,
-      newShipping: shipping
-    });
-
     // Update the seller's specific price in the sellers array
     if (price !== undefined) {
       product.sellers[sellerIndex].sellerPrice = parseFloat(price);
-      console.log('✅ Updated seller price in sellers array:', {
-        sellerUsername: product.sellers[sellerIndex].username,
-        oldPrice: product.sellers[sellerIndex].sellerPrice,
-        newPrice: parseFloat(price)
-      });
     }
 
     // Update the seller's specific shipping in the sellers array
     if (shipping !== undefined) {
       product.sellers[sellerIndex].sellerShipping = parseFloat(shipping);
-      console.log('✅ Updated seller shipping in sellers array:', {
-        sellerUsername: product.sellers[sellerIndex].username,
-        oldShipping: product.sellers[sellerIndex].sellerShipping,
-        newShipping: parseFloat(shipping)
-      });
     }
 
     // Update the seller's specific stock in the sellers array
@@ -1751,24 +1729,13 @@ router.put('/update-inventory/:productId', authenticateSeller, async (req, res) 
     if (product.seller && product.seller.toString() === req.seller._id.toString() && product.sellerInfo) {
       if (price !== undefined) {
         product.sellerInfo.sellerPrice = parseFloat(price);
-        console.log('✅ Updated primary sellerInfo price for consistency');
       }
       if (shipping !== undefined) {
         product.sellerInfo.sellerShipping = parseFloat(shipping);
-        console.log('✅ Updated primary sellerInfo shipping for consistency');
       }
     }
 
     await product.save();
-
-    console.log('✅ Seller updated inventory successfully:', {
-      productId: product._id,
-      sellerId: req.seller._id,
-      sellerUsername: req.seller.username,
-      newSellerPrice: product.sellers[sellerIndex].sellerPrice,
-      newSellerStock: product.sellers[sellerIndex].stock,
-      totalSellers: product.sellers.length
-    });
 
     res.json({
       success: true,

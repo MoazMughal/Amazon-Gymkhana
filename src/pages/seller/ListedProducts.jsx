@@ -42,6 +42,8 @@ const ListedProducts = () => {
   const [asinSaving, setAsinSaving] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkEdit, setBulkEdit] = useState({ price: '', shipping: '', stock: '', moq: '' });
+  const [bulkUpdating, setBulkUpdating] = useState(false);
   const itemsPerPage = 50;
 
   useEffect(() => {
@@ -188,6 +190,45 @@ const ListedProducts = () => {
     setBulkDeleting(false);
     setSelectedIds(new Set());
     if (failCount > 0) alert(`✅ ${successCount} unlisted, ❌ ${failCount} failed.`);
+    loadProducts();
+  };
+
+  const handleBulkUpdate = async () => {
+    const { price, shipping, stock, moq } = bulkEdit;
+    const hasAny = price !== '' || shipping !== '' || stock !== '' || moq !== '';
+    if (!hasAny) { alert('Enter at least one value to update.'); return; }
+
+    const payload = {};
+    if (price !== '' && !isNaN(price) && parseFloat(price) >= 0) payload.price = parseFloat(price);
+    if (shipping !== '' && !isNaN(shipping) && parseFloat(shipping) >= 0) payload.shipping = parseFloat(shipping);
+    if (stock !== '' && !isNaN(stock) && parseInt(stock) >= 0) payload.stock = parseInt(stock);
+    if (moq !== '' && !isNaN(moq) && parseInt(moq) >= 1) payload.moq = parseInt(moq);
+
+    if (Object.keys(payload).length === 0) { alert('Please enter valid values.'); return; }
+
+    setBulkUpdating(true);
+    const token = localStorage.getItem('sellerToken');
+    let successCount = 0;
+    let failCount = 0;
+
+    await Promise.all([...selectedIds].map(async (id) => {
+      try {
+        const res = await fetch(getApiUrl(`sellers/update-inventory/${id}`), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) successCount++;
+        else failCount++;
+      } catch {
+        failCount++;
+      }
+    }));
+
+    setBulkUpdating(false);
+    setBulkEdit({ price: '', shipping: '', stock: '', moq: '' });
+    setSelectedIds(new Set());
+    if (failCount > 0) alert(`✅ ${successCount} updated, ❌ ${failCount} failed.`);
     loadProducts();
   };
 
@@ -643,28 +684,74 @@ const ListedProducts = () => {
           position: 'sticky', top: 0, zIndex: 100,
           background: '#1e293b', color: '#fff',
           borderRadius: '8px', padding: '10px 16px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           marginBottom: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
         }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-            <i className="fas fa-check-square me-2" style={{ color: '#60a5fa' }}></i>
-            {selectedIds.size} product{selectedIds.size > 1 ? 's' : ''} selected
-          </span>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          {/* Top row: count + clear + unlist */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+              <i className="fas fa-check-square me-2" style={{ color: '#60a5fa' }}></i>
+              {selectedIds.size} product{selectedIds.size > 1 ? 's' : ''} selected
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => { setSelectedIds(new Set()); setBulkEdit({ price: '', shipping: '', stock: '', moq: '' }); }}
+                style={{ padding: '5px 12px', fontSize: '0.78rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', borderRadius: '5px', cursor: 'pointer' }}
+              >
+                Clear
+              </button>
+              <button
+                onClick={handleBulkUnlist}
+                disabled={bulkDeleting || bulkUpdating}
+                style={{ padding: '5px 14px', fontSize: '0.78rem', background: '#ef4444', border: 'none', color: '#fff', borderRadius: '5px', cursor: (bulkDeleting || bulkUpdating) ? 'not-allowed' : 'pointer', fontWeight: 700, opacity: (bulkDeleting || bulkUpdating) ? 0.7 : 1 }}
+              >
+                {bulkDeleting
+                  ? <><i className="fas fa-spinner fa-spin me-1"></i>Unlisting...</>
+                  : <><i className="fas fa-trash me-1"></i>Unlist</>}
+              </button>
+            </div>
+          </div>
+
+          {/* Bottom row: bulk edit inputs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '10px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap' }}>Bulk update:</span>
+            {[
+              { key: 'price',    label: 'Price (£)',  placeholder: 'e.g. 1.99', step: '0.01', min: '0' },
+              { key: 'shipping', label: 'Shipping',   placeholder: 'e.g. 0.50', step: '0.01', min: '0' },
+              { key: 'stock',    label: 'Stock',      placeholder: 'e.g. 100',  step: '1',    min: '0' },
+              { key: 'moq',      label: 'MOQ',        placeholder: 'e.g. 5',    step: '1',    min: '1' },
+            ].map(({ key, label, placeholder, step, min }) => (
+              <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <label style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.55)', marginBottom: '1px' }}>{label}</label>
+                <input
+                  type="number"
+                  step={step}
+                  min={min}
+                  placeholder={placeholder}
+                  value={bulkEdit[key]}
+                  onChange={e => setBulkEdit(prev => ({ ...prev, [key]: e.target.value }))}
+                  style={{
+                    width: '90px', padding: '5px 8px', fontSize: '0.8rem',
+                    border: bulkEdit[key] !== '' ? '2px solid #60a5fa' : '1px solid rgba(255,255,255,0.25)',
+                    borderRadius: '5px', background: 'rgba(255,255,255,0.1)',
+                    color: '#fff', outline: 'none'
+                  }}
+                />
+              </div>
+            ))}
             <button
-              onClick={() => setSelectedIds(new Set())}
-              style={{ padding: '5px 12px', fontSize: '0.78rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', borderRadius: '5px', cursor: 'pointer' }}
+              onClick={handleBulkUpdate}
+              disabled={bulkUpdating || bulkDeleting}
+              style={{
+                padding: '6px 16px', fontSize: '0.82rem', fontWeight: 700,
+                background: (bulkUpdating || bulkDeleting) ? '#374151' : '#2563eb',
+                border: 'none', color: '#fff', borderRadius: '5px',
+                cursor: (bulkUpdating || bulkDeleting) ? 'not-allowed' : 'pointer',
+                alignSelf: 'flex-end', marginBottom: '1px'
+              }}
             >
-              Clear
-            </button>
-            <button
-              onClick={handleBulkUnlist}
-              disabled={bulkDeleting}
-              style={{ padding: '5px 14px', fontSize: '0.78rem', background: '#ef4444', border: 'none', color: '#fff', borderRadius: '5px', cursor: bulkDeleting ? 'not-allowed' : 'pointer', fontWeight: 700, opacity: bulkDeleting ? 0.7 : 1 }}
-            >
-              {bulkDeleting
-                ? <><i className="fas fa-spinner fa-spin me-1"></i>Unlisting...</>
-                : <><i className="fas fa-trash me-1"></i>Unlist Selected</>}
+              {bulkUpdating
+                ? <><i className="fas fa-spinner fa-spin me-1"></i>Updating...</>
+                : <><i className="fas fa-save me-1"></i>Update All</>}
             </button>
           </div>
         </div>
