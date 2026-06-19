@@ -1665,6 +1665,61 @@ router.post('/cleanup-duplicate-sellers', authenticateAdmin, async (req, res) =>
   }
 });
 
+// Bulk update seller inventory across multiple products in one DB operation
+router.put('/bulk-update-inventory', authenticateSeller, async (req, res) => {
+  try {
+    const { productIds, updates } = req.body;
+
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ message: 'productIds array is required' });
+    }
+    if (!updates || typeof updates !== 'object') {
+      return res.status(400).json({ message: 'updates object is required' });
+    }
+
+    const Product = (await import('../models/Product.js')).default;
+    const mongoose = (await import('mongoose')).default;
+    const sellerId = new mongoose.Types.ObjectId(req.seller._id);
+
+    // Build the $set fields using the positional filtered operator $[s]
+    const setFields = {};
+    if (updates.price !== undefined && !isNaN(updates.price))
+      setFields['sellers.$[s].sellerPrice'] = parseFloat(updates.price);
+    if (updates.shipping !== undefined && !isNaN(updates.shipping))
+      setFields['sellers.$[s].sellerShipping'] = parseFloat(updates.shipping);
+    if (updates.stock !== undefined && !isNaN(updates.stock))
+      setFields['sellers.$[s].stock'] = parseInt(updates.stock);
+    if (updates.moq !== undefined && !isNaN(updates.moq))
+      setFields['sellers.$[s].moq'] = Math.max(1, parseInt(updates.moq));
+
+    if (Object.keys(setFields).length === 0) {
+      return res.status(400).json({ message: 'No valid fields to update' });
+    }
+
+    const validIds = productIds
+      .filter(id => mongoose.Types.ObjectId.isValid(id))
+      .map(id => new mongoose.Types.ObjectId(id));
+
+    if (validIds.length === 0) {
+      return res.status(400).json({ message: 'No valid product IDs provided' });
+    }
+
+    const result = await Product.updateMany(
+      { _id: { $in: validIds }, 'sellers.sellerId': sellerId },
+      { $set: setFields },
+      { arrayFilters: [{ 's.sellerId': sellerId }] }
+    );
+
+    res.json({
+      success: true,
+      message: `Updated ${result.modifiedCount} product${result.modifiedCount !== 1 ? 's' : ''}`,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Bulk update failed', error: error.message });
+  }
+});
+
 // Update seller's inventory for a listed product
 router.put('/update-inventory/:productId', authenticateSeller, async (req, res) => {
   try {

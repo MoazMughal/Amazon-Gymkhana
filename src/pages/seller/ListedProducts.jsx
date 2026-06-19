@@ -198,38 +198,32 @@ const ListedProducts = () => {
     const hasAny = price !== '' || shipping !== '' || stock !== '' || moq !== '';
     if (!hasAny) { alert('Enter at least one value to update.'); return; }
 
-    const payload = {};
-    if (price !== '' && !isNaN(price) && parseFloat(price) >= 0) payload.price = parseFloat(price);
-    if (shipping !== '' && !isNaN(shipping) && parseFloat(shipping) >= 0) payload.shipping = parseFloat(shipping);
-    if (stock !== '' && !isNaN(stock) && parseInt(stock) >= 0) payload.stock = parseInt(stock);
-    if (moq !== '' && !isNaN(moq) && parseInt(moq) >= 1) payload.moq = parseInt(moq);
+    const updates = {};
+    if (price !== '' && !isNaN(price) && parseFloat(price) >= 0) updates.price = parseFloat(price);
+    if (shipping !== '' && !isNaN(shipping) && parseFloat(shipping) >= 0) updates.shipping = parseFloat(shipping);
+    if (stock !== '' && !isNaN(stock) && parseInt(stock) >= 0) updates.stock = parseInt(stock);
+    if (moq !== '' && !isNaN(moq) && parseInt(moq) >= 1) updates.moq = parseInt(moq);
 
-    if (Object.keys(payload).length === 0) { alert('Please enter valid values.'); return; }
+    if (Object.keys(updates).length === 0) { alert('Please enter valid values.'); return; }
 
     setBulkUpdating(true);
-    const token = localStorage.getItem('sellerToken');
-    let successCount = 0;
-    let failCount = 0;
-
-    await Promise.all([...selectedIds].map(async (id) => {
-      try {
-        const res = await fetch(getApiUrl(`sellers/update-inventory/${id}`), {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) successCount++;
-        else failCount++;
-      } catch {
-        failCount++;
-      }
-    }));
-
-    setBulkUpdating(false);
-    setBulkEdit({ price: '', shipping: '', stock: '', moq: '' });
-    setSelectedIds(new Set());
-    if (failCount > 0) alert(`✅ ${successCount} updated, ❌ ${failCount} failed.`);
-    loadProducts();
+    try {
+      const token = localStorage.getItem('sellerToken');
+      const res = await fetch(getApiUrl('sellers/bulk-update-inventory'), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ productIds: [...selectedIds], updates })
+      });
+      const data = await res.json();
+      if (!res.ok) alert('❌ ' + (data.message || 'Bulk update failed'));
+    } catch {
+      alert('❌ Bulk update failed');
+    } finally {
+      setBulkUpdating(false);
+      setBulkEdit({ price: '', shipping: '', stock: '', moq: '' });
+      setSelectedIds(new Set());
+      loadProducts();
+    }
   };
 
   const toggleSelectAll = () => {
