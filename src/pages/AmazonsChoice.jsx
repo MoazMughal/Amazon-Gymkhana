@@ -3171,7 +3171,7 @@ const AmazonsChoice = () => {
                         <div 
                           style={{
                           fontWeight: '800', 
-                          fontSize: '7px', // Fixed size for all devices
+                          fontSize: '9px', // Fixed size for all devices
                           color: '#1a1a1a',
                           background: 'linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)',
                           padding: windowWidth < 576 ? '1px 3px' : '1px 2px',
@@ -3411,7 +3411,7 @@ const AmazonsChoice = () => {
                         {/* Profit per unit */}
                         <div 
                           style={{
-                          fontSize: windowWidth < 576 ? '7px' : '8px',
+                          fontSize: windowWidth < 576 ? '9px' : '10px',
                           color: '#1a1a1a',
                           fontWeight: '700',
                           background: '#f5f5f5',
