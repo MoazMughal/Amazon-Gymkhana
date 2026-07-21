@@ -17,7 +17,7 @@ const faqData = [
   {
     category: 'General', icon: '🌐',
     questions: [
-      { q: 'What is PoundlandWholesale.com?', a: "PoundlandWholesale.com is the UK's premier B2B marketplace connecting verified wholesale suppliers with genuine buyers. We provide a secure platform for wholesale trading with features like supplier verification, secure payments, and direct communication." },
+      { q: 'What is PoundlandWholesale.com?', a: "PoundlandWholesale.com is the PAK's premier B2B marketplace connecting verified wholesale suppliers with genuine buyers. We provide a secure platform for wholesale trading with features like supplier verification, secure payments, and direct communication." },
       { q: 'How do I get started?', a: 'Simply create an account by choosing between Buyer or Supplier registration. Complete your profile, verify your business documents, and start exploring our marketplace.' },
       { q: 'Is it free to use?', a: 'Basic membership is free for both buyers and suppliers. We also offer premium plans with additional features like priority listing, advanced analytics, and dedicated support.' },
     ]
@@ -33,7 +33,7 @@ const faqData = [
   {
     category: 'For Suppliers', icon: '🏪',
     questions: [
-      { q: 'How do I list my products?', a: 'After account verification, go to your dashboard and click "Add Product". Fill in detailed product information, upload high-quality images, and set competitive prices.' },
+      { q: 'How do I list my products?', a: 'After account verification, go to your dashboard and click "View all Products". Request to list and Fill in detailed product information, and set competitive prices.' },
       { q: 'What are the listing fees?', a: 'Basic product listing is free. Premium listings with enhanced visibility and features are available through our subscription plans starting from Rs. 2,000/month.' },
       { q: 'How do I get more visibility?', a: 'Maintain high-quality product listings, respond quickly to inquiries, maintain good ratings, and consider upgrading to premium plans for enhanced visibility.' },
     ]

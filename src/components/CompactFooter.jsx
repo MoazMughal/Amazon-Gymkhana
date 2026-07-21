@@ -93,7 +93,7 @@ const CompactFooter = () => (
               { icon: 'fa-envelope', text: 'poundlandwholesale@gmail.com' },
               { icon: 'fa-phone',   text: '+92 304 4928000' },
               { icon: 'fa-phone',   text: '+92 303 4928000' },
-              { icon: 'fa-map-marker-alt', text: 'London, United Kingdom' },
+              { icon: 'fa-map-marker-alt', text: 'Islamabad, Pakistan' },
             ].map(({ icon, text }) => (
               <Box key={text} sx={{ display: 'flex', alignItems: 'center', gap: 1.2, py: '2px' }}>
                 <i className={`fas ${icon}`} style={{ color: '#ff9900', fontSize: '13px', width: 16, flexShrink: 0 }} />

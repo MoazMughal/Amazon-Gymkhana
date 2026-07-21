@@ -452,20 +452,22 @@ const CompactHeader = () => {
         <div className="header-actions" style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '15px',
-          whiteSpace: 'nowrap'
+          gap: '8px',
+          whiteSpace: 'nowrap',
+          flexShrink: 0
         }}>
           {/* Currency Selector */}
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
-              gap: '6px',
+              gap: '5px',
               cursor: 'pointer',
-              padding: '4px 8px',
-              background: 'rgba(255,255,255,0.2)',
-              border: '1px solid rgba(255,255,255,0.3)',
-              borderRadius: '4px'
+              padding: '5px 8px',
+              background: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.35)',
+              borderRadius: '4px',
+              lineHeight: 1
             }}>
               <img 
                 src={
@@ -475,13 +477,18 @@ const CompactHeader = () => {
                   'https://flagcdn.com/w40/ae.png'
                 }
                 alt={currency}
-                style={{ width: '28px', height: '20px', objectFit: 'cover', borderRadius: '2px' }}
+                style={{ width: '22px', height: '15px', objectFit: 'cover', borderRadius: '2px', flexShrink: 0 }}
               />
-              <i className="fas fa-chevron-down" style={{ fontSize: '9px', color: '#fff' }}></i>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#fff', letterSpacing: '0.3px' }}>
+                {currency}
+              </span>
+              <i className="fas fa-chevron-down" style={{ fontSize: '8px', color: 'rgba(255,255,255,0.8)', marginLeft: '1px' }}></i>
             </div>
             <select 
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
+              title="Select currency"
+              aria-label="Currency selector"
               style={{
                 position: 'absolute',
                 top: 0,
@@ -489,13 +496,14 @@ const CompactHeader = () => {
                 width: '100%',
                 height: '100%',
                 opacity: 0,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                zIndex: 1
               }}
             >
-              <option value="GBP">🇬🇧 GBP</option>
-              <option value="PKR">🇵🇰 PKR</option>
-              <option value="USD">🇺🇸 USD</option>
-              <option value="AED">🇦🇪 AED</option>
+              <option value="GBP">🇬🇧 GBP – British Pound</option>
+              <option value="PKR">🇵🇰 PKR – Pakistani Rupee</option>
+              <option value="USD">🇺🇸 USD – US Dollar</option>
+              <option value="AED">🇦🇪 AED – UAE Dirham</option>
             </select>
           </div>
 
@@ -507,18 +515,24 @@ const CompactHeader = () => {
                   style={{
                     fontSize: '11px',
                     color: '#fff',
-                    background: 'rgba(255,255,255,0.2)',
-                    border: '1px solid rgba(255,255,255,0.3)',
+                    background: 'rgba(255,255,255,0.15)',
+                    border: '1px solid rgba(255,255,255,0.35)',
                     borderRadius: '4px',
                     fontWeight: '600',
                     cursor: 'pointer',
-                    padding: '5px 12px',
-                    transition: 'all 0.2s'
+                    padding: '5px 10px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    height: '29px',
+                    transition: 'background 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.28)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
                 >
-                  <i className="fas fa-user"></i> <span className="hide-mobile-text">Login</span>
+                  <i className="fas fa-user" style={{ fontSize: '10px' }}></i>
+                  <span className="hide-mobile-text">Login</span>
+                  <i className="fas fa-chevron-down" style={{ fontSize: '8px', opacity: 0.8 }}></i>
                 </button>
                 {showLoginMenu && (
                   <div style={{
@@ -584,17 +598,21 @@ const CompactHeader = () => {
                   color: '#fff',
                   textDecoration: 'none',
                   fontWeight: '600',
-                  background: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.3)',
+                  background: 'rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(255,255,255,0.35)',
                   borderRadius: '4px',
-                  padding: '5px 12px',
-                  transition: 'all 0.2s',
-                  display: 'inline-block'
+                  padding: '5px 10px',
+                  transition: 'background 0.2s',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '29px'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.28)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
               >
-                <i className="fas fa-user-plus"></i> <span className="hide-mobile-text">Register</span>
+                <i className="fas fa-user-plus" style={{ fontSize: '10px' }}></i>
+                <span className="hide-mobile-text">Register</span>
               </Link>
             </>
           ) : (
@@ -607,19 +625,20 @@ const CompactHeader = () => {
                   color: '#fff',
                   textDecoration: 'none',
                   fontWeight: '600',
-                  background: 'rgba(255,255,255,0.2)',
-                  border: '1px solid rgba(255,255,255,0.3)',
+                  background: 'rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(255,255,255,0.35)',
                   borderRadius: '4px',
                   padding: '5px 10px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '5px',
-                  transition: 'all 0.2s'
+                  height: '29px',
+                  transition: 'background 0.2s'
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.28)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
               >
-                <i className="fas fa-user-circle"></i>
+                <i className="fas fa-user-circle" style={{ fontSize: '10px' }}></i>
                 <span className="hide-mobile-text">{userInfo.type}</span>
               </Link>
               {/* Separate logout button */}
@@ -629,8 +648,8 @@ const CompactHeader = () => {
                 style={{
                   fontSize: '11px',
                   color: '#fff',
-                  background: 'rgba(220,38,38,0.7)',
-                  border: '1px solid rgba(255,255,255,0.3)',
+                  background: 'rgba(220,38,38,0.65)',
+                  border: '1px solid rgba(255,255,255,0.35)',
                   borderRadius: '4px',
                   fontWeight: '600',
                   cursor: 'pointer',
@@ -638,12 +657,13 @@ const CompactHeader = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '4px',
-                  transition: 'all 0.2s'
+                  height: '29px',
+                  transition: 'background 0.2s'
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.9)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(220,38,38,0.7)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(220,38,38,0.65)'}
               >
-                <i className="fas fa-sign-out-alt"></i>
+                <i className="fas fa-sign-out-alt" style={{ fontSize: '10px' }}></i>
                 <span className="hide-mobile-text">Logout</span>
               </button>
             </div>
@@ -658,19 +678,21 @@ const CompactHeader = () => {
               color: '#fff',
               textDecoration: 'none',
               fontWeight: '600',
-              background: 'rgba(255,255,255,0.2)',
-              border: '1px solid rgba(255,255,255,0.3)',
+              background: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.35)',
               borderRadius: '4px',
-              padding: '5px 12px',
-              transition: 'all 0.2s',
+              padding: '5px 10px',
+              transition: 'background 0.2s',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '5px'
+              gap: '5px',
+              height: '29px'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.28)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
           >
-            <i className="fas fa-heart"></i> <span className="hide-mobile-text">Wishlist</span>
+            <i className="fas fa-heart" style={{ fontSize: '10px' }}></i>
+            <span className="hide-mobile-text">Wishlist</span>
           </Link>
 
           {/* Basket Button */}
@@ -682,19 +704,21 @@ const CompactHeader = () => {
               color: '#fff',
               textDecoration: 'none',
               fontWeight: '600',
-              background: 'rgba(255,255,255,0.2)',
-              border: '1px solid rgba(255,255,255,0.3)',
+              background: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.35)',
               borderRadius: '4px',
-              padding: '5px 12px',
-              transition: 'all 0.2s',
+              padding: '5px 10px',
+              transition: 'background 0.2s',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '5px'
+              gap: '5px',
+              height: '29px'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.28)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
           >
-            <i className="fas fa-shopping-basket"></i> <span className="hide-mobile-text">Basket</span>
+            <i className="fas fa-shopping-basket" style={{ fontSize: '10px' }}></i>
+            <span className="hide-mobile-text">Basket</span>
             {getBasketCount() > 0 && (
               <span style={{
                 position: 'absolute',

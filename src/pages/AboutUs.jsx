@@ -208,7 +208,7 @@ const AboutUs = () => {
                 <InfoRow icon="📱" label="Phone"     href="tel:+923044928000"  value="+92 304 4928000" />
                 <InfoRow icon="📱" label="Phone"     href="tel:+923034928000"  value="+92 303 4928000" />
                 <InfoRow icon="💬" label="WhatsApp"  href={`https://wa.me/${WA}`} value="+92 304 4928000" />
-                <InfoRow icon="📍" label="Location"  value="London, United Kingdom" />
+                <InfoRow icon="📍" label="Location"  value="Islamabad, Pakistan" />
 
                 <Divider sx={{ borderColor: 'rgba(255,255,255,0.12)', my: 3 }} />
 

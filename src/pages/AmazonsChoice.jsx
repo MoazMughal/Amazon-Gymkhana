@@ -410,7 +410,7 @@ const AmazonsChoice = () => {
           top: 4px !important;
           left: 4px !important;
           right: auto !important;
-          font-size: 6px !important;
+          font-size: 7px !important;
           padding: 2px 4px !important;
           border-radius: 3px !important;
           max-width: 70px !important;
@@ -461,7 +461,7 @@ const AmazonsChoice = () => {
           top: 6px !important;
           left: 6px !important;
           right: auto !important;
-          font-size: 7px !important;
+          font-size: 9px !important;
           padding: 2px 4px !important;
           border-radius: 4px !important;
           max-width: 100px !important;
@@ -3698,7 +3698,7 @@ const AmazonsChoice = () => {
                       border: '2px solid #ff6600',
                       padding: windowWidth < 576 ? '2px 3px' : '3px 5px',
                       borderRadius: '4px',
-                      fontSize: '6px', // Fixed size for all devices
+                      fontSize: windowWidth < 576 ? '7px' : '8px',
                       fontWeight: '700',
                       display: 'flex',
                       alignItems: 'center',
@@ -3707,6 +3707,7 @@ const AmazonsChoice = () => {
                       width: '100%',
                       textDecoration: 'none',
                       transition: 'all 0.3s ease',
+                      lineHeight: 1,
                       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
                       minHeight: windowWidth < 576 ? '18px' : '22px',
                       boxSizing: 'border-box'
@@ -3736,7 +3737,8 @@ const AmazonsChoice = () => {
                       }
                     })}
                   >
-                    <i className="fab fa-amazon"></i> Verify on Amazon
+                    <i className="fab fa-amazon" style={{ fontSize: 'inherit', lineHeight: 1, display: 'inline-flex', alignItems: 'center' }}></i>
+                    <span style={{ fontSize: 'inherit', lineHeight: 1 }}>Verify on Amazon</span>
                   </a>
                 </div>
               </div>

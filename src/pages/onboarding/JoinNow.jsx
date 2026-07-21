@@ -107,7 +107,7 @@ const JoinNow = () => {
             Start Your Wholesale Journey
           </Typography>
           <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.85)', fontWeight: 400, maxWidth: 560, mx: 'auto', lineHeight: 1.6 }}>
-            Connect with verified suppliers and buyers on the UK's leading wholesale marketplace
+            Connect with verified suppliers and buyers on the PAK's leading wholesale marketplace
           </Typography>
         </Container>
       </Box>

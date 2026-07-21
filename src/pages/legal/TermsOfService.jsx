@@ -84,7 +84,7 @@ const TermsOfService = () => (
 
           <Section num="9" title="Contact Information">
             <Typography variant="body1" sx={{ color: '#555', lineHeight: 1.8, mb: 1 }}>If you have any questions about these Terms of Service, please contact us:</Typography>
-            {['Email: support@poundlandwholesale.com', 'Phone: +92 301 6611011', 'Address: Karachi, Pakistan'].map(item => (
+            {['Email: poundlandwholesale@gmail.com', 'Phone: +92 303 4928000', 'Address: Islamabad, Pakistan'].map(item => (
               <Typography key={item} variant="body2" sx={{ color: '#555', pl: 2, mb: 0.5 }}>• {item}</Typography>
             ))}
           </Section>
