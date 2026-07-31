@@ -983,6 +983,8 @@ router.post('/request-admin-product-listing', authenticateSeller, async (req, re
       productPrice,
       sellerPrice,
       sellerShipping = 0,
+      dimensions = { length: 0, width: 0, height: 0 },
+      weight = 0,
       moq = 1,
       notes = 'Seller requested to list admin product',
       listingCountries = [],
@@ -1050,6 +1052,12 @@ router.post('/request-admin-product-listing', authenticateSeller, async (req, re
       productPrice: adminProduct.price,
       sellerPrice: sellerPrice ? parseFloat(sellerPrice) : parseFloat(adminProduct.price),
       sellerShipping: sellerShipping ? parseFloat(sellerShipping) : 0,
+      dimensions: {
+        length: parseFloat(dimensions?.length) || 0,
+        width:  parseFloat(dimensions?.width)  || 0,
+        height: parseFloat(dimensions?.height) || 0,
+      },
+      weight: parseFloat(weight) || 0,
       moq: moq ? Math.max(1, parseInt(moq)) : 1,
       transactionId: `REQ_${Date.now()}`,
       paymentMethod: 'Pending Admin Approval',
@@ -1416,6 +1424,8 @@ router.put('/admin/listing-requests/:sellerId/:requestId/approve', authenticateA
       verificationStatus: seller.verificationStatus,
       sellerPrice: request.sellerPrice,
       sellerShipping: request.sellerShipping || 0,
+      dimensions: request.dimensions || { length: 0, width: 0, height: 0 },
+      weight: request.weight || 0,
       moq: request.moq || 1,
       listingCountries: Array.isArray(request.listingCountries) ? request.listingCountries : [],
       priceCurrency: request.priceCurrency || 'GBP',
@@ -1728,7 +1738,7 @@ router.put('/bulk-update-inventory', authenticateSeller, async (req, res) => {
 router.put('/update-inventory/:productId', authenticateSeller, async (req, res) => {
   try {
     const { productId } = req.params;
-    const { price, stock, shipping, moq, listingCountries, asinAvailable, asinYearlyCost, asinReviews, asinYearlyIncome, priceCurrency } = req.body;
+    const { price, stock, shipping, moq, listingCountries, asinAvailable, asinYearlyCost, asinReviews, asinYearlyIncome, priceCurrency, dimensions, weight } = req.body;
     
     // Import Product model
     const Product = (await import('../models/Product.js')).default;
@@ -1788,6 +1798,16 @@ router.put('/update-inventory/:productId', authenticateSeller, async (req, res) 
     if (asinYearlyCost !== undefined) product.sellers[sellerIndex].asinYearlyCost = parseFloat(asinYearlyCost) || 0;
     if (asinReviews !== undefined) product.sellers[sellerIndex].asinReviews = parseInt(asinReviews) || 0;
     if (asinYearlyIncome !== undefined) product.sellers[sellerIndex].asinYearlyIncome = parseFloat(asinYearlyIncome) || 0;
+
+    // Update dimensions and weight
+    if (dimensions !== undefined && typeof dimensions === 'object') {
+      product.sellers[sellerIndex].dimensions = {
+        length: parseFloat(dimensions.length) || 0,
+        width:  parseFloat(dimensions.width)  || 0,
+        height: parseFloat(dimensions.height) || 0,
+      };
+    }
+    if (weight !== undefined) product.sellers[sellerIndex].weight = parseFloat(weight) || 0;
 
     // Also update the primary sellerInfo if this seller is the primary seller
     if (product.seller && product.seller.toString() === req.seller._id.toString() && product.sellerInfo) {

@@ -2540,7 +2540,7 @@ const AmazonsChoice = () => {
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             marginBottom: '20px'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: '15px' }}>ðŸ“¦</div>
+            <div style={{ fontSize: '3rem', marginBottom: '15px', color: '#ccc' }}><i className="fas fa-box-open"></i></div>
             <h3 style={{ color: '#232f3e', marginBottom: '10px' }}>No products with sellers</h3>
             <p style={{ color: '#666', marginBottom: '15px' }}>
               All products are currently out of stock (no sellers available).
@@ -3860,3 +3860,4 @@ const AmazonsChoice = () => {
 }
 
 export default AmazonsChoice
+

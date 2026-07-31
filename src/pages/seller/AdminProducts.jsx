@@ -142,7 +142,7 @@ const AdminProducts = () => {
 
   // Listing request modal state (same as AmazonsChoice)
   const [listingModal, setListingModal] = useState({ open: false, product: null })
-  const [listingForm, setListingForm] = useState({ price: '', shipping: '0.00', moq: '1', notes: '', listingCountries: [], priceCurrency: 'GBP' })
+  const [listingForm, setListingForm] = useState({ price: '', dimL: '', dimW: '', dimH: '', weight: '', moq: '1', notes: '', listingCountries: [], priceCurrency: 'GBP' })
   const [listingSubmitting, setListingSubmitting] = useState(false)
   const [listingSuccess, setListingSuccess] = useState(false)
 
@@ -259,7 +259,7 @@ const AdminProducts = () => {
       : rawPrice
     setListingForm({
       price: lowestPrice > 0 ? Math.max(0.01, lowestPrice - 0.01).toFixed(2) : rawPrice.toFixed(2),
-      shipping: parseFloat(product.shipping || 0).toFixed(2),
+      dimL: '', dimW: '', dimH: '', weight: '',
       moq: '1',
       notes: '',
       listingCountries: [],
@@ -273,11 +273,16 @@ const AdminProducts = () => {
     const { product } = listingModal
     const rawPrice = parseFloat(product.price) || 0
     const sellerPrice = parseFloat(listingForm.price)
-    const sellerShipping = parseFloat(listingForm.shipping)
     const sellerMoq = parseInt(listingForm.moq)
+    const dimL = parseFloat(listingForm.dimL) || 0
+    const dimW = parseFloat(listingForm.dimW) || 0
+    const dimH = parseFloat(listingForm.dimH) || 0
+    const wt   = parseFloat(listingForm.weight) || 0
     if (isNaN(sellerPrice) || sellerPrice <= 0) { alert('❌ Please enter a valid price.'); return }
-    if (isNaN(sellerShipping) || sellerShipping < 0) { alert('❌ Please enter a valid shipping cost.'); return }
+    if (dimL <= 0 || dimW <= 0 || dimH <= 0) { alert('❌ Please enter all three dimensions (L × W × H).'); return }
     if (isNaN(sellerMoq) || sellerMoq < 1) { alert('❌ MOQ must be at least 1.'); return }
+    // Shipping = L × W × H × weight (weight optional, defaults to 1)
+    const sellerShipping = parseFloat((dimL * dimW * dimH * (wt > 0 ? wt : 1)).toFixed(2))
     setListingSubmitting(true)
     try {
       const token = localStorage.getItem('sellerToken')
@@ -290,10 +295,12 @@ const AdminProducts = () => {
           productPrice: rawPrice,
           sellerPrice,
           sellerShipping,
+          dimensions: { length: dimL, width: dimW, height: dimH },
+          weight: wt,
           moq: sellerMoq,
           listingCountries: listingForm.listingCountries || [],
           priceCurrency: listingForm.priceCurrency || 'GBP',
-          notes: listingForm.notes || `Seller requested to list "${product.name}" at ${listingForm.priceCurrency || 'GBP'} ${sellerPrice.toFixed(2)} + ${listingForm.priceCurrency || 'GBP'} ${sellerShipping.toFixed(2)} shipping, MOQ: ${sellerMoq}`
+          notes: listingForm.notes || `Seller requested to list "${product.name}" at ${listingForm.priceCurrency || 'GBP'} ${sellerPrice.toFixed(2)}, shipping: ${sellerShipping}, MOQ: ${sellerMoq}`
         })
       })
       const data = await response.json()
@@ -767,7 +774,7 @@ const AdminProducts = () => {
                       </div>
                     </div>
 
-                    {/* Price + Shipping */}
+                    {/* Price + Dimensions + Weight */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                       <div>
                         <label style={{ fontSize: '11px', fontWeight: '700', color: '#495057', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
@@ -780,17 +787,55 @@ const AdminProducts = () => {
                             onFocus={e => e.target.style.borderColor='#ff6600'} onBlur={e => e.target.style.borderColor='#e9ecef'} placeholder="0.00" />
                         </div>
                       </div>
+                      {/* Shipping preview (auto-calculated) */}
                       <div>
                         <label style={{ fontSize: '11px', fontWeight: '700', color: '#495057', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
-                          <i className="fas fa-truck" style={{ marginRight: '4px', color: '#007bff' }}></i>Shipping ({selCurr.code})
+                          <i className="fas fa-truck" style={{ marginRight: '4px', color: '#007bff' }}></i>Shipping (auto-calc)
                         </label>
-                        <div style={{ position: 'relative' }}>
-                          <span style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', fontWeight: '700', fontSize: '12px', pointerEvents: 'none', color: '#6b7280' }}>{selCurr.symbol}</span>
-                          <input type="number" min="0" step="0.01" value={listingForm.shipping} onChange={e => setListingForm(f => ({ ...f, shipping: e.target.value }))}
-                            style={{ width: '100%', padding: '9px 10px 9px 28px', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '14px', fontWeight: '600', outline: 'none', boxSizing: 'border-box' }}
-                            onFocus={e => e.target.style.borderColor='#007bff'} onBlur={e => e.target.style.borderColor='#e9ecef'} placeholder="0.00" />
+                        <div style={{ padding: '9px 10px', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '14px', fontWeight: '700', color: '#007bff', background: '#f0f8ff', boxSizing: 'border-box' }}>
+                          {(() => {
+                            const l = parseFloat(listingForm.dimL) || 0
+                            const w = parseFloat(listingForm.dimW) || 0
+                            const h = parseFloat(listingForm.dimH) || 0
+                            const wt = parseFloat(listingForm.weight) || 0
+                            if (l > 0 && w > 0 && h > 0) {
+                              return (l * w * h * (wt > 0 ? wt : 1)).toFixed(2)
+                            }
+                            return '—'
+                          })()}
                         </div>
                       </div>
+                    </div>
+
+                    {/* Dimensions — required */}
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: '700', color: '#495057', display: 'block', marginBottom: '5px', textTransform: 'uppercase' }}>
+                        <i className="fas fa-ruler-combined" style={{ marginRight: '4px', color: '#6f42c1' }}></i>Dimensions (L × W × H) <span style={{ color: '#dc3545' }}>*</span>
+                        <span style={{ fontSize: '9px', color: '#aaa', fontWeight: '400', marginLeft: '4px', textTransform: 'none' }}>cm — all three required</span>
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                        {[['dimL','L'],['dimW','W'],['dimH','H']].map(([field, label]) => (
+                          <div key={field} style={{ position: 'relative' }}>
+                            <span style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', fontSize: '10px', fontWeight: '700', color: '#6b7280', pointerEvents: 'none' }}>{label}</span>
+                            <input type="number" min="0.01" step="0.01" value={listingForm[field]}
+                              onChange={e => setListingForm(f => ({ ...f, [field]: e.target.value }))}
+                              style={{ width: '100%', padding: '8px 8px 8px 22px', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '13px', fontWeight: '600', outline: 'none', boxSizing: 'border-box' }}
+                              onFocus={e => e.target.style.borderColor='#6f42c1'} onBlur={e => e.target.style.borderColor='#e9ecef'} placeholder="0" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Weight — optional */}
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: '700', color: '#495057', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
+                        <i className="fas fa-weight-hanging" style={{ marginRight: '4px', color: '#fd7e14' }}></i>Weight (kg)
+                        <span style={{ fontSize: '9px', color: '#aaa', fontWeight: '400', marginLeft: '4px', textTransform: 'none' }}>optional — multiplied with dimensions</span>
+                      </label>
+                      <input type="number" min="0" step="0.001" value={listingForm.weight}
+                        onChange={e => setListingForm(f => ({ ...f, weight: e.target.value }))}
+                        style={{ width: '100%', padding: '9px 10px', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '13px', fontWeight: '600', outline: 'none', boxSizing: 'border-box' }}
+                        onFocus={e => e.target.style.borderColor='#fd7e14'} onBlur={e => e.target.style.borderColor='#e9ecef'} placeholder="e.g. 0.5" />
                     </div>
                   </>
                 )

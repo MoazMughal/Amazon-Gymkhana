@@ -129,6 +129,12 @@ const sellerSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
+    dimensions: {
+      length: { type: Number, default: 0 },
+      width:  { type: Number, default: 0 },
+      height: { type: Number, default: 0 }
+    },
+    weight: { type: Number, default: 0 },
     moq: { // Minimum Order Quantity
       type: Number,
       default: 1,

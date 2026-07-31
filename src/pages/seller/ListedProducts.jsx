@@ -28,6 +28,7 @@ const ListedProducts = () => {
   const [editingCell, setEditingCell] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [priceCurrencyEdit, setPriceCurrencyEdit] = useState({}); // per-product currency during price edit
+  const [dimEdit, setDimEdit] = useState({}); // per-product dimensions during shipping edit
   const [updatingProducts, setUpdatingProducts] = useState(new Set());
   const [retryCount, setRetryCount] = useState(0);
   const [showRetryButton, setShowRetryButton] = useState(false);
@@ -1021,53 +1022,102 @@ const ListedProducts = () => {
                         )}
                       </td>
                       <td
-                        style={{ 
-                          cursor: product.isListingRequest ? 'default' : 'pointer', 
-                          transition: 'background 0.2s',
-                          padding: '4px 3px'
-          }}
-                        onClick={() => !product.isListingRequest && handleCellClick(product._id, 'shipping', product.sellerInfo?.sellerShipping || product.shipping || 0)}
-                        onMouseEnter={(e) => !product.isListingRequest && (e.target.style.background = '#f0f0ff')}
-                        onMouseLeave={(e) => e.target.style.background = ''}
-                        title={product.isListingRequest ? "Cannot edit shipping for listing requests" : "Click to edit shipping"}
+                        style={{ cursor: product.isListingRequest ? 'default' : 'pointer', transition: 'background 0.2s', padding: '4px 3px' }}
+                        onClick={() => {
+                          if (product.isListingRequest) return;
+                          // Init dim edit state from seller entry
+                          const se = product.sellers?.find(s => s.sellerId?.toString() === seller?._id?.toString());
+                          setDimEdit(prev => ({
+                            ...prev,
+                            [product._id]: {
+                              l: se?.dimensions?.length || '',
+                              w: se?.dimensions?.width  || '',
+                              h: se?.dimensions?.height || '',
+                              wt: se?.weight || ''
+                            }
+                          }));
+                          handleCellClick(product._id, 'shipping', product.sellerInfo?.sellerShipping || product.shipping || 0);
+                        }}
+                        onMouseEnter={e => !product.isListingRequest && (e.target.style.background = '#f0f0ff')}
+                        onMouseLeave={e => (e.target.style.background = '')}
+                        title={product.isListingRequest ? 'Cannot edit shipping for listing requests' : 'Click to edit shipping via dimensions'}
                       >
                         {editingCell === `${product._id}-shipping` && !product.isListingRequest ? (
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={editValues[`${product._id}-shipping`] || ''}
-                            onChange={(e) => handleEditChange(product._id, 'shipping', e.target.value)}
-                            onInput={(e) => handleInputEvent(e, product._id, 'shipping')}
-                            onWheel={(e) => handleMouseWheel(e, product._id, 'shipping')}
-                            onBlur={() => handleSaveEdit(product._id, 'shipping')}
-                            onKeyDown={(e) => handleKeyPress(e, product._id, 'shipping')}
-                            autoFocus
-                            disabled={updatingProducts.has(product._id)}
-                            style={{
-                              width: '80px',
-                              padding: '4px',
-                              fontSize: '0.85rem',
-                              border: '2px solid #667eea',
-                              borderRadius: '4px',
-                              outline: 'none'
-                            }}
-                          />
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '120px' }}
+                            onClick={e => e.stopPropagation()}>
+                            {/* Dimension inputs L W H */}
+                            {['l','w','h'].map((dim, i) => (
+                              <div key={dim} style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                <span style={{ fontSize: '0.65rem', fontWeight: '700', color: '#6b7280', width: '10px' }}>{dim.toUpperCase()}</span>
+                                <input type="number" min="0.01" step="0.01" placeholder="0"
+                                  value={dimEdit[product._id]?.[dim] || ''}
+                                  onChange={e => setDimEdit(prev => ({ ...prev, [product._id]: { ...prev[product._id], [dim]: e.target.value } }))}
+                                  style={{ width: '60px', padding: '3px 5px', fontSize: '0.75rem', border: '1.5px solid #667eea', borderRadius: '4px', outline: 'none' }} />
+                                <span style={{ fontSize: '0.6rem', color: '#aaa' }}>cm</span>
+                              </div>
+                            ))}
+                            {/* Weight input */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                              <span style={{ fontSize: '0.65rem', fontWeight: '700', color: '#fd7e14', width: '10px' }}>W</span>
+                              <input type="number" min="0" step="0.001" placeholder="kg (opt)"
+                                value={dimEdit[product._id]?.wt || ''}
+                                onChange={e => setDimEdit(prev => ({ ...prev, [product._id]: { ...prev[product._id], wt: e.target.value } }))}
+                                style={{ width: '60px', padding: '3px 5px', fontSize: '0.75rem', border: '1.5px solid #fd7e14', borderRadius: '4px', outline: 'none' }} />
+                              <span style={{ fontSize: '0.6rem', color: '#aaa' }}>kg</span>
+                            </div>
+                            {/* Computed shipping preview */}
+                            {(() => {
+                              const d = dimEdit[product._id] || {};
+                              const l = parseFloat(d.l)||0, w = parseFloat(d.w)||0, h = parseFloat(d.h)||0, wt = parseFloat(d.wt)||0;
+                              if (l>0 && w>0 && h>0) return <div style={{ fontSize: '0.7rem', fontWeight: '700', color: '#28a745' }}>= {(l*w*h*(wt>0?wt:1)).toFixed(2)}</div>;
+                              return null;
+                            })()}
+                            {/* Save/Cancel */}
+                            <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
+                              <button
+                                onClick={async () => {
+                                  const d = dimEdit[product._id] || {};
+                                  const l = parseFloat(d.l)||0, w = parseFloat(d.w)||0, h = parseFloat(d.h)||0, wt = parseFloat(d.wt)||0;
+                                  if (l<=0 || w<=0 || h<=0) { alert('Enter all 3 dimensions'); return; }
+                                  const computed = parseFloat((l*w*h*(wt>0?wt:1)).toFixed(2));
+                                  setUpdatingProducts(prev => new Set(prev).add(product._id));
+                                  setEditingCell(null);
+                                  try {
+                                    const token = localStorage.getItem('sellerToken');
+                                    await fetch(getApiUrl(`sellers/update-inventory/${product._id}`), {
+                                      method: 'PUT',
+                                      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                      body: JSON.stringify({ shipping: computed, dimensions: { length: l, width: w, height: h }, weight: wt })
+                                    });
+                                    setProducts(prev => prev.map(p => p._id === product._id
+                                      ? { ...p, sellerInfo: { ...p.sellerInfo, sellerShipping: computed } }
+                                      : p));
+                                  } catch {}
+                                  finally { setUpdatingProducts(prev => { const n=new Set(prev); n.delete(product._id); return n; }); }
+                                }}
+                                style={{ flex:1, padding: '3px 6px', fontSize: '0.7rem', fontWeight: '700', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                                ✓ Save
+                              </button>
+                              <button onClick={() => setEditingCell(null)}
+                                style={{ flex:1, padding: '3px 6px', fontSize: '0.7rem', background: '#f8f9fa', color: '#666', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}>
+                                ✕
+                              </button>
+                            </div>
+                          </div>
                         ) : (
                           <div>
                             <span className="fw-bold text-info">
-                              £{(product.sellerInfo?.sellerShipping || product.shipping || 0).toFixed(2)}
-                              {!product.isListingRequest && (
-                                <span style={{ marginLeft: '4px', fontSize: '0.6rem', color: '#999' }}>✏️</span>
-                              )}
+                              {(product.sellerInfo?.sellerShipping || product.shipping || 0).toFixed(2)}
+                              {!product.isListingRequest && <span style={{ marginLeft: '4px', fontSize: '0.6rem', color: '#999' }}>✏️</span>}
                             </span>
-                            {/* Show admin shipping if different */}
-                            {!product.isListingRequest && product.sellerInfo?.sellerShipping && product.sellerInfo.sellerShipping !== product.shipping && (
-                              <div>
-                                <small className="text-muted">
-                                  Admin: £{(product.shipping || 0).toFixed(2)}
-                                </small>
-                              </div>
-                            )}
+                            {(() => {
+                              const se = product.sellers?.find(s => s.sellerId?.toString() === seller?._id?.toString());
+                              const d = se?.dimensions;
+                              if (d && (d.length||d.width||d.height)) {
+                                return <div style={{ fontSize: '0.6rem', color: '#aaa' }}>{d.length}×{d.width}×{d.height}{se.weight?` ${se.weight}kg`:''}</div>;
+                              }
+                              return null;
+                            })()}
                           </div>
                         )}
                       </td>
