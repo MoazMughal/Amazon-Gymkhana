@@ -632,7 +632,19 @@ const AmazonsChoice = () => {
   const [bulkCount, setBulkCount] = useState(0)
 
   // Context hooks
-  const { formatPrice, currency } = useCurrency()
+  const { formatPrice, currency, currencyRates, currencySymbols } = useCurrency()
+
+  // Convert a GBP value to current display currency (rawPrice is always stored in GBP)
+  const gbpToDisplay = (gbpAmount) => {
+    const rates = currencyRates || { PKR: 1, GBP: 0.00272, USD: 0.00353, AED: 0.01310 };
+    const sym = currencySymbols || { PKR: 'Rs', GBP: '£', USD: '$', AED: 'د.إ' };
+    const num = parseFloat(gbpAmount) || 0;
+    if (num === 0) return `${sym[currency] || ''}0.00`;
+    // GBP → PKR → display currency
+    const inPKR = num / (rates['GBP'] || 0.00272);
+    const converted = inPKR * (rates[currency] || rates['GBP']);
+    return `${sym[currency] || ''}${converted.toFixed(2)}`;
+  };
   const { addToBasket, isInBasket } = useBasket()
   const { isLoggedIn: isAdminContextLoggedIn } = useAdmin()
   const { seller: currentSeller, isLoggedIn: isSellerLoggedIn } = useSeller()
@@ -1078,8 +1090,9 @@ const AmazonsChoice = () => {
             // Rates relative to PKR (same as CurrencyContext) for normalising sellerPrice to GBP
             const toGBP = (price, priceCurrency) => {
               const rates = { PKR: 1, GBP: 0.00272, AED: 0.01310, USD: 0.00353 };
-              const cur = (priceCurrency || 'PKR').toUpperCase();
-              const rateToGBP = rates['GBP'] / (rates[cur] || 1);
+              // Default to GBP — sellers without priceCurrency set were listed before multi-currency support
+              const cur = (priceCurrency || 'GBP').toUpperCase();
+              const rateToGBP = rates['GBP'] / (rates[cur] || rates['GBP']);
               return price * rateToGBP;
             };
 
@@ -1109,10 +1122,10 @@ const AmazonsChoice = () => {
             return {
               id: p._id,
               name: p.name,
-              asin: p.asin, // Ensure ASIN is included for image loading
-              // Use lowest seller price for display (matches ProductDetail)
-              price: lowestPrice !== null ? `£${lowestPrice.toFixed(2)}` : null,
-              rawPrice: lowestPrice,
+              asin: p.asin,
+              // Use lowest seller price if sellers exist, else admin price (in GBP)
+              price: lowestPrice !== null ? `£${lowestPrice.toFixed(2)}` : (p.price ? `£${parseFloat(p.price).toFixed(2)}` : null),
+              rawPrice: lowestPrice !== null ? lowestPrice : parseFloat(p.price) || 0,
               rawShipping: lowestShipping,
               lowestMoq,
               originalPrice: p.originalPrice ? `£${parseFloat(p.originalPrice).toFixed(2)}` : null,
@@ -3231,7 +3244,7 @@ const AmazonsChoice = () => {
                             return <span style={{ fontSize: '0.72rem', color: '#aaa', fontStyle: 'italic' }}>No price</span>;
                           }
                           const total = product.rawPrice + (product.rawShipping || 0);
-                          return `${formatPrice(total)}/unit`;
+                          return `${gbpToDisplay(total)}/unit`;
                         })()}
                       </div>
                       
@@ -3297,10 +3310,11 @@ const AmazonsChoice = () => {
                       }
 
                       // For new products, check if they have a valid price to calculate profit from
-                      const productPrice = parseFloat(String(product.price || 0).replace(/[£₨$€]/g, '')) || 0;
-                      if (productPrice > 0) {
-                        return true;
-                      }
+                      // REMOVED: Don't show fake calculated profit for products without real data
+                      // const productPrice = parseFloat(String(product.price || 0).replace(/[£₨$€]/g, '')) || 0;
+                      // if (productPrice > 0) {
+                      //   return true;
+                      // }
 
                       return false;
                     };
@@ -3338,28 +3352,8 @@ const AmazonsChoice = () => {
                           profitPerUnit = 227.80;
                         } else if (productName.includes('leather') && productName.includes('watch')) {
                           profitPerUnit = 586.00;
-                        } else {
-                          // For new products without profit data, calculate based on price and standard markup
-                          const productPrice = parseFloat(String(product.price || 0).replace(/[£₨$€]/g, '')) || 0;
-                          
-                          if (productPrice > 0) {
-                            // Convert price to GBP if it's in other currency
-                            let costPriceGBP = productPrice;
-                            const isPKR = String(product.price).includes('₨') || String(product.price).includes('Rs');
-                            const isGBP = String(product.price).includes('£');
-                            
-                            if (isPKR) {
-                              costPriceGBP = productPrice * 0.00272; // Convert PKR to GBP
-                            } else if (!isGBP) {
-                              // If no currency symbol, assume it's GBP
-                              costPriceGBP = productPrice;
-                            }
-                            
-                            // Calculate profit assuming 200% markup (selling price = cost * 3)
-                            // So profit per unit = cost * 2
-                            profitPerUnit = costPriceGBP * 2;
-                          }
                         }
+                        // Removed: no longer calculate fake profit from product price
                       }
                       
                       return parseFloat(profitPerUnit) || 0;
@@ -3585,49 +3579,14 @@ const AmazonsChoice = () => {
                     }}>
                         {(() => {
                           try {
-                            // Use raw price (per unit) from database
+                            // rawPrice is already normalised to GBP — convert to display currency
                             const unitPrice = product.rawPrice || 0;
                             const dealUnits = product.dealUnits || 1;
                             const totalPrice = unitPrice * dealUnits;
-                            
-                            if (isNaN(totalPrice)) {
-                              const formatted = formatPrice(product.price);
-                              if (typeof formatted === 'string' && formatted.startsWith('Rs')) {
-                                const priceValue = formatted.substring(2);
-                                return (
-                                  <>
-                                    <span style={{ fontSize: '0.7em' }}>Rs</span>
-                                    {priceValue}
-                                  </>
-                                );
-                              }
-                              return formatted;
-                            }
-                            
-                            // Use formatPrice to handle currency conversion
-                            const formatted = formatPrice(totalPrice);
-                            if (typeof formatted === 'string' && formatted.startsWith('Rs')) {
-                              const priceValue = formatted.substring(2);
-                              return (
-                                <>
-                                  <span style={{ fontSize: '0.7em' }}>Rs</span>
-                                  {priceValue}
-                                </>
-                              );
-                            }
-                            return formatted;
+                            if (isNaN(totalPrice) || totalPrice === 0) return gbpToDisplay(0);
+                            return gbpToDisplay(totalPrice);
                           } catch (error) {
-                            const formatted = formatPrice(product.price);
-                            if (typeof formatted === 'string' && formatted.startsWith('Rs')) {
-                              const priceValue = formatted.substring(2);
-                              return (
-                                <>
-                                  <span style={{ fontSize: '0.7em' }}>Rs</span>
-                                  {priceValue}
-                                </>
-                              );
-                            }
-                            return formatted;
+                            return gbpToDisplay(product.rawPrice || 0);
                           }
                         })()}
                       </span>
@@ -3669,7 +3628,7 @@ const AmazonsChoice = () => {
                           Profit Cost Price / {dealUnits} unit{dealUnits !== 1 ? 's' : ''}:
                         </span>
                         <span style={{ fontSize: windowWidth < 576 ? '7px' : '8px', fontWeight: '800', color: '#1a1a1a', flex: '0 0 auto', whiteSpace: 'nowrap' }}>
-                          {formatPrice(totalProfit)}
+                          {gbpToDisplay(totalProfit)}
                         </span>
                       </div>
                     </div>

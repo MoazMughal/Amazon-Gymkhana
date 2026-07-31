@@ -985,7 +985,8 @@ router.post('/request-admin-product-listing', authenticateSeller, async (req, re
       sellerShipping = 0,
       moq = 1,
       notes = 'Seller requested to list admin product',
-      listingCountries = []
+      listingCountries = [],
+      priceCurrency = 'GBP'
     } = req.body;
 
     console.log('🔄 Processing admin product listing request:', {
@@ -1054,6 +1055,7 @@ router.post('/request-admin-product-listing', authenticateSeller, async (req, re
       paymentMethod: 'Pending Admin Approval',
       notes,
       listingCountries: Array.isArray(listingCountries) ? listingCountries : [],
+      priceCurrency: ['GBP', 'PKR', 'AED', 'USD'].includes(priceCurrency) ? priceCurrency : 'GBP',
       status: 'pending_approval',
       submittedAt: new Date(),
       requestType: 'admin_product_listing'
@@ -1118,7 +1120,7 @@ router.post('/bulk-request-listing', authenticateSeller, async (req, res) => {
 
     // 3. Process all in memory — no per-item DB calls
     for (const item of items) {
-      const { adminProductId, sellerPrice, sellerShipping = 0, moq = 1, listingCountries = [], notes } = item;
+      const { adminProductId, sellerPrice, sellerShipping = 0, moq = 1, listingCountries = [], notes, priceCurrency = 'GBP' } = item;
       const adminProduct = productMap[adminProductId];
 
       if (!adminProduct) { failed.push({ id: adminProductId, name: item.productName || adminProductId, reason: 'Product not found' }); continue; }
@@ -1144,6 +1146,7 @@ router.post('/bulk-request-listing', authenticateSeller, async (req, res) => {
         paymentMethod: 'Pending Admin Approval',
         notes: notes || `Bulk listing request for "${adminProduct.name}"`,
         listingCountries: Array.isArray(listingCountries) ? listingCountries : [],
+        priceCurrency: ['GBP', 'PKR', 'AED', 'USD'].includes(priceCurrency) ? priceCurrency : 'GBP',
         status: 'pending_approval',
         submittedAt: now,
         requestType: 'admin_product_listing'
@@ -1415,6 +1418,7 @@ router.put('/admin/listing-requests/:sellerId/:requestId/approve', authenticateA
       sellerShipping: request.sellerShipping || 0,
       moq: request.moq || 1,
       listingCountries: Array.isArray(request.listingCountries) ? request.listingCountries : [],
+      priceCurrency: request.priceCurrency || 'GBP',
       listedAt: new Date(),
       transactionId: request.transactionId,
       paymentMethod: 'Admin Approved',
@@ -1772,6 +1776,11 @@ router.put('/update-inventory/:productId', authenticateSeller, async (req, res) 
         ? listingCountries.filter(c => valid.includes(c))
         : [];
       product.sellers[sellerIndex].listingCountries = arr;
+    }
+
+    // Update priceCurrency
+    if (priceCurrency !== undefined && ['GBP', 'PKR', 'AED', 'USD'].includes(priceCurrency)) {
+      product.sellers[sellerIndex].priceCurrency = priceCurrency;
     }
 
     // Update ASIN bulk listing data

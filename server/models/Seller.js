@@ -165,6 +165,11 @@ const sellerSchema = new mongoose.Schema({
       type: [String],
       enum: ['GBP', 'PKR', 'AED', 'USD'],
       default: []
+    },
+    priceCurrency: {
+      type: String,
+      enum: ['GBP', 'PKR', 'AED', 'USD'],
+      default: 'GBP'
     }
   }],
   // Social OAuth

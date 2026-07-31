@@ -103,6 +103,7 @@ const SellerProductsSimple = () => {
             _id: `req_${req._id}`,
             name: req.productName,
             price: req.sellerPrice,
+            priceCurrency: req.priceCurrency || 'GBP',
             status: req.status,
             seller: req.sellerUsername || 'Unknown',
             createdAt: req.submittedAt,
@@ -111,8 +112,8 @@ const SellerProductsSimple = () => {
             sellerId: req.sellerId,
             productId: req.productId,
             rejectionReason: req.rejectionReason,
-            images: req.images || [], // ADD IMAGES
-            productImage: req.productImage // ADD SINGLE IMAGE
+            images: req.images || [],
+            productImage: req.productImage
           }))
           setProducts(transformed)
           setTotalPages(data.totalPages || 1)
@@ -856,7 +857,11 @@ const SellerProductsSimple = () => {
                       })()}
                     </td>
                     <td style={{ padding: '10px', textAlign: 'right', fontWeight: 'bold', fontSize: '14px' }}>
-                      £{parseFloat(product.price || product.sellerPrice || 0).toFixed(2)}
+                      {(() => {
+                        const sym = { GBP: '£', PKR: 'Rs ', AED: 'د.إ ', USD: '$' };
+                        const cur = product.priceCurrency || 'GBP';
+                        return `${sym[cur] || '£'}${parseFloat(product.price || product.sellerPrice || 0).toFixed(2)}`;
+                      })()}
                     </td>
                     <td style={{ padding: '10px', textAlign: 'center' }}>
                       <span style={{

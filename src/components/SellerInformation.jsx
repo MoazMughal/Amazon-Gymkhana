@@ -14,9 +14,22 @@ const SellerInformation = ({
   onRefreshProduct,
   quantity: globalQty = 1
 }) => {
-  const { convertPrice, formatPrice, currency, currencySymbols } = useCurrency();
+  const { convertPrice, formatPrice, currency, currencySymbols, currencyRates } = useCurrency();
   const { addToBasket } = useBasket();
   const { buyer, isLoggedIn: isBuyerLoggedIn } = useBuyer();
+
+  // Convert a price stored in `fromCurrency` to the current display currency
+  const convertSellerPrice = (amount, fromCurrency = 'GBP') => {
+    const rates = currencyRates || { PKR: 1, GBP: 0.00272, USD: 0.00353, AED: 0.01310 };
+    const num = parseFloat(amount) || 0;
+    if (num === 0) return `${currencySymbols[currency] || ''}0.00`;
+    // Convert to PKR first (base), then to target
+    const fromRate = rates[fromCurrency] || rates['GBP'];
+    const toRate = rates[currency] || rates['GBP'];
+    const inPKR = num / fromRate;
+    const converted = inPKR * toRate;
+    return `${currencySymbols[currency] || ''}${converted.toFixed(2)}`;
+  };
   const navigate = useNavigate();
   const [newPrice, setNewPrice] = useState('');
   const [updating, setUpdating] = useState(false);
@@ -106,9 +119,16 @@ const SellerInformation = ({
     const mainPrice = parseFloat(String(product.price || '0').replace(/[£₨$€]/g, '')) || 0;
     const sp = parseFloat(se.sellerPrice) || mainPrice;
     const ss = parseFloat(se.sellerShipping) || 0;
+    const seFromCurrency = se.priceCurrency || 'GBP';
     const qty = getQty(sid, se.moq);
     const showShipping = currency === 'GBP' && ss > 0;
-    const total = (showShipping ? sp + ss : sp) * qty;
+    // Convert to display currency for total
+    const rates2 = { PKR: 1, GBP: 0.00272, USD: 0.00353, AED: 0.01310 };
+    const fr = rates2[seFromCurrency] || rates2['GBP'];
+    const tr = rates2[currency] || rates2['GBP'];
+    const spC = (sp / fr) * tr;
+    const ssC = (ss / fr) * tr;
+    const total = showShipping ? spC + ssC : spC;
 
     // Save quotation to DB
     try {
@@ -135,14 +155,17 @@ const SellerInformation = ({
     }
 
     // Build WhatsApp message
+    const spDisplayMsg = `${currencySymbols[currency] || ''}${spC.toFixed(2)}`;
+    const ssDisplayMsg = ss > 0 ? `${currencySymbols[currency] || ''}${ssC.toFixed(2)}` : null;
+    const totalDisplayMsg = `${currencySymbols[currency] || ''}${(total * qty).toFixed(2)}`;
     const msg = [
       `Hi ${se.username},`,
       ``,
       `I'm interested in buying *${product.name}*.`,
       ``,
       `📦 Quantity: ${qty} units`,
-      `💰 Price/unit: ${formatPrice(sp)}${showShipping ? ` + ${formatPrice(ss)} shipping` : ''}`,
-      `💵 Total: ${formatPrice(total)}`,
+      `💰 Price/unit: ${spDisplayMsg}${showShipping && ssDisplayMsg ? ` + ${ssDisplayMsg} shipping` : ''}`,
+      `💵 Total: ${totalDisplayMsg}`,
       ``,
       `👤 ${senderInfo.senderType === 'guest' ? 'Guest' : 'Buyer'} Info:`,
       `Name: ${senderInfo.buyerName}`,
@@ -326,9 +349,20 @@ const SellerInformation = ({
           const sid = se.sellerId || se._id;
           const sp = parseFloat(se.sellerPrice) || mainPrice;
           const ss = parseFloat(se.sellerShipping) || 0;
-          // Only add shipping to total for GBP (UK) — other currencies show price only
+          const seFromCurrency = se.priceCurrency || 'GBP';
+          // Convert seller price from its stored currency to display currency
+          const spDisplay = convertSellerPrice(sp, seFromCurrency);
+          const ssDisplay = ss > 0 ? convertSellerPrice(ss, seFromCurrency) : null;
+          // For total: convert both price and shipping from stored currency
+          const rates = currencyRates || { PKR: 1, GBP: 0.00272, USD: 0.00353, AED: 0.01310 };
+          const fromRate = rates[seFromCurrency] || rates['GBP'];
+          const toRate = rates[currency] || rates['GBP'];
+          const spConverted = (sp / fromRate) * toRate;
+          const ssConverted = (ss / fromRate) * toRate;
+          // Only add shipping for GBP display (UK market)
           const includeShipping = currency === 'GBP' && ss > 0;
-          const total = includeShipping ? sp + ss : sp;
+          const totalConverted = includeShipping ? spConverted + ssConverted : spConverted;
+          const totalDisplay = `${currencySymbols[currency] || ''}${totalConverted.toFixed(2)}`;
           const moq = se.moq || 1;
           const qty = getQty(sid, moq);
           const isMine = isSellerLoggedIn && currentSeller && sid?.toString() === currentSeller._id?.toString();
@@ -382,11 +416,11 @@ const SellerInformation = ({
                 <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#1f2937' }}>
                   {se.username}
                   <span style={{ fontSize: '0.62rem', fontWeight: '400', color: '#6b7280', marginLeft: '4px' }}>
-                    ({includeShipping ? `${formatPrice(sp)} + ${formatPrice(ss)} shipping` : formatPrice(sp)})
+                    ({includeShipping ? `${spDisplay} + ${ssDisplay} shipping` : spDisplay})
                   </span>
                 </div>
                 <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#059669', whiteSpace: 'nowrap', marginLeft: '8px' }}>
-                  {formatPrice(total)}
+                  {totalDisplay}
                 </div>
               </div>
 

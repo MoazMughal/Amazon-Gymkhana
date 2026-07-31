@@ -200,6 +200,7 @@ const AdminSellerProducts = () => {
               shipping: request.sellerShipping || 0,
               moq: request.moq || 1,
               currency: 'GBP',
+              priceCurrency: request.priceCurrency || 'GBP',
               approvalStatus: 'pending',
               images: adminProductImages,
               seller: {
@@ -256,6 +257,7 @@ const AdminSellerProducts = () => {
               shipping: request.sellerShipping || 0,
               moq: request.moq || 1,
               currency: 'GBP',
+              priceCurrency: request.priceCurrency || 'GBP',
               approvalStatus: 'rejected',
               rejectionReason: request.rejectionReason,
               images: adminProductImages,
@@ -1487,10 +1489,10 @@ const AdminSellerProducts = () => {
 
                     {/* Price */}
                     <div className="price-badge mb-1 d-inline-flex align-self-start">
-                      <span>£{parseFloat(product.price).toFixed(2)}</span>
+                      <span>{({'GBP':'£','PKR':'Rs ','AED':'د.إ ','USD':'$'}[product.priceCurrency] || '£')}{parseFloat(product.price).toFixed(2)}{product.priceCurrency && product.priceCurrency !== 'GBP' ? ` ${product.priceCurrency}` : ''}</span>
                       {product.shipping > 0 && (
                         <span className="ms-1" style={{fontSize: '0.65rem', opacity: '0.9'}}>
-                          +£{product.shipping}
+                          +{({'GBP':'£','PKR':'Rs ','AED':'د.إ ','USD':'$'}[product.priceCurrency] || '£')}{product.shipping}
                         </span>
                       )}
                     </div>

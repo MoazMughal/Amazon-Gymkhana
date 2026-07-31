@@ -142,7 +142,7 @@ const AdminProducts = () => {
 
   // Listing request modal state (same as AmazonsChoice)
   const [listingModal, setListingModal] = useState({ open: false, product: null })
-  const [listingForm, setListingForm] = useState({ price: '', shipping: '0.00', moq: '1', notes: '', listingCountries: [] })
+  const [listingForm, setListingForm] = useState({ price: '', shipping: '0.00', moq: '1', notes: '', listingCountries: [], priceCurrency: 'GBP' })
   const [listingSubmitting, setListingSubmitting] = useState(false)
   const [listingSuccess, setListingSuccess] = useState(false)
 
@@ -183,6 +183,7 @@ const AdminProducts = () => {
         shipping: parseFloat(p.shipping || 0).toFixed(2),
         moq: '1',
         listingCountries: [],
+        priceCurrency: 'GBP',
         notes: ''
       }
     })
@@ -226,6 +227,7 @@ const AdminProducts = () => {
           sellerShipping: parseFloat(row.shipping) || 0,
           moq: parseInt(row.moq) || 1,
           listingCountries: row.listingCountries || [],
+          priceCurrency: row.priceCurrency || 'GBP',
           notes: row.notes || ''
         }
       })
@@ -260,7 +262,8 @@ const AdminProducts = () => {
       shipping: parseFloat(product.shipping || 0).toFixed(2),
       moq: '1',
       notes: '',
-      listingCountries: []
+      listingCountries: [],
+      priceCurrency: 'GBP'
     })
     setListingSuccess(false)
     setListingModal({ open: true, product })
@@ -289,7 +292,8 @@ const AdminProducts = () => {
           sellerShipping,
           moq: sellerMoq,
           listingCountries: listingForm.listingCountries || [],
-          notes: listingForm.notes || `Seller requested to list "${product.name}" at £${sellerPrice.toFixed(2)} + £${sellerShipping.toFixed(2)} shipping, MOQ: ${sellerMoq}`
+          priceCurrency: listingForm.priceCurrency || 'GBP',
+          notes: listingForm.notes || `Seller requested to list "${product.name}" at ${listingForm.priceCurrency || 'GBP'} ${sellerPrice.toFixed(2)} + ${listingForm.priceCurrency || 'GBP'} ${sellerShipping.toFixed(2)} shipping, MOQ: ${sellerMoq}`
         })
       })
       const data = await response.json()
@@ -563,13 +567,23 @@ const AdminProducts = () => {
                       {/* Fields */}
                       <div style={{ padding:'10px 12px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px' }}>
                         <div>
-                          <label style={{ fontSize:'0.7rem', fontWeight:'700', color:'#6b7280', display:'block', marginBottom:'3px' }}>Your Price (£)</label>
-                          <input type="number" step="0.01" min="0.01" value={row.price || ''}
-                            onChange={e => updateBulkRow(product._id, 'price', e.target.value)}
-                            style={{ width:'100%', padding:'6px 8px', border:'1.5px solid #e9ecef', borderRadius:'6px', fontSize:'12px' }} />
+                          <label style={{ fontSize:'0.7rem', fontWeight:'700', color:'#6b7280', display:'block', marginBottom:'3px' }}>Your Price</label>
+                          <div style={{ display:'flex', gap:'4px' }}>
+                            <select value={row.priceCurrency || 'GBP'}
+                              onChange={e => updateBulkRow(product._id, 'priceCurrency', e.target.value)}
+                              style={{ padding:'6px 4px', border:'1.5px solid #e9ecef', borderRadius:'6px', fontSize:'11px', background:'#f8f9fa', cursor:'pointer', flexShrink:0 }}>
+                              <option value="GBP">£ GBP</option>
+                              <option value="PKR">Rs PKR</option>
+                              <option value="AED">د.إ AED</option>
+                              <option value="USD">$ USD</option>
+                            </select>
+                            <input type="number" step="0.01" min="0.01" value={row.price || ''}
+                              onChange={e => updateBulkRow(product._id, 'price', e.target.value)}
+                              style={{ width:'100%', padding:'6px 8px', border:'1.5px solid #e9ecef', borderRadius:'6px', fontSize:'12px' }} />
+                          </div>
                         </div>
                         <div>
-                          <label style={{ fontSize:'0.7rem', fontWeight:'700', color:'#6b7280', display:'block', marginBottom:'3px' }}>Shipping (£)</label>
+                          <label style={{ fontSize:'0.7rem', fontWeight:'700', color:'#6b7280', display:'block', marginBottom:'3px' }}>Shipping</label>
                           <input type="number" step="0.01" min="0" value={row.shipping || ''}
                             onChange={e => updateBulkRow(product._id, 'shipping', e.target.value)}
                             style={{ width:'100%', padding:'6px 8px', border:'1.5px solid #e9ecef', borderRadius:'6px', fontSize:'12px' }} />
@@ -664,8 +678,8 @@ const AdminProducts = () => {
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
                 {[
-                  { label: 'Price', value: `£${parseFloat(listingForm.price).toFixed(2)}`, icon: 'fa-tag', color: '#28a745' },
-                  { label: 'Shipping', value: `£${parseFloat(listingForm.shipping).toFixed(2)}`, icon: 'fa-truck', color: '#007bff' },
+                  { label: 'Price', value: `${({'GBP':'£','PKR':'Rs','AED':'د.إ','USD':'$'}[listingForm.priceCurrency]||'£')}${parseFloat(listingForm.price).toFixed(2)} ${listingForm.priceCurrency||'GBP'}`, icon: 'fa-tag', color: '#28a745' },
+                  { label: 'Shipping', value: `${({'GBP':'£','PKR':'Rs','AED':'د.إ','USD':'$'}[listingForm.priceCurrency]||'£')}${parseFloat(listingForm.shipping).toFixed(2)}`, icon: 'fa-truck', color: '#007bff' },
                   { label: 'MOQ', value: `${listingForm.moq} units`, icon: 'fa-boxes', color: '#6f42c1' },
                   { label: 'Countries', value: listingForm.listingCountries.length === 0 ? '🌍 All' : listingForm.listingCountries.map(c => ({ GBP: '🇬🇧', PKR: '🇵🇰', AED: '🇦🇪', USD: '🇺🇸' })[c]).join(' '), icon: 'fa-globe', color: '#ff6600' }
                 ].map(item => (
@@ -722,31 +736,65 @@ const AdminProducts = () => {
                 </div>
               )}
 
-              {/* Price + Shipping */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                <div>
-                  <label style={{ fontSize: '11px', fontWeight: '700', color: '#495057', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
-                    <i className="fas fa-tag" style={{ marginRight: '4px', color: '#28a745' }}></i>Price (£) <span style={{ color: '#dc3545' }}>*</span>
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontWeight: '700', fontSize: '14px', pointerEvents: 'none' }}>£</span>
-                    <input type="number" min="0.01" step="0.01" value={listingForm.price} onChange={e => setListingForm(f => ({ ...f, price: e.target.value }))}
-                      style={{ width: '100%', padding: '9px 10px 9px 22px', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '14px', fontWeight: '600', outline: 'none', boxSizing: 'border-box' }}
-                      onFocus={e => e.target.style.borderColor='#ff6600'} onBlur={e => e.target.style.borderColor='#e9ecef'} placeholder="0.00" />
-                  </div>
-                </div>
-                <div>
-                  <label style={{ fontSize: '11px', fontWeight: '700', color: '#495057', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
-                    <i className="fas fa-truck" style={{ marginRight: '4px', color: '#007bff' }}></i>Shipping (£)
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontWeight: '700', fontSize: '14px', pointerEvents: 'none' }}>£</span>
-                    <input type="number" min="0" step="0.01" value={listingForm.shipping} onChange={e => setListingForm(f => ({ ...f, shipping: e.target.value }))}
-                      style={{ width: '100%', padding: '9px 10px 9px 22px', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '14px', fontWeight: '600', outline: 'none', boxSizing: 'border-box' }}
-                      onFocus={e => e.target.style.borderColor='#007bff'} onBlur={e => e.target.style.borderColor='#e9ecef'} placeholder="0.00" />
-                  </div>
-                </div>
-              </div>
+              {/* Currency selector */}
+              {(() => {
+                const CURRENCY_OPTS = [
+                  { code: 'GBP', symbol: '£', flag: '🇬🇧', label: 'GBP – £' },
+                  { code: 'PKR', symbol: 'Rs', flag: '🇵🇰', label: 'PKR – Rs' },
+                  { code: 'AED', symbol: 'د.إ', flag: '🇦🇪', label: 'AED – د.إ' },
+                  { code: 'USD', symbol: '$', flag: '🇺🇸', label: 'USD – $' },
+                ]
+                const selCurr = CURRENCY_OPTS.find(c => c.code === listingForm.priceCurrency) || CURRENCY_OPTS[0]
+                return (
+                  <>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: '700', color: '#495057', display: 'block', marginBottom: '5px', textTransform: 'uppercase' }}>
+                        <i className="fas fa-coins" style={{ marginRight: '4px', color: '#f59e0b' }}></i>Price Currency <span style={{ color: '#dc3545' }}>*</span>
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '6px' }}>
+                        {CURRENCY_OPTS.map(c => {
+                          const sel = listingForm.priceCurrency === c.code
+                          return (
+                            <button key={c.code} type="button"
+                              onClick={() => setListingForm(f => ({ ...f, priceCurrency: c.code }))}
+                              style={{ padding: '7px 4px', borderRadius: '8px', border: sel ? '2px solid #ff6600' : '2px solid #e9ecef', background: sel ? '#fff5f0' : '#fff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '11px', fontWeight: sel ? '700' : '500', color: sel ? '#ff6600' : '#495057', transition: 'all 0.15s' }}>
+                              <span style={{ fontSize: '16px' }}>{c.flag}</span>
+                              <span>{c.label}</span>
+                              {sel && <i className="fas fa-check-circle" style={{ color: '#ff6600', fontSize: '10px' }}></i>}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Price + Shipping */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: '700', color: '#495057', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
+                          <i className="fas fa-tag" style={{ marginRight: '4px', color: '#28a745' }}></i>Price ({selCurr.code}) <span style={{ color: '#dc3545' }}>*</span>
+                        </label>
+                        <div style={{ position: 'relative' }}>
+                          <span style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', fontWeight: '700', fontSize: '12px', pointerEvents: 'none', color: '#6b7280' }}>{selCurr.symbol}</span>
+                          <input type="number" min="0.01" step="0.01" value={listingForm.price} onChange={e => setListingForm(f => ({ ...f, price: e.target.value }))}
+                            style={{ width: '100%', padding: '9px 10px 9px 28px', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '14px', fontWeight: '600', outline: 'none', boxSizing: 'border-box' }}
+                            onFocus={e => e.target.style.borderColor='#ff6600'} onBlur={e => e.target.style.borderColor='#e9ecef'} placeholder="0.00" />
+                        </div>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: '700', color: '#495057', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
+                          <i className="fas fa-truck" style={{ marginRight: '4px', color: '#007bff' }}></i>Shipping ({selCurr.code})
+                        </label>
+                        <div style={{ position: 'relative' }}>
+                          <span style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', fontWeight: '700', fontSize: '12px', pointerEvents: 'none', color: '#6b7280' }}>{selCurr.symbol}</span>
+                          <input type="number" min="0" step="0.01" value={listingForm.shipping} onChange={e => setListingForm(f => ({ ...f, shipping: e.target.value }))}
+                            style={{ width: '100%', padding: '9px 10px 9px 28px', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '14px', fontWeight: '600', outline: 'none', boxSizing: 'border-box' }}
+                            onFocus={e => e.target.style.borderColor='#007bff'} onBlur={e => e.target.style.borderColor='#e9ecef'} placeholder="0.00" />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )
+              })()}
 
               {/* MOQ */}
               <div style={{ marginBottom: '12px' }}>

@@ -27,6 +27,7 @@ const ListedProducts = () => {
   const [activeTab, setActiveTab] = useState('approved');
   const [editingCell, setEditingCell] = useState(null);
   const [editValues, setEditValues] = useState({});
+  const [priceCurrencyEdit, setPriceCurrencyEdit] = useState({}); // per-product currency during price edit
   const [updatingProducts, setUpdatingProducts] = useState(new Set());
   const [retryCount, setRetryCount] = useState(0);
   const [showRetryButton, setShowRetryButton] = useState(false);
@@ -117,6 +118,8 @@ const ListedProducts = () => {
             return {
               ...p,
               sellerListingCountries: sellerEntry?.listingCountries || [],
+              sellerPriceCurrency: sellerEntry?.priceCurrency || 'GBP',
+              sellerCustomPrice: sellerEntry?.sellerPrice ?? p.sellerInfo?.sellerPrice ?? p.price,
               sellerAsinData: {
                 asinAvailable: sellerEntry?.asinAvailable || false,
                 asinYearlyCost: sellerEntry?.asinYearlyCost || 0,
@@ -296,9 +299,13 @@ const ListedProducts = () => {
     }
   };
 
-  const handleCellClick = (productId, field, currentValue) => {
+  const handleCellClick = (productId, field, currentValue, product) => {
     setEditingCell(`${productId}-${field}`)
     setEditValues({ ...editValues, [`${productId}-${field}`]: currentValue || '' })
+    // Init currency edit state from stored priceCurrency
+    if (field === 'price' && product) {
+      setPriceCurrencyEdit(prev => ({ ...prev, [productId]: product.sellerPriceCurrency || 'GBP' }))
+    }
   }
 
   const handleEditChange = (productId, field, value) => {
@@ -356,6 +363,10 @@ const ListedProducts = () => {
       const token = localStorage.getItem('sellerToken')
       const updateData = {}
       updateData[field] = numericValue
+      // Include priceCurrency when updating price
+      if (field === 'price') {
+        updateData.priceCurrency = priceCurrencyEdit[productId] || 'GBP'
+      }
 
       const response = await fetch(getApiUrl(`sellers/update-inventory/${productId}`), {
         method: 'PUT',
@@ -374,21 +385,20 @@ const ListedProducts = () => {
               ? { 
                   ...product, 
                   [field]: numericValue,
-                  // Update seller's specific price if it's a price update
                   ...(field === 'price' && {
+                    sellerCustomPrice: numericValue,
+                    sellerPriceCurrency: priceCurrencyEdit[productId] || product.sellerPriceCurrency || 'GBP',
                     sellerInfo: {
                       ...product.sellerInfo,
                       sellerPrice: numericValue
                     }
                   }),
-                  // Update seller's specific shipping if it's a shipping update
                   ...(field === 'shipping' && {
                     sellerInfo: {
                       ...product.sellerInfo,
                       sellerShipping: numericValue
                     }
                   }),
-                  // Update MOQ
                   ...(field === 'moq' && { sellerMoq: numericValue })
                 }
               : product
@@ -954,56 +964,59 @@ const ListedProducts = () => {
                           transition: 'background 0.2s',
                           padding: '4px 3px'
           }}
-                        onClick={() => !product.isListingRequest && handleCellClick(product._id, 'price', product.sellerInfo?.sellerPrice || product.price)}
+                        onClick={() => !product.isListingRequest && handleCellClick(product._id, 'price', product.sellerCustomPrice ?? product.sellerInfo?.sellerPrice ?? product.price, product)}
                         onMouseEnter={(e) => !product.isListingRequest && (e.target.style.background = '#f0f0ff')}
                         onMouseLeave={(e) => e.target.style.background = ''}
                         title={product.isListingRequest ? "Cannot edit price for listing requests" : "Click to edit price"}
                       >
                         {editingCell === `${product._id}-price` && !product.isListingRequest ? (
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={editValues[`${product._id}-price`] || ''}
-                            onChange={(e) => handleEditChange(product._id, 'price', e.target.value)}
-                            onInput={(e) => handleInputEvent(e, product._id, 'price')}
-                            onWheel={(e) => handleMouseWheel(e, product._id, 'price')}
-                            onBlur={() => handleSaveEdit(product._id, 'price')}
-                            onKeyDown={(e) => handleKeyPress(e, product._id, 'price')}
-                            autoFocus
-                            disabled={updatingProducts.has(product._id)}
-                            style={{
-                              width: '80px',
-                              padding: '4px',
-                              fontSize: '0.85rem',
-                              border: '2px solid #667eea',
-                              borderRadius: '4px',
-                              outline: 'none'
-                            }}
-                          />
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {/* Currency selector */}
+                            <select
+                              value={priceCurrencyEdit[product._id] || product.sellerPriceCurrency || 'GBP'}
+                              onChange={e => setPriceCurrencyEdit(prev => ({ ...prev, [product._id]: e.target.value }))}
+                              onClick={e => e.stopPropagation()}
+                              style={{ width: '80px', padding: '2px 4px', fontSize: '0.75rem', border: '1.5px solid #667eea', borderRadius: '4px' }}
+                            >
+                              <option value="GBP">£ GBP</option>
+                              <option value="PKR">Rs PKR</option>
+                              <option value="AED">AED</option>
+                              <option value="USD">$ USD</option>
+                            </select>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={editValues[`${product._id}-price`] || ''}
+                              onChange={(e) => handleEditChange(product._id, 'price', e.target.value)}
+                              onInput={(e) => handleInputEvent(e, product._id, 'price')}
+                              onWheel={(e) => handleMouseWheel(e, product._id, 'price')}
+                              onBlur={() => handleSaveEdit(product._id, 'price')}
+                              onKeyDown={(e) => handleKeyPress(e, product._id, 'price')}
+                              autoFocus
+                              disabled={updatingProducts.has(product._id)}
+                              style={{
+                                width: '80px',
+                                padding: '4px',
+                                fontSize: '0.85rem',
+                                border: '2px solid #667eea',
+                                borderRadius: '4px',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
                         ) : (
                           <div>
                             <span className="fw-bold text-success">
-                              {product.currency || 'GBP'} {product.sellerInfo?.sellerPrice || product.price}
+                              {(() => {
+                                const cur = product.sellerPriceCurrency || 'GBP';
+                                const sym = { GBP: '£', PKR: 'Rs ', AED: 'د.إ ', USD: '$' };
+                                const price = product.sellerCustomPrice ?? product.sellerInfo?.sellerPrice ?? product.price;
+                                return `${sym[cur] || ''}${parseFloat(price || 0).toFixed(2)} ${cur}`;
+                              })()}
                               {!product.isListingRequest && (
                                 <span style={{ marginLeft: '4px', fontSize: '0.6rem', color: '#999' }}>✏️</span>
                               )}
                             </span>
-                            {/* Show admin price comparison for listing requests */}
-                            {product.isListingRequest && product.sellerInfo?.sellerPrice && (
-                              <div>
-                                <small className="text-muted">
-                                  Requested price
-                                </small>
-                              </div>
-                            )}
-                            {/* Show admin price if different */}
-                            {!product.isListingRequest && product.sellerInfo?.sellerPrice && product.sellerInfo.sellerPrice !== product.price && (
-                              <div>
-                                <small className="text-muted">
-                                  Admin: {product.currency || 'GBP'} {product.price}
-                                </small>
-                              </div>
-                            )}
                           </div>
                         )}
                       </td>
