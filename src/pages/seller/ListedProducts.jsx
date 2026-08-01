@@ -987,13 +987,22 @@ const ListedProducts = () => {
                         title={product.isListingRequest ? "Cannot edit price for listing requests" : "Click to edit price"}
                       >
                         {editingCell === `${product._id}-price` && !product.isListingRequest ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+                            onClick={e => e.stopPropagation()}
+                            onBlur={e => {
+                              // Only save when focus leaves the whole container, not when moving to the select
+                              if (!e.currentTarget.contains(e.relatedTarget)) {
+                                handleSaveEdit(product._id, 'price');
+                              }
+                            }}
+                          >
                             {/* Currency selector */}
                             <select
                               value={priceCurrencyEdit[product._id] || product.sellerPriceCurrency || 'GBP'}
-                              onChange={e => setPriceCurrencyEdit(prev => ({ ...prev, [product._id]: e.target.value }))}
+                              onChange={e => { e.stopPropagation(); setPriceCurrencyEdit(prev => ({ ...prev, [product._id]: e.target.value })); }}
                               onClick={e => e.stopPropagation()}
-                              style={{ width: '80px', padding: '2px 4px', fontSize: '0.75rem', border: '1.5px solid #667eea', borderRadius: '4px' }}
+                              onMouseDown={e => e.stopPropagation()}
+                              style={{ width: '100px', padding: '4px 6px', fontSize: '0.8rem', border: '1.5px solid #667eea', borderRadius: '4px', cursor: 'pointer' }}
                             >
                               <option value="GBP">£ GBP</option>
                               <option value="PKR">Rs PKR</option>
@@ -1007,7 +1016,6 @@ const ListedProducts = () => {
                               onChange={(e) => handleEditChange(product._id, 'price', e.target.value)}
                               onInput={(e) => handleInputEvent(e, product._id, 'price')}
                               onWheel={(e) => handleMouseWheel(e, product._id, 'price')}
-                              onBlur={() => handleSaveEdit(product._id, 'price')}
                               onKeyDown={(e) => handleKeyPress(e, product._id, 'price')}
                               autoFocus
                               disabled={updatingProducts.has(product._id)}

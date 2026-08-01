@@ -3456,7 +3456,7 @@ _This quotation was generated from PoundlandWholesale.com_
                             <>
                               {(() => {
                                 const breakdown = getLowestPriceBreakdown();
-                                const displayTotal = currency === 'GBP' ? breakdown.total : breakdown.price;
+                                const displayTotal = breakdown.total;
                                 return fmtConverted(displayTotal);
                               })()}
                             </>
@@ -3506,11 +3506,9 @@ _This quotation was generated from PoundlandWholesale.com_
                             border: '1px solid rgba(107, 114, 128, 0.2)'
                           }}>
                             <i className="fas fa-calculator" style={{ fontSize: '0.7rem', marginRight: '6px' }}></i>
-                            {currency === 'PKR'
-                              ? fmtConverted(breakdown.price)
-                              : breakdown.shipping > 0
-                                ? `${fmtConverted(breakdown.price)} + ${fmtConverted(breakdown.shipping)} shipping`
-                                : fmtConverted(breakdown.price)
+                            {breakdown.shipping > 0
+                              ? `${fmtConverted(breakdown.price)} + ${fmtConverted(breakdown.shipping)} shipping`
+                              : fmtConverted(breakdown.price)
                             }
                           </div>
                         );
@@ -3926,7 +3924,7 @@ _This quotation was generated from PoundlandWholesale.com_
                         }}>
                           {(() => {
                             const breakdown = getLowestPriceBreakdown();
-                            const displayTotal = currency === 'GBP' ? breakdown.total : breakdown.price;
+                            const displayTotal = breakdown.total;
                             return fmtConverted(displayTotal);
                           })()}
                         </span>
@@ -4091,7 +4089,7 @@ _This quotation was generated from PoundlandWholesale.com_
                             border: '1px solid rgba(107, 114, 128, 0.2)'
                           }}>
                             <i className="fas fa-calculator" style={{ fontSize: '0.65rem', marginRight: '4px' }}></i>
-                            {currency === 'GBP' && breakdown.shipping > 0
+                            {breakdown.shipping > 0
                               ? `${fmtConverted(breakdown.price)} + ${fmtConverted(breakdown.shipping)} shipping`
                               : fmtConverted(breakdown.price)
                             }
@@ -4157,7 +4155,7 @@ _This quotation was generated from PoundlandWholesale.com_
                                 border: '1px solid rgba(107, 114, 128, 0.2)'
                               }}>
                                 <i className="fas fa-calculator" style={{ fontSize: '0.55rem', marginRight: '3px' }}></i>
-                                {currency === 'GBP' && breakdown.shipping > 0
+                                {breakdown.shipping > 0
                                   ? `${fmtConverted(breakdown.price)} + ${fmtConverted(breakdown.shipping)} shipping`
                                   : fmtConverted(breakdown.price)
                                 }
