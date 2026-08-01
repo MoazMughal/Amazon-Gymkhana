@@ -325,7 +325,8 @@ const ProductDetail = () => {
         if (isNaN(price)) return null;
         const shipping = parseFloat(seller.sellerShipping) || 0;
         const fromCur = seller.priceCurrency || 'GBP';
-        return convertFromCurrency(price + shipping, fromCur);
+        // sellerShipping is always stored in PKR
+        return convertFromCurrency(price, fromCur) + convertFromCurrency(shipping, 'PKR');
       })
       .filter(t => t !== null && t > 0);
 
@@ -353,7 +354,8 @@ const ProductDetail = () => {
       const sellerShipping = parseFloat(seller.sellerShipping) || 0;
       const fromCur = seller.priceCurrency || 'GBP';
       const convertedPrice    = convertFromCurrency(sellerPrice, fromCur);
-      const convertedShipping = convertFromCurrency(sellerShipping, fromCur);
+      // sellerShipping is always stored in PKR regardless of seller's price currency
+      const convertedShipping = convertFromCurrency(sellerShipping, 'PKR');
       const convertedTotal    = convertedPrice + convertedShipping;
       if (!lowest || convertedTotal < lowest.total) {
         lowest = { price: convertedPrice, shipping: convertedShipping, total: convertedTotal, isSellerPrice: true, moq: seller.moq || 1, priceCurrency: fromCur };

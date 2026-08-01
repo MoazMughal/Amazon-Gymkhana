@@ -281,8 +281,15 @@ const AdminProducts = () => {
     if (isNaN(sellerPrice) || sellerPrice <= 0) { alert('❌ Please enter a valid price.'); return }
     if (dimL <= 0 || dimW <= 0 || dimH <= 0) { alert('❌ Please enter all three dimensions (L × W × H).'); return }
     if (isNaN(sellerMoq) || sellerMoq < 1) { alert('❌ MOQ must be at least 1.'); return }
-    // Shipping = L × W × H × weight (weight optional, defaults to 1)
-    const sellerShipping = parseFloat((dimL * dimW * dimH * (wt > 0 ? wt : 1)).toFixed(2))
+    // Shipping calc:
+    // ActualWeight (kg) = weight_grams / 1000
+    // VolumetricWeight (kg) = (L × W × H) / 5000  (dimensions in cm)
+    // ChargeableWeight = MAX(ActualWeight, VolumetricWeight)
+    // ShippingCost = ChargeableWeight × 1600
+    const actualWeight = wt > 0 ? wt / 1000 : 0
+    const volumetricWeight = (dimL * dimW * dimH) / 5000
+    const chargeableWeight = Math.max(actualWeight, volumetricWeight)
+    const sellerShipping = parseFloat((chargeableWeight * 1600).toFixed(2))
     setListingSubmitting(true)
     try {
       const token = localStorage.getItem('sellerToken')
@@ -797,9 +804,13 @@ const AdminProducts = () => {
                             const l = parseFloat(listingForm.dimL) || 0
                             const w = parseFloat(listingForm.dimW) || 0
                             const h = parseFloat(listingForm.dimH) || 0
-                            const wt = parseFloat(listingForm.weight) || 0
+                            const wtG = parseFloat(listingForm.weight) || 0
                             if (l > 0 && w > 0 && h > 0) {
-                              return (l * w * h * (wt > 0 ? wt : 1)).toFixed(2)
+                              const actualWeight = wtG > 0 ? wtG / 1000 : 0
+                              const volumetricWeight = (l * w * h) / 5000
+                              const chargeableWeight = Math.max(actualWeight, volumetricWeight)
+                              const shippingCost = (chargeableWeight * 1600).toFixed(2)
+                              return `Rs. ${shippingCost}`
                             }
                             return '—'
                           })()}
@@ -829,13 +840,13 @@ const AdminProducts = () => {
                     {/* Weight — optional */}
                     <div style={{ marginBottom: '12px' }}>
                       <label style={{ fontSize: '11px', fontWeight: '700', color: '#495057', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
-                        <i className="fas fa-weight-hanging" style={{ marginRight: '4px', color: '#fd7e14' }}></i>Weight (kg)
-                        <span style={{ fontSize: '9px', color: '#aaa', fontWeight: '400', marginLeft: '4px', textTransform: 'none' }}>optional — multiplied with dimensions</span>
+                        <i className="fas fa-weight-hanging" style={{ marginRight: '4px', color: '#fd7e14' }}></i>Weight (grams)
+                        <span style={{ fontSize: '9px', color: '#aaa', fontWeight: '400', marginLeft: '4px', textTransform: 'none' }}>e.g. 80 for 80g</span>
                       </label>
                       <input type="number" min="0" step="0.001" value={listingForm.weight}
                         onChange={e => setListingForm(f => ({ ...f, weight: e.target.value }))}
                         style={{ width: '100%', padding: '9px 10px', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '13px', fontWeight: '600', outline: 'none', boxSizing: 'border-box' }}
-                        onFocus={e => e.target.style.borderColor='#fd7e14'} onBlur={e => e.target.style.borderColor='#e9ecef'} placeholder="e.g. 0.5" />
+                        onFocus={e => e.target.style.borderColor='#fd7e14'} onBlur={e => e.target.style.borderColor='#e9ecef'} placeholder="e.g. 80" />
                     </div>
                   </>
                 )

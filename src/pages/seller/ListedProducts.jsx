@@ -18,6 +18,22 @@ const countryFlag = (code) => {
   return String.fromCodePoint(...[...cc].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
 };
 
+// Shipping is always calculated in PKR. Convert to display currency.
+const PKR_RATES = { PKR: 1, GBP: 440, AED: 75, USD: 280 };
+const CURRENCY_SYMBOLS = { GBP: '£', PKR: 'Rs', AED: 'د.إ', USD: '$' };
+
+const calcShipping = (l, w, h, wtGrams) => {
+  const actualWeight = wtGrams > 0 ? wtGrams / 1000 : 0;
+  const volumetricWeight = (l * w * h) / 5000;
+  const chargeableWeight = Math.max(actualWeight, volumetricWeight);
+  return parseFloat((chargeableWeight * 1600).toFixed(2)); // Rs (PKR)
+};
+
+const shippingInCurrency = (pkrAmount, currency) => {
+  const rate = PKR_RATES[currency] || PKR_RATES.GBP;
+  return parseFloat((pkrAmount / rate).toFixed(2));
+};
+
 const ListedProducts = () => {
   const navigate = useNavigate();
   const { seller, isLoggedIn, loading, authResolved } = useSeller();
@@ -1059,17 +1075,23 @@ const ListedProducts = () => {
                             {/* Weight input */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                               <span style={{ fontSize: '0.65rem', fontWeight: '700', color: '#fd7e14', width: '10px' }}>W</span>
-                              <input type="number" min="0" step="0.001" placeholder="kg (opt)"
+                              <input type="number" min="0" step="1" placeholder="g (opt)"
                                 value={dimEdit[product._id]?.wt || ''}
                                 onChange={e => setDimEdit(prev => ({ ...prev, [product._id]: { ...prev[product._id], wt: e.target.value } }))}
                                 style={{ width: '60px', padding: '3px 5px', fontSize: '0.75rem', border: '1.5px solid #fd7e14', borderRadius: '4px', outline: 'none' }} />
-                              <span style={{ fontSize: '0.6rem', color: '#aaa' }}>kg</span>
+                              <span style={{ fontSize: '0.6rem', color: '#aaa' }}>g</span>
                             </div>
                             {/* Computed shipping preview */}
                             {(() => {
                               const d = dimEdit[product._id] || {};
                               const l = parseFloat(d.l)||0, w = parseFloat(d.w)||0, h = parseFloat(d.h)||0, wt = parseFloat(d.wt)||0;
-                              if (l>0 && w>0 && h>0) return <div style={{ fontSize: '0.7rem', fontWeight: '700', color: '#28a745' }}>= {(l*w*h*(wt>0?wt:1)).toFixed(2)}</div>;
+                              const currency = product.sellerPriceCurrency || 'GBP';
+                              const sym = CURRENCY_SYMBOLS[currency] || '£';
+                              if (l>0 && w>0 && h>0) {
+                                const pkr = calcShipping(l, w, h, wt);
+                                const display = currency === 'PKR' ? pkr : shippingInCurrency(pkr, currency);
+                                return <div style={{ fontSize: '0.7rem', fontWeight: '700', color: '#28a745' }}>= {sym}{display.toFixed(2)}</div>;
+                              }
                               return null;
                             })()}
                             {/* Save/Cancel */}
@@ -1079,7 +1101,8 @@ const ListedProducts = () => {
                                   const d = dimEdit[product._id] || {};
                                   const l = parseFloat(d.l)||0, w = parseFloat(d.w)||0, h = parseFloat(d.h)||0, wt = parseFloat(d.wt)||0;
                                   if (l<=0 || w<=0 || h<=0) { alert('Enter all 3 dimensions'); return; }
-                                  const computed = parseFloat((l*w*h*(wt>0?wt:1)).toFixed(2));
+                                  // Always store in PKR; display layer converts
+                                  const computed = calcShipping(l, w, h, wt);
                                   setUpdatingProducts(prev => new Set(prev).add(product._id));
                                   setEditingCell(null);
                                   try {
@@ -1107,7 +1130,13 @@ const ListedProducts = () => {
                         ) : (
                           <div>
                             <span className="fw-bold text-info">
-                              {(product.sellerInfo?.sellerShipping || product.shipping || 0).toFixed(2)}
+                              {(() => {
+                                const pkr = product.sellerInfo?.sellerShipping || product.shipping || 0;
+                                const currency = product.sellerPriceCurrency || 'GBP';
+                                const sym = CURRENCY_SYMBOLS[currency] || '£';
+                                const display = currency === 'PKR' ? pkr : shippingInCurrency(pkr, currency);
+                                return `${sym}${display.toFixed(2)}`;
+                              })()}
                               {!product.isListingRequest && <span style={{ marginLeft: '4px', fontSize: '0.6rem', color: '#999' }}>✏️</span>}
                             </span>
                             {(() => {
