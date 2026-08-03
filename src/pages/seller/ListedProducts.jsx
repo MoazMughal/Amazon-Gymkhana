@@ -1067,8 +1067,58 @@ const ListedProducts = () => {
                         title={product.isListingRequest ? 'Cannot edit shipping for listing requests' : 'Click to edit shipping via dimensions'}
                       >
                         {editingCell === `${product._id}-shipping` && !product.isListingRequest ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '120px' }}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '130px' }}
                             onClick={e => e.stopPropagation()}>
+                            {/* Category dimension suggestions */}
+                            {(() => {
+                              const sellerId = seller?._id?.toString();
+                              const suggestions = products
+                                .filter(p =>
+                                  p._id !== product._id &&
+                                  p.category === product.category &&
+                                  !p.isListingRequest
+                                )
+                                .map(p => p.sellers?.find(s => s.sellerId?.toString() === sellerId))
+                                .filter(se => se?.dimensions?.length && se?.dimensions?.width && se?.dimensions?.height)
+                                .map(se => ({ l: se.dimensions.length, w: se.dimensions.width, h: se.dimensions.height, wt: se.weight || 0 }))
+                                // deduplicate by L×W×H×wt string
+                                .filter((s, i, arr) => arr.findIndex(x => x.l===s.l && x.w===s.w && x.h===s.h && x.wt===s.wt) === i)
+                                .slice(0, 3);
+
+                              if (suggestions.length === 0) return null;
+                              return (
+                                <div style={{ marginBottom: '3px' }}>
+                                  <div style={{ fontSize: '0.6rem', color: '#888', marginBottom: '2px' }}>💡 Same category:</div>
+                                  {suggestions.map((s, i) => (
+                                    <div
+                                      key={i}
+                                      onClick={async () => {
+                                        const computed = calcShipping(s.l, s.w, s.h, s.wt);
+                                        setDimEdit(prev => ({ ...prev, [product._id]: { l: s.l, w: s.w, h: s.h, wt: s.wt } }));
+                                        setUpdatingProducts(prev => new Set(prev).add(product._id));
+                                        setEditingCell(null);
+                                        try {
+                                          const token = localStorage.getItem('sellerToken');
+                                          await fetch(getApiUrl(`sellers/update-inventory/${product._id}`), {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                            body: JSON.stringify({ shipping: computed, dimensions: { length: s.l, width: s.w, height: s.h }, weight: s.wt })
+                                          });
+                                          setProducts(prev => prev.map(p => p._id === product._id
+                                            ? { ...p, sellerInfo: { ...p.sellerInfo, sellerShipping: computed } }
+                                            : p));
+                                        } catch {}
+                                        finally { setUpdatingProducts(prev => { const n=new Set(prev); n.delete(product._id); return n; }); }
+                                      }}
+                                      style={{ fontSize: '0.65rem', background: '#e8f4fd', border: '1px solid #90caf9', borderRadius: '4px', padding: '2px 5px', marginBottom: '2px', cursor: 'pointer', whiteSpace: 'nowrap', color: '#1565c0', fontWeight: '600' }}
+                                      title="Click to copy & save"
+                                    >
+                                      {s.l}×{s.w}×{s.h}cm{s.wt > 0 ? ` ${s.wt}g` : ''} ⚡
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            })()}
                             {/* Dimension inputs L W H */}
                             {['l','w','h'].map((dim, i) => (
                               <div key={dim} style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
