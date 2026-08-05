@@ -15,7 +15,11 @@ const countryFlag = (code) => {
   const flags = { GBP: 'GB', PKR: 'PK', AED: 'AE', USD: 'US' };
   const cc = flags[code];
   if (!cc) return '\uD83C\uDF0D'; // 🌍 globe fallback
-  return String.fromCodePoint(...[...cc].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+  try {
+    return String.fromCodePoint(...[...cc].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+  } catch {
+    return '\uD83C\uDF0D';
+  }
 };
 
 // Shipping is always calculated in PKR. Convert to display currency.
@@ -518,8 +522,8 @@ const ListedProducts = () => {
         case 'stock': aVal = a.stock || 0; bVal = b.stock || 0; break;
         case 'status': aVal = a.approvalStatus; bVal = b.approvalStatus; break;
         case 'category': aVal = a.category?.toLowerCase() || ''; bVal = b.category?.toLowerCase() || ''; break;
-        case 'createdAt': aVal = new Date(a.createdAt); bVal = new Date(b.createdAt); break;
-        default: aVal = new Date(a.createdAt); bVal = new Date(b.createdAt);
+        case 'createdAt': aVal = new Date(a.createdAt || 0); bVal = new Date(b.createdAt || 0); break;
+        default: aVal = new Date(a.createdAt || 0); bVal = new Date(b.createdAt || 0);
       }
       if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
       if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
@@ -1357,7 +1361,7 @@ const ListedProducts = () => {
                         )}
                       </td>
                       <td>
-                        <span className="badge bg-info">{product.category}</span>
+                        <span className="badge bg-info">{product.category || '—'}</span>
                       </td>
                       <td style={{ padding: '4px 3px' }}>
                         {!product.isListingRequest ? (
@@ -1383,7 +1387,7 @@ const ListedProducts = () => {
                       </td>
                       <td>
                         <small className="text-muted">
-                          {new Date(product.createdAt).toLocaleDateString()}
+                          {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : '—'}
                         </small>
                       </td>
                       <td>
