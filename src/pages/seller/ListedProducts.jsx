@@ -1,7 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Component } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSeller } from '../../context/SellerContext';
 import { getApiUrl } from '../../utils/api';
+
+// Per-row error boundary — one bad product won't crash the whole table
+class RowErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <tr>
+          <td colSpan={13} style={{ fontSize: '0.75rem', color: '#dc3545', padding: '4px 8px', background: '#fff5f5' }}>
+            ⚠️ Could not render this product row
+          </td>
+        </tr>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const COUNTRY_OPTIONS = [
   { code: 'GBP', label: 'UK (£ GBP)' },
@@ -68,38 +86,46 @@ const ListedProducts = () => {
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const itemsPerPage = 50;
 
-  useEffect(() => {
-    // Wait for authentication to be resolved before checking login status
-    if (!authResolved || loading) {
-      return;
-    }
+  const sellerId = seller?._id?.toString();
 
-    if (!isLoggedIn || !seller) {
+  useEffect(() => {
+    if (!authResolved || loading) return;
+    if (!isLoggedIn || !sellerId) {
       navigate('/login/supplier');
       return;
     }
-    
     loadProducts();
-  }, [isLoggedIn, seller, navigate, activeTab, authResolved, loading, currentPage]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, sellerId, activeTab, authResolved, currentPage]);
 
   // Reset to page 1 when tab changes
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab]);
 
-  // Debounced search — reset page and reload when searchTerm changes
+  // Debounced search
   useEffect(() => {
-    if (!authResolved || !isLoggedIn || !seller) return;
-    setCurrentPage(1);
-    const t = setTimeout(() => loadProducts(), 350);
+    if (!authResolved || !isLoggedIn || !sellerId) return;
+    const t = setTimeout(() => {
+      if (currentPage !== 1) {
+        setCurrentPage(1); // main effect will fire loadProducts
+      } else {
+        loadProducts(); // already page 1, trigger manually
+      }
+    }, 350);
     return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
-  // Category filter — reload immediately when category changes
+  // Category filter
   useEffect(() => {
-    if (!authResolved || !isLoggedIn || !seller) return;
-    setCurrentPage(1);
-    loadProducts();
+    if (!authResolved || !isLoggedIn || !sellerId) return;
+    if (currentPage !== 1) {
+      setCurrentPage(1); // main effect will fire loadProducts
+    } else {
+      loadProducts(); // already page 1, trigger manually
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
   const loadProducts = async (isRetry = false) => {
@@ -873,6 +899,7 @@ const ListedProducts = () => {
                 </thead>
                 <tbody>
                   {sortedProducts.map((product) => (
+                    <RowErrorBoundary key={product._id}>
                     <tr key={product._id} style={{ verticalAlign: 'middle', background: selectedIds.has(product._id) ? '#eff6ff' : '' }}>
                       <td style={{ textAlign: 'center', padding: '4px' }}>
                         {!product.isListingRequest && (
@@ -1437,6 +1464,7 @@ const ListedProducts = () => {
                         </div>
                       </td>
                     </tr>
+                    </RowErrorBoundary>
                   ))}
                 </tbody>
               </table>

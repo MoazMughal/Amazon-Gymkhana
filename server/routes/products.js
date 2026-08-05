@@ -4845,27 +4845,39 @@ router.get('/seller/listed-products', authenticateSeller, async (req, res) => {
 
     // Process products â€” attach seller-specific info
     const processedProducts = products.map(product => {
-      const sellerEntry = product.sellers?.find(
-        s => s.sellerId.toString() === sellerId.toString()
-      );
-      return {
-        ...product,
-        sellerInfo: {
-          username: seller.username,
-          email: seller.email,
-          whatsappNo: seller.whatsappNo,
-          city: seller.city,
-          country: seller.country,
-          verificationStatus: seller.verificationStatus,
-          _id: seller._id,
-          ...(sellerEntry?.sellerPrice && {
-            sellerPrice: sellerEntry.sellerPrice,
-            sellerShipping: sellerEntry.sellerShipping || 0
-          })
-        },
-        sellerMoq: sellerEntry?.moq || 1
-      };
-    });
+      try {
+        const sellerEntry = product.sellers?.find(
+          s => s.sellerId && s.sellerId.toString() === sellerId.toString()
+        );
+        return {
+          ...product,
+          name: product.name || 'Unnamed Product',
+          price: product.price ?? 0,
+          stock: product.stock ?? 0,
+          category: product.category || 'General',
+          images: product.images || [],
+          createdAt: product.createdAt || new Date().toISOString(),
+          shipping: product.shipping ?? 0,
+          sellerInfo: {
+            username: seller?.username || '',
+            email: seller?.email || '',
+            whatsappNo: seller?.whatsappNo || '',
+            city: seller?.city || '',
+            country: seller?.country || '',
+            verificationStatus: seller?.verificationStatus || '',
+            _id: seller?._id,
+            ...(sellerEntry?.sellerPrice != null && {
+              sellerPrice: sellerEntry.sellerPrice,
+              sellerShipping: sellerEntry.sellerShipping || 0
+            })
+          },
+          sellerMoq: sellerEntry?.moq || 1
+        };
+      } catch (err) {
+        console.error('Skipping broken product doc:', product?._id, err.message);
+        return null;
+      }
+    }).filter(Boolean);
 
     // Handle pending/rejected listing requests only when that tab is active
     let transformedRequests = [];
