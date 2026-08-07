@@ -121,13 +121,13 @@ const SellerInformation = ({
     const ss = parseFloat(se.sellerShipping) || 0;
     const seFromCurrency = se.priceCurrency || 'GBP';
     const qty = getQty(sid, se.moq);
-    const showShipping = currency === 'GBP' && ss > 0;
-    // Convert to display currency for total
+    const showShipping = ss > 0;
+    // Convert to display currency for total — shipping always from PKR
     const rates2 = { PKR: 1, GBP: 0.00272, USD: 0.00353, AED: 0.01310 };
     const fr = rates2[seFromCurrency] || rates2['GBP'];
     const tr = rates2[currency] || rates2['GBP'];
     const spC = (sp / fr) * tr;
-    const ssC = (ss / fr) * tr;
+    const ssC = (ss / rates2['PKR']) * tr; // shipping always PKR base
     const total = showShipping ? spC + ssC : spC;
 
     // Save quotation to DB
@@ -219,8 +219,16 @@ const SellerInformation = ({
     acc.push(s);
     return acc;
   }, []).sort((a, b) => {
-    const ta = (parseFloat(a.sellerPrice) || mainPrice) + (parseFloat(a.sellerShipping) || 0);
-    const tb = (parseFloat(b.sellerPrice) || mainPrice) + (parseFloat(b.sellerShipping) || 0);
+    const rates = { PKR: 1, GBP: 0.00272, USD: 0.00353, AED: 0.01310 };
+    const toRate = rates[currency] || rates['GBP'];
+    const priceA = parseFloat(a.sellerPrice) || mainPrice;
+    const priceB = parseFloat(b.sellerPrice) || mainPrice;
+    const shipA = parseFloat(a.sellerShipping) || 0;
+    const shipB = parseFloat(b.sellerShipping) || 0;
+    const fromA = rates[a.priceCurrency || 'GBP'] || rates['GBP'];
+    const fromB = rates[b.priceCurrency || 'GBP'] || rates['GBP'];
+    const ta = (priceA / fromA) * toRate + (shipA / rates['PKR']) * toRate;
+    const tb = (priceB / fromB) * toRate + (shipB / rates['PKR']) * toRate;
     return ta - tb;
   });
 
@@ -352,15 +360,17 @@ const SellerInformation = ({
           const seFromCurrency = se.priceCurrency || 'GBP';
           // Convert seller price from its stored currency to display currency
           const spDisplay = convertSellerPrice(sp, seFromCurrency);
-          const ssDisplay = ss > 0 ? convertSellerPrice(ss, seFromCurrency) : null;
-          // For total: convert both price and shipping from stored currency
+          // Shipping is always stored in PKR — convert from PKR to display currency
+          const ssDisplay = ss > 0 ? convertSellerPrice(ss, 'PKR') : null;
           const rates = currencyRates || { PKR: 1, GBP: 0.00272, USD: 0.00353, AED: 0.01310 };
           const fromRate = rates[seFromCurrency] || rates['GBP'];
           const toRate = rates[currency] || rates['GBP'];
+          const pkrRate = rates['PKR'] || 1;
           const spConverted = (sp / fromRate) * toRate;
-          const ssConverted = (ss / fromRate) * toRate;
-          // Only add shipping for GBP display (UK market)
-          const includeShipping = currency === 'GBP' && ss > 0;
+          // Shipping always from PKR base
+          const ssConverted = (ss / pkrRate) * toRate;
+          // Show shipping for all currencies, not just GBP
+          const includeShipping = ss > 0;
           const totalConverted = includeShipping ? spConverted + ssConverted : spConverted;
           const totalDisplay = `${currencySymbols[currency] || ''}${totalConverted.toFixed(2)}`;
           const moq = se.moq || 1;
