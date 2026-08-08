@@ -85,6 +85,8 @@ const ListedProducts = () => {
   const [bulkEdit, setBulkEdit] = useState({ price: '', shipping: '', stock: '', moq: '' });
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const itemsPerPage = 50;
+  // Persistent dim cache — survives page changes, updated on every save
+  const [dimCache, setDimCache] = useState({}); // { [productId]: {l,w,h,wt,name} }
 
   const sellerId = seller?._id?.toString();
 
@@ -176,6 +178,18 @@ const ListedProducts = () => {
             };
           });
           setProducts(enriched);
+          // Merge dims from this page into the persistent cache
+          setDimCache(prev => {
+            const next = { ...prev };
+            enriched.forEach(p => {
+              const sid = seller?._id?.toString();
+              const se = p.sellers?.find(s => s.sellerId && (s.sellerId.toString() === sid || String(s.sellerId) === sid));
+              if (se?.dimensions?.length > 0 && se?.dimensions?.width > 0 && se?.dimensions?.height > 0) {
+                next[p._id] = { l: se.dimensions.length, w: se.dimensions.width, h: se.dimensions.height, wt: se.weight || 0, name: p.name };
+              }
+            });
+            return next;
+          });
           setCounts(data.counts || { total: 0, pending: 0, approved: 0, rejected: 0 });
           setTotalPages(data.totalPages || 1);
           setRetryCount(0);
@@ -1080,15 +1094,22 @@ const ListedProducts = () => {
                         style={{ cursor: product.isListingRequest ? 'default' : 'pointer', transition: 'background 0.2s', padding: '4px 3px' }}
                         onClick={() => {
                           if (product.isListingRequest) return;
-                          // Init dim edit state from seller entry
-                          const se = product.sellers?.find(s => s.sellerId?.toString() === seller?._id?.toString());
+                          const sid = seller?._id?.toString();
+                          // Try multiple comparison strategies to find the seller entry
+                          const se = product.sellers?.find(s =>
+                            s.sellerId && (
+                              s.sellerId.toString() === sid ||
+                              s.sellerId === sid ||
+                              String(s.sellerId) === sid
+                            )
+                          );
                           setDimEdit(prev => ({
                             ...prev,
                             [product._id]: {
-                              l: se?.dimensions?.length || '',
-                              w: se?.dimensions?.width  || '',
-                              h: se?.dimensions?.height || '',
-                              wt: se?.weight || ''
+                              l: se?.dimensions?.length > 0 ? se.dimensions.length : (dimCache[product._id]?.l || prev[product._id]?.l || ''),
+                              w: se?.dimensions?.width  > 0 ? se.dimensions.width  : (dimCache[product._id]?.w || prev[product._id]?.w || ''),
+                              h: se?.dimensions?.height > 0 ? se.dimensions.height : (dimCache[product._id]?.h || prev[product._id]?.h || ''),
+                              wt: se?.weight > 0 ? se.weight : (dimCache[product._id]?.wt || prev[product._id]?.wt || '')
                             }
                           }));
                           handleCellClick(product._id, 'shipping', product.sellerInfo?.sellerShipping || product.shipping || 0);
@@ -1098,60 +1119,97 @@ const ListedProducts = () => {
                         title={product.isListingRequest ? 'Cannot edit shipping for listing requests' : 'Click to edit shipping via dimensions'}
                       >
                         {editingCell === `${product._id}-shipping` && !product.isListingRequest ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '130px' }}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '150px' }}
                             onClick={e => e.stopPropagation()}>
-                            {/* Category dimension suggestions */}
+                            {/* Suggestions: title-match first, then category — sourced from dimCache (cross-page) */}
                             {(() => {
-                              const sellerId = seller?._id?.toString();
-                              const suggestions = products
-                                .filter(p =>
-                                  p._id !== product._id &&
-                                  p.category === product.category &&
-                                  !p.isListingRequest
-                                )
-                                .map(p => p.sellers?.find(s => s.sellerId?.toString() === sellerId))
-                                .filter(se => se?.dimensions?.length && se?.dimensions?.width && se?.dimensions?.height)
-                                .map(se => ({ l: se.dimensions.length, w: se.dimensions.width, h: se.dimensions.height, wt: se.weight || 0 }))
-                                // deduplicate by L×W×H×wt string
+                              // All cached dims except current product
+                              const allCached = Object.entries(dimCache)
+                                .filter(([id]) => id !== product._id)
+                                .map(([id, d]) => ({ ...d, id }));
+
+                              // Title-keyword match (at least 2 words in common)
+                              const titleWords = (product.name || '').toLowerCase().split(/\s+/).filter(w => w.length > 2);
+                              const titleMatches = allCached
+                                .filter(d => {
+                                  const otherWords = (d.name || '').toLowerCase().split(/\s+/);
+                                  return titleWords.filter(w => otherWords.includes(w)).length >= 2;
+                                })
                                 .filter((s, i, arr) => arr.findIndex(x => x.l===s.l && x.w===s.w && x.h===s.h && x.wt===s.wt) === i)
                                 .slice(0, 3);
 
-                              if (suggestions.length === 0) return null;
+                              // Category match from current page products (cache doesn't store category)
+                              const categoryMatches = products
+                                .filter(p => p._id !== product._id && p.category === product.category && !p.isListingRequest && dimCache[p._id])
+                                .map(p => ({ ...dimCache[p._id], id: p._id }))
+                                .filter(d => !titleMatches.find(x => x.l===d.l && x.w===d.w && x.h===d.h && x.wt===d.wt))
+                                .filter((s, i, arr) => arr.findIndex(x => x.l===s.l && x.w===s.w && x.h===s.h && x.wt===s.wt) === i)
+                                .slice(0, 3);
+
+                              if (titleMatches.length === 0 && categoryMatches.length === 0) return null;
+
+                              const SugChip = ({ s, label }) => (
+                                <div
+                                  onClick={() => setDimEdit(prev => ({ ...prev, [product._id]: { l: s.l, w: s.w, h: s.h, wt: s.wt } }))}
+                                  style={{ fontSize: '0.63rem', background: '#e8f4fd', border: '1px solid #90caf9', borderRadius: '4px', padding: '2px 6px', marginBottom: '2px', cursor: 'pointer', whiteSpace: 'nowrap', color: '#1565c0', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                  title={`From: ${s.name} — click to fill inputs`}
+                                >
+                                  <span style={{ background: '#1565c0', color: '#fff', borderRadius: '3px', padding: '0 4px', fontSize: '0.55rem', fontWeight: '700' }}>{label}</span>
+                                  {s.l}×{s.w}×{s.h}cm{s.wt > 0 ? ` ${s.wt}g` : ''}
+                                </div>
+                              );
+
                               return (
-                                <div style={{ marginBottom: '3px' }}>
-                                  <div style={{ fontSize: '0.6rem', color: '#888', marginBottom: '2px' }}>💡 Same category:</div>
-                                  {suggestions.map((s, i) => (
-                                    <div
-                                      key={i}
-                                      onClick={async () => {
-                                        const computed = calcShipping(s.l, s.w, s.h, s.wt);
-                                        setDimEdit(prev => ({ ...prev, [product._id]: { l: s.l, w: s.w, h: s.h, wt: s.wt } }));
-                                        setUpdatingProducts(prev => new Set(prev).add(product._id));
-                                        setEditingCell(null);
-                                        try {
-                                          const token = localStorage.getItem('sellerToken');
-                                          await fetch(getApiUrl(`sellers/update-inventory/${product._id}`), {
-                                            method: 'PUT',
-                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                            body: JSON.stringify({ shipping: computed, dimensions: { length: s.l, width: s.w, height: s.h }, weight: s.wt })
-                                          });
-                                          setProducts(prev => prev.map(p => p._id === product._id
-                                            ? { ...p, sellerInfo: { ...p.sellerInfo, sellerShipping: computed } }
-                                            : p));
-                                        } catch {}
-                                        finally { setUpdatingProducts(prev => { const n=new Set(prev); n.delete(product._id); return n; }); }
-                                      }}
-                                      style={{ fontSize: '0.65rem', background: '#e8f4fd', border: '1px solid #90caf9', borderRadius: '4px', padding: '2px 5px', marginBottom: '2px', cursor: 'pointer', whiteSpace: 'nowrap', color: '#1565c0', fontWeight: '600' }}
-                                      title="Click to copy & save"
-                                    >
-                                      {s.l}×{s.w}×{s.h}cm{s.wt > 0 ? ` ${s.wt}g` : ''} ⚡
-                                    </div>
-                                  ))}
+                                <div style={{ marginBottom: '4px' }}>
+                                  {titleMatches.length > 0 && (
+                                    <>
+                                      <div style={{ fontSize: '0.58rem', color: '#7c3aed', fontWeight: '700', marginBottom: '2px' }}>🔤 Similar title:</div>
+                                      {titleMatches.map((s, i) => <SugChip key={`t${i}`} s={s} label="Title" />)}
+                                    </>
+                                  )}
+                                  {categoryMatches.length > 0 && (
+                                    <>
+                                      <div style={{ fontSize: '0.58rem', color: '#888', fontWeight: '600', marginTop: titleMatches.length ? '3px' : 0, marginBottom: '2px' }}>📦 Same category:</div>
+                                      {categoryMatches.map((s, i) => <SugChip key={`c${i}`} s={s} label="Cat" />)}
+                                    </>
+                                  )}
                                 </div>
                               );
                             })()}
                             {/* Dimension inputs L W H */}
-                            {['l','w','h'].map((dim, i) => (
+                            {/* Prev / Next dimension copy buttons */}
+                            {(() => {
+                              const curIdx = sortedProducts.findIndex(p => p._id === product._id);
+                              // Use dimCache for cross-page awareness, fall back to current page order for prev/next
+                              const withDims = sortedProducts
+                                .map((p, idx) => {
+                                  if (p.isListingRequest || p._id === product._id) return null;
+                                  const cached = dimCache[p._id];
+                                  if (!cached) return null;
+                                  return { sortIdx: idx, ...cached };
+                                })
+                                .filter(Boolean);
+                              if (withDims.length === 0) return null;
+                              const prev = [...withDims].reverse().find(p => p.sortIdx < curIdx) || null;
+                              const next = withDims.find(p => p.sortIdx > curIdx) || null;
+                              const copyDim = (d) => setDimEdit(pr => ({ ...pr, [product._id]: { l: d.l, w: d.w, h: d.h, wt: d.wt } }));
+                              const btnStyle = (enabled) => ({ fontSize: '0.62rem', fontWeight: '700', padding: '2px 6px', borderRadius: '4px', border: '1px solid #c7d2fe', background: '#eef2ff', color: '#4338ca', cursor: enabled ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap', flex: 1, opacity: enabled ? 1 : 0.35 });
+                              return (
+                                <div style={{ display: 'flex', gap: '3px', marginBottom: '3px' }}>
+                                  <button type="button" onClick={() => prev && copyDim(prev)}
+                                    style={btnStyle(!!prev)}
+                                    title={prev ? `Row above: ${prev.l}×${prev.w}×${prev.h}cm — ${prev.name}` : 'No previous row with dimensions'}>
+                                    ◀ Prev
+                                  </button>
+                                  <button type="button" onClick={() => next && copyDim(next)}
+                                    style={btnStyle(!!next)}
+                                    title={next ? `Row below: ${next.l}×${next.w}×${next.h}cm — ${next.name}` : 'No next row with dimensions'}>
+                                    Next ▶
+                                  </button>
+                                </div>
+                              );
+                            })()}
+                            {['l','w','h'].map((dim) => (
                               <div key={dim} style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                                 <span style={{ fontSize: '0.65rem', fontWeight: '700', color: '#6b7280', width: '10px' }}>{dim.toUpperCase()}</span>
                                 <input type="number" min="0.01" step="0.01" placeholder="0"
@@ -1194,6 +1252,8 @@ const ListedProducts = () => {
                                   const computed = calcShipping(l, w, h, wt);
                                   setUpdatingProducts(prev => new Set(prev).add(product._id));
                                   setEditingCell(null);
+                                  // Update dim cache immediately so other products see it without reload
+                                  setDimCache(prev => ({ ...prev, [product._id]: { l, w, h, wt, name: product.name } }));
                                   try {
                                     const token = localStorage.getItem('sellerToken');
                                     await fetch(getApiUrl(`sellers/update-inventory/${product._id}`), {
@@ -1202,7 +1262,7 @@ const ListedProducts = () => {
                                       body: JSON.stringify({ shipping: computed, dimensions: { length: l, width: w, height: h }, weight: wt })
                                     });
                                     setProducts(prev => prev.map(p => p._id === product._id
-                                      ? { ...p, sellerInfo: { ...p.sellerInfo, sellerShipping: computed } }
+                                      ? { ...p, sellerInfo: { ...p.sellerInfo, sellerShipping: computed }, sellers: (p.sellers || []).map(s => s.sellerId && (s.sellerId.toString() === sellerId || String(s.sellerId) === sellerId) ? { ...s, dimensions: { length: l, width: w, height: h }, weight: wt } : s) }
                                       : p));
                                   } catch {}
                                   finally { setUpdatingProducts(prev => { const n=new Set(prev); n.delete(product._id); return n; }); }
@@ -1229,10 +1289,11 @@ const ListedProducts = () => {
                               {!product.isListingRequest && <span style={{ marginLeft: '4px', fontSize: '0.6rem', color: '#999' }}>✏️</span>}
                             </span>
                             {(() => {
-                              const se = product.sellers?.find(s => s.sellerId?.toString() === seller?._id?.toString());
+                              const sid = seller?._id?.toString();
+                              const se = product.sellers?.find(s => s.sellerId && (s.sellerId.toString() === sid || String(s.sellerId) === sid));
                               const d = se?.dimensions;
                               if (d && (d.length||d.width||d.height)) {
-                                return <div style={{ fontSize: '0.6rem', color: '#aaa' }}>{d.length}×{d.width}×{d.height}{se.weight?` ${se.weight}kg`:''}</div>;
+                                return <div style={{ fontSize: '0.6rem', color: '#aaa' }}>{d.length}×{d.width}×{d.height}{se.weight?` ${se.weight}g`:''}</div>;
                               }
                               return null;
                             })()}
