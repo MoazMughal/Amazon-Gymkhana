@@ -1088,13 +1088,14 @@ const AmazonsChoice = () => {
             const isWatchStrap = p.name && p.name.toLowerCase().includes('leather watch strap');
 
             // Rates relative to PKR (same as CurrencyContext) for normalising sellerPrice to GBP
+            const rates_ac = { PKR: 1, GBP: 0.00272, AED: 0.01310, USD: 0.00353 };
             const toGBP = (price, priceCurrency) => {
-              const rates = { PKR: 1, GBP: 0.00272, AED: 0.01310, USD: 0.00353 };
-              // Default to GBP — sellers without priceCurrency set were listed before multi-currency support
               const cur = (priceCurrency || 'GBP').toUpperCase();
-              const rateToGBP = rates['GBP'] / (rates[cur] || rates['GBP']);
+              const rateToGBP = rates_ac['GBP'] / (rates_ac[cur] || rates_ac['GBP']);
               return price * rateToGBP;
             };
+            // shipping is always stored in PKR → convert PKR→GBP
+            const ssToGBP = (pkr) => pkr * rates_ac['GBP'];
 
             // Compute lowest seller price (same logic as ProductDetail getLowestPriceBreakdown)
             let lowestPrice    = null; // null = no sellers listed
@@ -1109,11 +1110,12 @@ const AmazonsChoice = () => {
                 // Normalise to GBP so downstream convertPrice works correctly
                 const spGBP = toGBP(sp, se.priceCurrency);
                 const ss    = parseFloat(se.sellerShipping) || 0;
-                const total = spGBP + ss;
+                const ssGBP = ssToGBP(ss); // shipping always PKR→GBP
+                const total = spGBP + ssGBP;
                 if (total < lowestTotal) {
                   lowestTotal    = total;
                   lowestPrice    = spGBP;
-                  lowestShipping = ss;
+                  lowestShipping = ssGBP;
                   lowestMoq      = se.moq || 1;
                 }
               });
@@ -1236,16 +1238,20 @@ const AmazonsChoice = () => {
                 let lowestShipping = 0;
                 let lowestTotal    = Infinity;
                 let lowestMoq      = 1;
+                const _r = { PKR: 1, GBP: 0.00272, AED: 0.01310, USD: 0.00353 };
                 if (p.sellers && p.sellers.length > 0) {
                   p.sellers.forEach(se => {
                     const sp = parseFloat(se.sellerPrice);
                     if (isNaN(sp) || sp <= 0) return;
+                    const cur = (se.priceCurrency || 'GBP').toUpperCase();
+                    const spGBP = sp * (_r['GBP'] / (_r[cur] || _r['GBP']));
                     const ss    = parseFloat(se.sellerShipping) || 0;
-                    const total = sp + ss;
+                    const ssGBP = ss * _r['GBP']; // shipping always PKR→GBP
+                    const total = spGBP + ssGBP;
                     if (total < lowestTotal) {
                       lowestTotal    = total;
-                      lowestPrice    = sp;
-                      lowestShipping = ss;
+                      lowestPrice    = spGBP;
+                      lowestShipping = ssGBP;
                       lowestMoq      = se.moq || 1;
                     }
                   });

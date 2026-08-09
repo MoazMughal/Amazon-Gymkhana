@@ -649,59 +649,52 @@ const AdminProducts = () => {
   const getLowestPriceDisplay = (product) => {
     const adminPrice = parseFloat(product.price || 0);
     const adminShipping = parseFloat(product.shipping || 0);
-    const adminTotal = adminPrice + adminShipping;
-    
+    const adminTotal = adminPrice + adminShipping; // admin price is always GBP
+
+    // Currency rates — all normalised to GBP base
+    const _r = { PKR: 1, GBP: 0.00272, USD: 0.00353, AED: 0.01310 };
+    const toGBP = (amount, currency) => {
+      const cur = (currency || 'GBP').toUpperCase();
+      const rate = _r[cur] || _r['GBP'];
+      return amount * (_r['GBP'] / rate);
+    };
+
     // If no sellers, return admin price
     if (!product.sellers || product.sellers.length === 0) {
-      return {
-        total: adminTotal,
-        price: adminPrice,
-        shipping: adminShipping,
-        isSellerPrice: false,
-        sellerName: null
-      };
+      return { total: adminTotal, price: adminPrice, shipping: adminShipping, isSellerPrice: false, sellerName: null };
     }
-    
-    // Find the seller with the lowest total price
+
+    // Find the seller with the lowest total price in GBP
+    // Always prefer seller price over admin price when sellers exist
     let lowestSeller = null;
-    let lowestTotal = adminTotal;
-    
+    let lowestTotal = Infinity; // compare only among sellers, not against admin price
+
     product.sellers.forEach(seller => {
-      const sellerPrice = parseFloat(seller.sellerPrice || 0);
-      const sellerShipping = parseFloat(seller.sellerShipping || 0);
-      const sellerTotal = sellerPrice + sellerShipping;
-      
-      if (sellerTotal > 0 && sellerTotal < lowestTotal) {
-        lowestTotal = sellerTotal;
+      const sp = parseFloat(seller.sellerPrice || 0);
+      if (sp <= 0) return;
+      // Convert seller price from its stored currency to GBP
+      const spGBP = toGBP(sp, seller.priceCurrency || 'GBP');
+      // Shipping is always stored in PKR
+      const ssGBP = (parseFloat(seller.sellerShipping || 0)) * _r['GBP'];
+      const totalGBP = spGBP + ssGBP;
+
+      if (totalGBP > 0 && totalGBP < lowestTotal) {
+        lowestTotal = totalGBP;
         lowestSeller = {
-          price: sellerPrice,
-          shipping: sellerShipping,
-          total: sellerTotal,
+          price: parseFloat(spGBP.toFixed(4)),
+          shipping: parseFloat(ssGBP.toFixed(4)),
+          total: parseFloat(totalGBP.toFixed(4)),
           name: seller.username || seller.name || 'Seller'
         };
       }
     });
-    
-    if (lowestSeller) {
-      return {
-        total: lowestSeller.total,
-        price: lowestSeller.price,
-        shipping: lowestSeller.shipping,
-        isSellerPrice: true,
-        sellerName: lowestSeller.name
-      };
-    }
-    
-    return {
-      total: adminTotal,
-      price: adminPrice,
-      shipping: adminShipping,
-      isSellerPrice: false,
-      sellerName: null
-    };
-  };
 
-  // Enhanced format price function that shows seller prices when available
+    if (lowestSeller) {
+      return { total: lowestSeller.total, price: lowestSeller.price, shipping: lowestSeller.shipping, isSellerPrice: true, sellerName: lowestSeller.name };
+    }
+
+    return { total: adminTotal, price: adminPrice, shipping: adminShipping, isSellerPrice: false, sellerName: null };
+  };  // Enhanced format price function that shows seller prices when available
   const formatPriceWithSeller = (product) => {
     const priceInfo = getLowestPriceDisplay(product);
     
@@ -1966,7 +1959,9 @@ const AdminProducts = () => {
 
     // Get the lowest price (including seller prices)
     const priceInfo = getLowestPriceDisplay(product);
-    const totalProductCost = priceInfo.total;
+    // Ensure totalProductCost is never 0 when admin price exists
+    const adminFallback = parseFloat(product.price || 0) + parseFloat(product.shipping || 0);
+    const totalProductCost = priceInfo.total > 0 ? priceInfo.total : adminFallback;
     const initialUnits = product.platformUnits || 200;
     setSelectedUnits(initialUnits);
 
@@ -2065,8 +2060,8 @@ const AdminProducts = () => {
     setProfitEditProduct({
       _id: product._id,
       name: product.name || '',
-      price: parseFloat(product.price || 0),
-      shipping: parseFloat(product.shipping || 0),
+      price: parseFloat((priceInfo.price || parseFloat(product.price) || 0).toFixed(2)),
+      shipping: parseFloat((priceInfo.shipping || 0).toFixed(2)),
       dealUnits: safeParseFloat(product.dealUnits, 1),
       description: product.description || '',
       features: Array.isArray(product.features) ? product.features : [],

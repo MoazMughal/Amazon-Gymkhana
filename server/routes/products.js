@@ -2300,6 +2300,7 @@ router.get('/public/:id', async (req, res) => {
             businessName: seller.sellerId.businessName || seller.businessName,
             sellerPrice: seller.sellerPrice,
             sellerShipping: seller.sellerShipping,
+            priceCurrency: seller.priceCurrency || 'GBP',
             moq: seller.moq || 1,
             listedAt: seller.listedAt,
             verificationStatus: seller.sellerId.verificationStatus,
@@ -2312,7 +2313,7 @@ router.get('/public/:id', async (req, res) => {
         }
         // Fallback to cached data if sellerId not populated
         const { email, transactionId, paymentMethod, notes, ...publicSellerInfo } = seller;
-        return { ...publicSellerInfo, moq: seller.moq || 1, listingCountries: seller.listingCountries || [] };
+        return { ...publicSellerInfo, priceCurrency: seller.priceCurrency || 'GBP', moq: seller.moq || 1, listingCountries: seller.listingCountries || [] };
       });
     }
     

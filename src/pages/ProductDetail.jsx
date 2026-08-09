@@ -1136,7 +1136,23 @@ _This quotation was generated from PoundlandWholesale.com_
               
               // Use the saved product cost from admin panel (already in correct currency)
               let productCost = parseFloat(dbProduct.profitEvaluation.productCost) || 0;
-              console.log('💰 Using saved product cost from admin panel:', productCost, 'GBP');
+
+              // Override with seller's lowest price+shipping if sellers exist
+              // This ensures profit = balanceChange - actual seller cost
+              if (dbProduct.sellers && dbProduct.sellers.length > 0) {
+                const _r = { PKR: 1, GBP: 0.00272, USD: 0.00353, AED: 0.01310 };
+                let lowestGBP = Infinity;
+                dbProduct.sellers.forEach(se => {
+                  const sp = parseFloat(se.sellerPrice);
+                  if (isNaN(sp) || sp <= 0) return;
+                  const cur = (se.priceCurrency || 'GBP').toUpperCase();
+                  const spGBP = sp * (_r['GBP'] / (_r[cur] || _r['GBP']));
+                  const ssGBP = (parseFloat(se.sellerShipping) || 0) * _r['GBP']; // PKR→GBP
+                  const total = spGBP + ssGBP;
+                  if (total < lowestGBP) lowestGBP = total;
+                });
+                if (lowestGBP !== Infinity) productCost = parseFloat(lowestGBP.toFixed(2));
+              }
               
               // Use saved profit calculations if available, otherwise auto-calculate
               const balanceChange = parseFloat(dbProduct.profitEvaluation.balanceChange) || 0;
@@ -3733,15 +3749,10 @@ _This quotation was generated from PoundlandWholesale.com_
                           <span style={{color: '#565959', flexShrink: 0}}>💰 Total cost/{Math.floor((product.platforms?.[0]?.units || product.platformUnits || product.dealUnits || 200) / 6)}:</span>
                           <span style={{color: '#B12704', fontWeight: '800', fontSize: '0.72rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', whiteSpace: 'nowrap'}}>{(() => {
                             const dealUnits = Math.floor((product.platforms?.[0]?.units || product.platformUnits || product.dealUnits || 200) / 6);
-                            // Use profitEvaluation productCost if available, otherwise calculate from price
-                            if (product.profitEvaluation?.productCost) {
-                              return formatPrice(product.profitEvaluation.productCost * dealUnits);
-                            }
-                            
-                            // Fallback calculation: dealUnits × unit price
-                            const priceString = product.price || '£0';
-                            const unitPrice = parseFloat(priceString.replace(/[₨£$€]/g, '').trim()) || 0;
-                            return formatPrice(unitPrice * dealUnits);
+                            // Total cost = price shown on main page (seller's lowest or admin) × deal units
+                            const breakdown = getLowestPriceBreakdown();
+                            const costPerUnit = breakdown.total > 0 ? breakdown.total : 0;
+                            return fmtConverted(costPerUnit * dealUnits);
                           })()}</span>
                         </div>
 
