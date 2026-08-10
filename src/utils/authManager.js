@@ -128,15 +128,9 @@ class AuthManager {
   // Save authentication data (single user type only)
   async saveAuth(userType, userData, token) {
     try {
-      // Validate token first
+      // Validate token structure (no server round-trip — token was just issued by login endpoint)
       if (!this.isTokenValid(token)) {
         throw new Error('Invalid or expired token')
-      }
-
-      // Verify token with server
-      const verification = await this.verifyTokenWithServer(token, userType)
-      if (!verification.valid) {
-        throw new Error(`Token verification failed: ${verification.reason}`)
       }
 
       // Clear all other auth data to enforce single login
@@ -149,7 +143,7 @@ class AuthManager {
       localStorage.setItem('currentAuthToken', token)
 
       console.log(`✅ ${userType} auth saved successfully`)
-      return { success: true, user: verification.user, role: verification.role }
+      return { success: true, user: userData, role: userType }
     } catch (error) {
       console.error(`❌ Failed to save ${userType} auth:`, error)
       this.clearAllAuth()

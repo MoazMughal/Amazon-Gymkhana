@@ -1,9 +1,46 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '../context/CurrencyContext';
 import { useBasket } from '../context/BasketContext';
 import { useBuyer } from '../context/BuyerContext';
 import { getApiUrl } from '../utils/api';
+
+// Shipping rate tooltip
+const ShippingTooltip = () => {
+  const [pos, setPos] = useState(null);
+  const rates = [
+    { flag: '🇵🇰', country: 'Pakistan', rate: 'Rs 1,600/kg' },
+    { flag: '🇬🇧', country: 'UK',       rate: '£4.35/kg'   },
+    { flag: '🇦🇪', country: 'UAE',       rate: 'AED 21.3/kg'},
+    { flag: '🇺🇸', country: 'USA',       rate: '$5.71/kg'   },
+    { flag: '🇨🇳', country: 'China',     rate: '¥41.2/kg'   },
+  ];
+  const TOOLTIP_W = 260;
+  const handleEnter = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    let left = r.left;
+    if (left + TOOLTIP_W > window.innerWidth - 8) left = window.innerWidth - TOOLTIP_W - 8;
+    if (left < 8) left = 8;
+    setPos({ top: r.bottom + 6, left });
+  };
+  const tooltip = pos ? createPortal(
+    <div style={{ position: 'fixed', top: pos.top, left: pos.left, background: '#1e293b', color: '#fff', borderRadius: '10px', padding: '12px 16px', width: TOOLTIP_W, boxShadow: '0 8px 32px rgba(0,0,0,0.35)', zIndex: 99999, fontSize: '0.75rem', whiteSpace: 'nowrap', pointerEvents: 'none' }}>
+      <div style={{ position: 'absolute', bottom: '100%', left: '14px', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #1e293b' }} />
+      <div style={{ fontWeight: '700', marginBottom: '10px', color: '#93c5fd', fontSize: '0.8rem' }}>📦 Shipping Rates (per kg)</div>
+      {rates.map(r => (
+        <div key={r.country} style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginBottom: '5px' }}>
+          <span>{r.flag} {r.country}</span>
+          <span style={{ fontWeight: '700', color: '#34d399' }}>{r.rate}</span>
+        </div>
+      ))}
+      <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.2)', fontSize: '0.65rem', color: '#94a3b8' }}>Based on chargeable weight</div>
+    </div>, document.body
+  ) : null;
+  return (
+    <><span onMouseEnter={handleEnter} onMouseLeave={() => setPos(null)} style={{ cursor: 'help', color: '#007bff', fontWeight: '600', borderBottom: '1px dashed #007bff' }}>🚚 shipping</span>{tooltip}</>
+  );
+};
 
 const SellerInformation = ({
   product,
@@ -36,6 +73,7 @@ const SellerInformation = ({
   const [unlisting, setUnlisting] = useState(false);
   const [showAllSellers, setShowAllSellers] = useState(false);
   const [sellerQty, setSellerQty] = useState({});
+  const [sellerQtyRaw, setSellerQtyRaw] = useState({}); // raw input string while typing
   const [sending, setSending] = useState({});
   const [showMembershipModal, setShowMembershipModal] = useState(false);
   const [lockedSellerName, setLockedSellerName] = useState('');
@@ -71,45 +109,39 @@ const SellerInformation = ({
   };
 
   const getQty = (sid, moq) => sellerQty[sid] ?? Math.max(1, moq || 1);
+  // While typing: store raw string, don't clamp
+  const setQtyRaw = (sid, val) => {
+    setSellerQtyRaw(prev => ({ ...prev, [sid]: val }));
+  };
+  // On blur / +/- buttons: clamp to MOQ
   const setQty = (sid, val, moq) => {
     const min = Math.max(1, moq || 1);
-    setSellerQty(prev => ({ ...prev, [sid]: Math.max(min, parseInt(val) || min) }));
+    const num = parseInt(val) || min;
+    const clamped = Math.max(min, num);
+    setSellerQty(prev => ({ ...prev, [sid]: clamped }));
+    setSellerQtyRaw(prev => ({ ...prev, [sid]: String(clamped) }));
+  };
+  const getDisplayQty = (sid, moq) => {
+    if (sellerQtyRaw[sid] !== undefined) return sellerQtyRaw[sid];
+    return String(getQty(sid, moq));
+  };
+  // Show MOQ warning when raw value is below MOQ
+  const belowMoq = (sid, moq) => {
+    const raw = sellerQtyRaw[sid];
+    if (raw === undefined) return false;
+    const num = parseInt(raw);
+    return !isNaN(num) && num < Math.max(1, moq || 1);
   };
 
   const handleContactSupplier = async (se) => {
     const sid = se.sellerId || se._id;
-
-    // If not logged in as buyer, show guest form instead
-    if (!isBuyerLoggedIn) {
-      setGuestForm(prev => ({ ...prev, [sid]: { name: '', phone: '', email: '', show: true } }));
-      return;
-    }
-
     await submitQuotation(se, {
-      buyerName: `${buyer.firstName || ''} ${buyer.lastName || ''}`.trim() || buyer.name || 'Buyer',
-      buyerPhone: buyer?.whatsappNo || buyer?.phone || '',
-      buyerEmail: buyer?.email || '',
-      buyerId: buyer?._id || buyer?.id || null,
-      senderType: 'buyer'
+      buyerName: isBuyerLoggedIn ? (`${buyer.firstName || ''} ${buyer.lastName || ''}`.trim() || buyer.name || 'Buyer') : 'Guest',
+      buyerPhone: isBuyerLoggedIn ? (buyer?.whatsappNo || buyer?.phone || '') : '',
+      buyerEmail: isBuyerLoggedIn ? (buyer?.email || '') : '',
+      buyerId: isBuyerLoggedIn ? buyer?._id : null,
+      senderType: isBuyerLoggedIn ? 'buyer' : 'guest'
     });
-  };
-
-  const handleGuestSubmit = async (se) => {
-    const sid = se.sellerId || se._id;
-    const form = guestForm[sid] || {};
-    if (!form.name?.trim()) { alert('Please enter your name.'); return; }
-    if (!form.phone?.trim()) { alert('Please enter your phone/WhatsApp number.'); return; }
-
-    await submitQuotation(se, {
-      buyerName: form.name.trim(),
-      buyerPhone: form.phone.trim(),
-      buyerEmail: form.email?.trim() || '',
-      buyerId: null,
-      senderType: 'guest'
-    });
-
-    // Hide form after submit
-    setGuestForm(prev => ({ ...prev, [sid]: { ...prev[sid], show: false } }));
   };
 
   const submitQuotation = async (se, senderInfo) => {
@@ -243,60 +275,6 @@ const SellerInformation = ({
 
   return (
     <div className="mb-2">
-      {/* Membership Modal */}
-      {showMembershipModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
-          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
-        }} onClick={() => setShowMembershipModal(false)}>
-          <div style={{
-            background: '#fff', borderRadius: '14px', padding: '28px 24px', maxWidth: '380px', width: '100%',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.25)', textAlign: 'center'
-          }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>🔒</div>
-            <h3 style={{ fontWeight: '800', color: '#1f2937', marginBottom: '8px', fontSize: '1.1rem' }}>
-              Premium Seller Access
-            </h3>
-            <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '16px', lineHeight: 1.5 }}>
-              <strong style={{ color: '#111' }}>{lockedSellerName}</strong> offers a lower price, but contacting this seller requires a <strong style={{ color: '#ff6600' }}>premium membership</strong>.
-            </p>
-            <div style={{
-              background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '10px',
-              padding: '14px', marginBottom: '18px', textAlign: 'left'
-            }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#c2410c', marginBottom: '8px' }}>
-                <i className="fas fa-crown me-1"></i> Membership Benefits
-              </div>
-              <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '0.78rem', color: '#374151', lineHeight: 1.8 }}>
-                <li>Access all sellers including lowest price offers</li>
-                <li>Direct WhatsApp contact with suppliers</li>
-                <li>Priority quotation responses</li>
-                <li>Exclusive bulk deal pricing</li>
-              </ul>
-            </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                onClick={() => setShowMembershipModal(false)}
-                style={{
-                  flex: 1, padding: '10px', fontSize: '0.8rem', fontWeight: '600',
-                  background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb',
-                  borderRadius: '8px', cursor: 'pointer'
-                }}>
-                Cancel
-              </button>
-              <button
-                onClick={() => { setShowMembershipModal(false); navigate('/buyer/dashboard'); }}
-                style={{
-                  flex: 2, padding: '10px', fontSize: '0.8rem', fontWeight: '700',
-                  background: 'linear-gradient(135deg, #ff6600, #ff9900)', color: '#fff',
-                  border: 'none', borderRadius: '8px', cursor: 'pointer'
-                }}>
-                <i className="fas fa-crown me-1"></i> Upgrade Membership
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       <style>{`
         .seller-qty-input {
           width: 80px !important;
@@ -376,7 +354,7 @@ const SellerInformation = ({
           const moq = se.moq || 1;
           const qty = getQty(sid, moq);
           const isMine = isSellerLoggedIn && currentSeller && sid?.toString() === currentSeller._id?.toString();
-          const locked = isLocked(index) && isBuyerLoggedIn && !isMine;
+          const locked = false; // membership lock removed
 
           return (
             <div key={`si-${sid}-${index}`} style={{
@@ -426,7 +404,7 @@ const SellerInformation = ({
                 <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#1f2937' }}>
                   {se.username}
                   <span style={{ fontSize: '0.62rem', fontWeight: '400', color: '#6b7280', marginLeft: '4px' }}>
-                    ({includeShipping ? `${spDisplay} + ${ssDisplay} shipping` : spDisplay})
+                    ({includeShipping ? <>{spDisplay} + <ShippingTooltip /></> : spDisplay})
                   </span>
                 </div>
                 <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#059669', whiteSpace: 'nowrap', marginLeft: '8px' }}>
@@ -453,9 +431,9 @@ const SellerInformation = ({
                     style={{ width: '32px', height: '32px', minWidth: '32px', maxWidth: '32px', minHeight: '32px', maxHeight: '32px', border: '1px solid #d1d5db', borderRadius: '4px', background: '#f9fafb', cursor: qty <= moq ? 'not-allowed' : 'pointer', fontSize: '1rem', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: qty <= moq ? 0.4 : 1, flexShrink: 0, color: '#374151', padding: '0', lineHeight: 1 }}>−</button>
                   <input
                     type="number"
-                    value={qty}
-                    min={moq}
-                    onChange={e => setQty(sid, e.target.value, moq)}
+                    value={getDisplayQty(sid, moq)}
+                    onChange={e => setQtyRaw(sid, e.target.value)}
+                    onBlur={e => setQty(sid, e.target.value, moq)}
                     className="seller-qty-input"
                     style={{
                       width: '80px',
@@ -482,6 +460,12 @@ const SellerInformation = ({
                     onClick={() => setQty(sid, qty + 1, moq)}
                     className="seller-qty-btn"
                     style={{ width: '32px', height: '32px', minWidth: '32px', maxWidth: '32px', minHeight: '32px', maxHeight: '32px', border: '1px solid #d1d5db', borderRadius: '4px', background: '#f9fafb', cursor: 'pointer', fontSize: '1rem', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#374151', padding: '0', lineHeight: 1 }}>+</button>
+                </div>
+              )}
+              {/* MOQ warning when typing below minimum */}
+              {!isMine && belowMoq(sid, moq) && (
+                <div style={{ fontSize: '0.62rem', color: '#dc2626', fontWeight: '600', marginTop: '-4px', marginBottom: '4px' }}>
+                  ⚠️ Minimum order is {moq} units
                 </div>
               )}
 
@@ -536,11 +520,6 @@ const SellerInformation = ({
                       href="#"
                       onClick={e => {
                         e.preventDefault();
-                        if (locked) {
-                          setLockedSellerName(se.username);
-                          setShowMembershipModal(true);
-                          return;
-                        }
                         handleContactSupplier(se);
                       }}
                       style={{

@@ -1719,6 +1719,7 @@ router.get('/public/fast', mobileImageOptimization, optimizeProductImages, addRe
           brand: 1,
           images: 1,
           dealUnits: 1,
+          platformUnits: 1,
           currency: 1,
           rating: 1,
           reviews: 1,
@@ -1728,7 +1729,11 @@ router.get('/public/fast', mobileImageOptimization, optimizeProductImages, addRe
           profitCalculations: 1,
           profitEvaluation: 1,
           platformComparison: 1,
-          showEvaluation: 1
+          showEvaluation: 1,
+          asin: 1,
+          sku: 1,
+          sellers: 1,
+          sellerInfo: 1
         }}
       ]).maxTimeMS(5000);
       
@@ -1773,7 +1778,7 @@ router.get('/public/fast', mobileImageOptimization, optimizeProductImages, addRe
         
         fastProducts = await Product.find(fallbackQuery)
         .limit(50)
-        .select('name price shipping category brand images dealUnits currency rating reviews isAmazonsChoice isBestSeller profitCalculations profitEvaluation platformComparison showEvaluation asin sku variations sellers sellerInfo')
+        .select('name price shipping category brand images dealUnits platformUnits currency rating reviews isAmazonsChoice isBestSeller profitCalculations profitEvaluation platformComparison showEvaluation asin sku variations sellers sellerInfo')
         .lean()
         .maxTimeMS(3000);
         
@@ -2129,7 +2134,7 @@ router.get('/public', mobileImageOptimization, optimizeProductImages, addRespons
       products = await Product.find(query)
         .sort(sortOptions)
         .limit(parseInt(limit))
-        .select('name description price originalPrice discount category brand images rating reviews stock dealUnits currency isAmazonsChoice isBestSeller seller isAdminProduct sellerInfo profitCalculations profitEvaluation platformComparison showEvaluation asin sku variations sellers')
+        .select('name description price originalPrice discount category brand images rating reviews stock dealUnits platformUnits currency isAmazonsChoice isBestSeller seller isAdminProduct sellerInfo profitCalculations profitEvaluation platformComparison showEvaluation asin sku variations sellers')
         .maxTimeMS(10000) // Increased timeout to 10 seconds
         .lean();
       
@@ -4816,6 +4821,9 @@ router.get('/seller/listed-products', authenticateSeller, async (req, res) => {
       ...categoryFilter
     };
 
+    // Sort: by date (exact match ordering handled client-side)
+    const sortOptions = { createdAt: -1 };
+
     // Run seller fetch + counts + products all in parallel
     const [seller, totalApproved, products] = await Promise.all([
       Seller.findById(sellerId)
@@ -4824,12 +4832,12 @@ router.get('/seller/listed-products', authenticateSeller, async (req, res) => {
         .maxTimeMS(8000),
       Product.countDocuments(baseQuery).maxTimeMS(5000),
       Product.find(baseQuery)
-        .sort({ createdAt: -1 })
+        .sort(sortOptions)
         .skip(skip)
         .limit(limitNum)
         .select('name price stock category marketplace currency approvalStatus status isAmazonsChoice createdAt images asin sku sellers shipping')
         .lean()
-        .maxTimeMS(15000)
+        .maxTimeMS(30000)
     ]);
 
     // Listing requests from seller doc (no extra DB call)

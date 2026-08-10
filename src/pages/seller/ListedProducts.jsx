@@ -1,4 +1,4 @@
-import { useState, useEffect, Component } from 'react';
+import React, { useState, useEffect, useRef, Component } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSeller } from '../../context/SellerContext';
 import { getApiUrl } from '../../utils/api';
@@ -89,11 +89,18 @@ const ListedProducts = () => {
   const [dimCache, setDimCache] = useState({}); // { [productId]: {l,w,h,wt,name} }
 
   const sellerId = seller?._id?.toString();
+  // Track whether a page reset was triggered by search/category (prevents double fetch)
+  const searchResetRef = useRef(false);
 
   useEffect(() => {
     if (!authResolved || loading) return;
     if (!isLoggedIn || !sellerId) {
       navigate('/login/supplier');
+      return;
+    }
+    // Skip if this page change was triggered by search/category (they call loadProducts directly)
+    if (searchResetRef.current) {
+      searchResetRef.current = false;
       return;
     }
     loadProducts();
@@ -105,28 +112,15 @@ const ListedProducts = () => {
     setCurrentPage(1);
   }, [activeTab]);
 
-  // Debounced search
-  useEffect(() => {
-    if (!authResolved || !isLoggedIn || !sellerId) return;
-    const t = setTimeout(() => {
-      if (currentPage !== 1) {
-        setCurrentPage(1); // main effect will fire loadProducts
-      } else {
-        loadProducts(); // already page 1, trigger manually
-      }
-    }, 350);
-    return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm]);
+  // Debounced search — only fires on Enter (see onKeyDown in search input)
+  // No auto-search on keystroke to prevent timeout and flicker
 
   // Category filter
   useEffect(() => {
     if (!authResolved || !isLoggedIn || !sellerId) return;
-    if (currentPage !== 1) {
-      setCurrentPage(1); // main effect will fire loadProducts
-    } else {
-      loadProducts(); // already page 1, trigger manually
-    }
+    searchResetRef.current = true;
+    setCurrentPage(1);
+    loadProducts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
@@ -178,6 +172,16 @@ const ListedProducts = () => {
             };
           });
           setProducts(enriched);
+          // If searching, sort exact matches to top client-side
+          if (searchTerm.trim()) {
+            const term = searchTerm.trim().toLowerCase();
+            enriched.sort((a, b) => {
+              const aExact = (a.sku?.toLowerCase() === term || a.name?.toLowerCase() === term) ? 0 : 1;
+              const bExact = (b.sku?.toLowerCase() === term || b.name?.toLowerCase() === term) ? 0 : 1;
+              return aExact - bExact;
+            });
+          }
+          setProducts(enriched);
           // Merge dims from this page into the persistent cache
           setDimCache(prev => {
             const next = { ...prev };
@@ -216,11 +220,7 @@ const ListedProducts = () => {
         setShowRetryButton(true);
         setErrorMsg('Could not connect to server. Please check your internet connection.');
       } else {
-        if (!isRetry && retryCount < 2) {
-          setRetryCount(prev => prev + 1);
-          setTimeout(() => loadProducts(true), 2000);
-          return;
-        }
+        // No auto-retry — show error and let user retry manually
         setShowRetryButton(true);
         setErrorMsg('Could not load products. Please try again.');
       }
@@ -685,9 +685,17 @@ const ListedProducts = () => {
           <input
             type="text"
             className="form-control form-control-sm"
-            placeholder="Search by name or SKU..."
+            placeholder="Search by name or SKU... (Enter for exact)"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                searchResetRef.current = true;
+                setCurrentPage(1);
+                loadProducts();
+              }
+            }}
             style={{ paddingLeft: '30px', fontSize: '0.82rem', border: '1px solid #dee2e6', backgroundColor: '#fff', color: '#212529' }}
           />
         </div>

@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useParams, useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { completeProductsData, getProductById } from '../data/completeProducts'
 import { products } from '../data/allProducts'
@@ -20,6 +21,58 @@ import '../styles/product-detail-mobile-fix.css'
 
 // Component to fetch and display linked product image
 import { ProductDetailSkeleton } from '../components/SkeletonLoaders'
+
+// Shipping rate tooltip — renders via portal so it's never clipped by overflow containers
+const ShippingTooltip = () => {
+  const [pos, setPos] = useState(null);
+  const rates = [
+    { flag: '🇵🇰', country: 'Pakistan', rate: 'Rs 1,600/kg' },
+    { flag: '🇬🇧', country: 'UK',       rate: '£4.35/kg'   },
+    { flag: '🇦🇪', country: 'UAE',       rate: 'AED 21.3/kg'},
+    { flag: '🇺🇸', country: 'USA',       rate: '$5.71/kg'   },
+    { flag: '🇨🇳', country: 'China',     rate: '¥41.2/kg'   },
+  ];
+  const TOOLTIP_W = 260;
+  const handleEnter = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    // Keep within viewport — align left by default, shift left if would overflow right
+    let left = r.left;
+    if (left + TOOLTIP_W > window.innerWidth - 8) left = window.innerWidth - TOOLTIP_W - 8;
+    if (left < 8) left = 8;
+    setPos({ top: r.bottom + 6, left });
+  };
+  const tooltip = pos ? createPortal(
+    <div style={{
+      position: 'fixed', top: pos.top, left: pos.left,
+      background: '#1e293b', color: '#fff', borderRadius: '10px', padding: '12px 16px',
+      width: TOOLTIP_W, boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+      zIndex: 99999, fontSize: '0.75rem', whiteSpace: 'nowrap', pointerEvents: 'none'
+    }}>
+      <div style={{ position: 'absolute', bottom: '100%', left: '14px', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #1e293b' }} />
+      <div style={{ fontWeight: '700', marginBottom: '10px', color: '#93c5fd', fontSize: '0.8rem' }}>📦 Shipping Rates (per kg)</div>
+      {rates.map(r => (
+        <div key={r.country} style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginBottom: '5px' }}>
+          <span>{r.flag} {r.country}</span>
+          <span style={{ fontWeight: '700', color: '#34d399' }}>{r.rate}</span>
+        </div>
+      ))}
+      <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.2)', fontSize: '0.65rem', color: '#94a3b8' }}>
+        Based on chargeable weight (actual vs volumetric)
+      </div>
+    </div>,
+    document.body
+  ) : null;
+  return (
+    <>
+      <span
+        onMouseEnter={handleEnter} onMouseLeave={() => setPos(null)}
+        style={{ cursor: 'help', color: '#007bff', fontWeight: '600', borderBottom: '1px dashed #007bff', display: 'inline' }}>
+        🚚 shipping
+      </span>
+      {tooltip}
+    </>
+  );
+};
 
 const LinkedProductImage = ({ productId }) => {
   const [imageUrl, setImageUrl] = useState(null);
@@ -3523,7 +3576,7 @@ _This quotation was generated from PoundlandWholesale.com_
                           }}>
                             <i className="fas fa-calculator" style={{ fontSize: '0.7rem', marginRight: '6px' }}></i>
                             {breakdown.shipping > 0
-                              ? `${fmtConverted(breakdown.price)} + ${fmtConverted(breakdown.shipping)} shipping`
+                              ? <>{fmtConverted(breakdown.price)} + <ShippingTooltip /></>
                               : fmtConverted(breakdown.price)
                             }
                           </div>
@@ -3895,7 +3948,7 @@ _This quotation was generated from PoundlandWholesale.com_
 
             {/* Compact RIGHT COLUMN - Buy Box, Supplier Details */}
             <div className="col-12 col-lg-3 order-2 order-lg-3">
-              <div className="sticky-top" style={{top: '80px', zIndex: 10}}>
+              <div className="sticky-top" style={{top: '10px', zIndex: 10}}>
                 <div className="enhanced-card mobile-buy-box" style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)', 
                   border: '1px solid #e1e5e9', 
@@ -3977,7 +4030,7 @@ _This quotation was generated from PoundlandWholesale.com_
                         {(() => {
                           const breakdown = getLowestPriceBreakdown();
                           if (breakdown.shipping > 0) {
-                            return `${fmtConverted(breakdown.price)} + ${fmtConverted(breakdown.shipping)} shipping`;
+                            return <>{fmtConverted(breakdown.price)} + <ShippingTooltip /></>;
                           }
                           return fmtConverted(breakdown.price);
                         })()}
@@ -4101,7 +4154,7 @@ _This quotation was generated from PoundlandWholesale.com_
                           }}>
                             <i className="fas fa-calculator" style={{ fontSize: '0.65rem', marginRight: '4px' }}></i>
                             {breakdown.shipping > 0
-                              ? `${fmtConverted(breakdown.price)} + ${fmtConverted(breakdown.shipping)} shipping`
+                              ? <>{fmtConverted(breakdown.price)} + <ShippingTooltip /></>
                               : fmtConverted(breakdown.price)
                             }
                           </div>
@@ -4167,7 +4220,7 @@ _This quotation was generated from PoundlandWholesale.com_
                               }}>
                                 <i className="fas fa-calculator" style={{ fontSize: '0.55rem', marginRight: '3px' }}></i>
                                 {breakdown.shipping > 0
-                                  ? `${fmtConverted(breakdown.price)} + ${fmtConverted(breakdown.shipping)} shipping`
+                                  ? <>{fmtConverted(breakdown.price)} + <ShippingTooltip /></>
                                   : fmtConverted(breakdown.price)
                                 }
                               </div>
