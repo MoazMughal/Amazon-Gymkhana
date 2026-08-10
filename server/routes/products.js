@@ -3029,7 +3029,9 @@ router.get('/', authenticateAdmin, async (req, res) => {
 router.get('/:id', authenticateAdmin, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
-      .populate('seller', 'username email whatsappNo city country verificationStatus _id businessName phone');
+      .populate('seller', 'username email whatsappNo city country verificationStatus _id businessName phone')
+      .lean()
+      .maxTimeMS(8000);
     
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });

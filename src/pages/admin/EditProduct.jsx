@@ -117,11 +117,9 @@ const EditProduct = () => {
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
 
   useEffect(() => {
-    // Load categories first, then product data
     const loadData = async () => {
-      await fetchCategories();
-      await fetchSellers();
-      await fetchProduct();
+      // Run all three fetches in parallel — much faster than sequential awaits
+      await Promise.all([fetchCategories(), fetchSellers(), fetchProduct()]);
     };
     loadData();
   }, [id]);
@@ -256,10 +254,11 @@ const EditProduct = () => {
       }
       
       setProductLoaded(true);
-      // Load subcategories for the product's category
-      if (product.category) fetchSubcategories(product.category);
-      // Load sub-subcategories if product already has a subcategory
-      if (product.subcategory) fetchSubSubcategories(product.subcategory);
+      // Load subcategories and sub-subcategories in parallel
+      const subFetches = [];
+      if (product.category) subFetches.push(fetchSubcategories(product.category));
+      if (product.subcategory) subFetches.push(fetchSubSubcategories(product.subcategory));
+      if (subFetches.length > 0) Promise.all(subFetches);
     } catch (error) {
       console.error('Error loading product:', error);
       alert('❌ Failed to load product: ' + error.message);
@@ -1667,12 +1666,14 @@ const EditProduct = () => {
                 type="number"
                 name="platformUnits"
                 value={formData.platformUnits}
-                onChange={handleChange}
+                readOnly
+                disabled
+                style={{ backgroundColor: '#e9ecef', cursor: 'not-allowed' }}
                 min="12"
                 step="12"
                 placeholder="e.g. 2400"
               />
-              <small>Total yearly units. No of Deal Units = this ÷ 6.</small>
+              <small>Set from Profit Details Management. No of Deal Units = this ÷ 6.</small>
             </div>
 
             <div className="form-group">
@@ -2311,33 +2312,6 @@ const EditProduct = () => {
               }}
             />
             <small>This description will appear at the top of the "About this item" section on the product detail page.</small>
-          </div>
-
-          <div className="form-group">
-            <label>Features (one per line)</label>
-            <textarea
-              name="features"
-              value={Array.isArray(formData.features) ? formData.features.join('\n') : ''}
-              onChange={(e) => {
-                const featuresArray = e.target.value.split('\n').filter(line => line.trim() !== '');
-                setFormData({
-                  ...formData,
-                  features: featuresArray
-                });
-              }}
-              rows="6"
-              placeholder="Enter features, one per line:&#10;Amazon's Choice Product&#10;Fast Shipping Available&#10;Quality Guaranteed&#10;Verified Supplier&#10;Bulk Orders Welcome"
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontFamily: 'inherit',
-                resize: 'vertical'
-              }}
-            />
-            <small>Enter each feature on a new line. They will appear as bullet points in the "About this item" section.</small>
           </div>
         </div>
 

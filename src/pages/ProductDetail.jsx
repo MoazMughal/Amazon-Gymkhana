@@ -434,6 +434,37 @@ const ProductDetail = () => {
     return lowestPrice < mainTotal;
   };
 
+  // Get the second-lowest price to show as strikethrough
+  // This is the next cheapest option after the main displayed price
+  const getStrikethroughPrice = () => {
+    const mainPrice = parseFloat(String(product.price).replace(/[£₨$€]/g, '')) || 0;
+    const mainShipping = parseFloat(product.shipping) || 0;
+    const adminTotal = convertFromCurrency(mainPrice + mainShipping, 'GBP');
+
+    const countrySellers = getCountrySellers();
+    if (countrySellers.length === 0) return null;
+
+    // Get all seller totals including admin, sorted ascending
+    const allTotals = [
+      { total: adminTotal, label: 'admin' },
+      ...countrySellers.map(s => {
+        const sp = parseFloat(s.sellerPrice);
+        if (isNaN(sp)) return null;
+        return {
+          total: convertFromCurrency(sp, s.priceCurrency || 'GBP') + convertFromCurrency(parseFloat(s.sellerShipping) || 0, 'PKR'),
+          label: 'seller'
+        };
+      }).filter(Boolean)
+    ].sort((a, b) => a.total - b.total);
+
+    if (allTotals.length < 2) return null;
+    // Second entry is the next price above the lowest
+    const second = allTotals[1];
+    // Only show if it's different from the lowest (avoid same price)
+    if (Math.abs(second.total - allTotals[0].total) < 0.01) return null;
+    return second.total;
+  };
+
   // Function to handle Buy Now with WhatsApp quotation
   const handleBuyNow = () => {
     // Check if user is logged in
@@ -978,13 +1009,7 @@ _This quotation was generated from PoundlandWholesale.com_
                            dbProduct.name.toLowerCase().includes('lamp') ||
                            (dbProduct.profitCalculations || dbProduct.profitEvaluation), // Show if admin panel data exists
             description: dbProduct.description || `High-quality ${dbProduct.name} available at wholesale prices.`,
-            features: dbProduct.features && dbProduct.features.length > 0 ? dbProduct.features : [
-              'Amazon\'s Choice Product',
-              'Fast Shipping Available',
-              'Quality Guaranteed',
-              'Verified Supplier',
-              'Bulk Orders Welcome'
-            ],
+            features: dbProduct.features && dbProduct.features.length > 0 ? dbProduct.features : [],
             dealInfo: {
               location: 'International',
               flag: '🌍',
@@ -1675,13 +1700,7 @@ _This quotation was generated from PoundlandWholesale.com_
             'Origin': 'International'
           },
           description: `High-quality ${nameParam} available at wholesale prices. Perfect for Amazon FBA sellers and retailers. This product has excellent reviews and consistent sales performance. Sourced from verified international suppliers with quality assurance.`,
-          features: [
-            'Amazon\'s Choice Product',
-            'Fast Shipping Available',
-            'Quality Guaranteed',
-            'Verified Supplier',
-            'Bulk Orders Welcome'
-          ],
+          features: [],
           testimonials: [
             {
               name: 'Ahmed K.',
@@ -2065,13 +2084,7 @@ _This quotation was generated from PoundlandWholesale.com_
                 'Origin': 'International'
               },
               description: foundProduct.description || `High-quality ${foundProduct.name} available at wholesale prices. Perfect for Amazon FBA sellers and retailers. This product has excellent reviews and consistent sales performance. Sourced from verified international suppliers with quality assurance.`,
-              features: foundProduct.features && foundProduct.features.length > 0 ? foundProduct.features : [
-                'Amazon\'s Choice Product',
-                'Fast Shipping Available',
-                'Quality Guaranteed',
-                'Verified Supplier',
-                'Bulk Orders Welcome'
-              ],
+              features: foundProduct.features && foundProduct.features.length > 0 ? foundProduct.features : [],
               testimonials: [
                 {
                   name: 'Ahmed K.',
@@ -2424,13 +2437,7 @@ _This quotation was generated from PoundlandWholesale.com_
                   'Origin': 'International'
                 },
                 description: foundProduct.description || `High-quality ${foundProduct.name} available at wholesale prices.`,
-                features: foundProduct.features && foundProduct.features.length > 0 ? foundProduct.features : [
-                  'Amazon\'s Choice Product',
-                  'Fast Shipping Available',
-                  'Quality Guaranteed',
-                  'Verified Supplier',
-                  'Bulk Orders Welcome'
-                ],
+                features: foundProduct.features && foundProduct.features.length > 0 ? foundProduct.features : [],
                 testimonials: [
                   {
                     name: 'Ahmed K.',
@@ -3539,7 +3546,7 @@ _This quotation was generated from PoundlandWholesale.com_
                             </span>
                           )}
                         </span>
-                        {hasStock() && hasLowerSellerPrice() && (
+                        {hasStock() && hasLowerSellerPrice() && getStrikethroughPrice() && (
                           <span style={{
                             fontSize: '0.9rem',
                             color: '#999',
@@ -3547,7 +3554,7 @@ _This quotation was generated from PoundlandWholesale.com_
                             marginLeft: '8px',
                             fontWeight: '500'
                           }}>
-                            {convertTotalPrice(product.price, product.shipping)}
+                            {fmtConverted(getStrikethroughPrice())}
                           </span>
                         )}
                         {hasStock() && currency === 'GBP' && (
@@ -3994,18 +4001,14 @@ _This quotation was generated from PoundlandWholesale.com_
                         </span>
                         <span style={{fontSize: '0.65rem', color: '#565959', fontWeight: '500'}}>/Unit</span>
                       </div>
-                      {hasLowerSellerPrice() && (
+                      {hasLowerSellerPrice() && getStrikethroughPrice() && (
                         <span style={{
                           fontSize: '0.75rem',
                           color: '#999',
                           textDecoration: 'line-through',
                           fontWeight: '400'
                         }}>
-                          {(() => {
-                            const basePrice = parseFloat(String(product.price).replace(/[£₨$€]/g, '')) || 0;
-                            const shippingCost = parseFloat(product.shipping) || 0;
-                            return convertPrice(`£${(basePrice + shippingCost).toFixed(2)}`);
-                          })()}
+                          {fmtConverted(getStrikethroughPrice())}
                         </span>
                       )}
                     </div>
@@ -4160,7 +4163,7 @@ _This quotation was generated from PoundlandWholesale.com_
                           </div>
                         );
                       })()}
-                      {hasStock() && hasLowerSellerPrice() && (
+                      {hasStock() && hasLowerSellerPrice() && getStrikethroughPrice() && (
                         <div style={{
                           fontSize: '0.8rem',
                           color: '#999',
@@ -4168,7 +4171,7 @@ _This quotation was generated from PoundlandWholesale.com_
                           fontWeight: '400',
                           marginTop: '2px'
                         }}>
-                          {convertTotalPrice(product.price, product.shipping)}
+                          {fmtConverted(getStrikethroughPrice())}
                         </div>
                       )}
                       <small className="d-block mb-3" style={{color: '#6b7280'}}>ex. VAT</small>
@@ -4226,14 +4229,14 @@ _This quotation was generated from PoundlandWholesale.com_
                               </div>
                             );
                           })()}
-                          {hasStock() && hasLowerSellerPrice() && (
+                          {hasStock() && hasLowerSellerPrice() && getStrikethroughPrice() && (
                             <div style={{
                               fontSize: '0.7rem',
                               color: '#999',
                               textDecoration: 'line-through',
                               fontWeight: '400'
                             }}>
-                              {convertTotalPrice(product.price, product.shipping)}
+                              {fmtConverted(getStrikethroughPrice())}
                             </div>
                           )}
                           <small className="text-muted">ex. VAT</small>
