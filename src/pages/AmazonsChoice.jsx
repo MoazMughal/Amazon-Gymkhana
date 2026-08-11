@@ -3249,7 +3249,7 @@ const AmazonsChoice = () => {
                           if (product.rawPrice === null || product.rawPrice === undefined) {
                             return <span style={{ fontSize: '0.72rem', color: '#aaa', fontStyle: 'italic' }}>No price</span>;
                           }
-                          const total = product.rawPrice + (product.rawShipping || 0);
+                          const total = product.rawPrice; // price only, no shipping added
                           return `${gbpToDisplay(total)}/unit`;
                         })()}
                       </div>
