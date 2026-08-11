@@ -359,15 +359,14 @@ const ProductDetail = () => {
     return `${sym[currency] || ''}${parseFloat(value).toFixed(2)}`;
   };
 
-  // Function to get the lowest price from all sellers (including shipping)
+  // Function to get the lowest price from all sellers (price only, no shipping)
   // Returns value already converted to the current display currency
   const getLowestPrice = () => {
     if (!product) return 0;
 
     const mainPrice = parseFloat(String(product.price).replace(/[£₨$€]/g, '')) || 0;
-    const mainShipping = parseFloat(product.shipping) || 0;
     // Admin price is always stored in GBP
-    const mainTotal = convertFromCurrency(mainPrice + mainShipping, 'GBP');
+    const mainTotal = convertFromCurrency(mainPrice, 'GBP');
 
     const countrySellers = getCountrySellers();
     if (countrySellers.length === 0) return mainTotal;
@@ -376,10 +375,8 @@ const ProductDetail = () => {
       .map(seller => {
         const price = parseFloat(seller.sellerPrice);
         if (isNaN(price)) return null;
-        const shipping = parseFloat(seller.sellerShipping) || 0;
         const fromCur = seller.priceCurrency || 'GBP';
-        // sellerShipping is always stored in PKR
-        return convertFromCurrency(price, fromCur) + convertFromCurrency(shipping, 'PKR');
+        return convertFromCurrency(price, fromCur);
       })
       .filter(t => t !== null && t > 0);
 
@@ -392,31 +389,26 @@ const ProductDetail = () => {
     if (!product) return { total: 0, price: 0, shipping: 0, isSellerPrice: false, moq: 1 };
 
     const mainPrice = parseFloat(String(product.price).replace(/[£₨$€]/g, '')) || 0;
-    const mainShipping = parseFloat(product.shipping) || 0;
-    const mainTotal = convertFromCurrency(mainPrice + mainShipping, 'GBP');
+    const mainTotal = convertFromCurrency(mainPrice, 'GBP');
 
     const countrySellers = getCountrySellers();
     if (countrySellers.length === 0) {
-      return { price: convertFromCurrency(mainPrice, 'GBP'), shipping: convertFromCurrency(mainShipping, 'GBP'), total: mainTotal, isSellerPrice: false, moq: 1 };
+      return { price: mainTotal, shipping: 0, total: mainTotal, isSellerPrice: false, moq: 1 };
     }
 
     let lowest = null;
     countrySellers.forEach(seller => {
       const sellerPrice = parseFloat(seller.sellerPrice);
       if (isNaN(sellerPrice)) return;
-      const sellerShipping = parseFloat(seller.sellerShipping) || 0;
       const fromCur = seller.priceCurrency || 'GBP';
-      const convertedPrice    = convertFromCurrency(sellerPrice, fromCur);
-      // sellerShipping is always stored in PKR regardless of seller's price currency
-      const convertedShipping = convertFromCurrency(sellerShipping, 'PKR');
-      const convertedTotal    = convertedPrice + convertedShipping;
-      if (!lowest || convertedTotal < lowest.total) {
-        lowest = { price: convertedPrice, shipping: convertedShipping, total: convertedTotal, isSellerPrice: true, moq: seller.moq || 1, priceCurrency: fromCur };
+      const convertedPrice = convertFromCurrency(sellerPrice, fromCur);
+      if (!lowest || convertedPrice < lowest.total) {
+        lowest = { price: convertedPrice, shipping: 0, total: convertedPrice, isSellerPrice: true, moq: seller.moq || 1, priceCurrency: fromCur };
       }
     });
 
     if (!lowest) {
-      return { price: convertFromCurrency(mainPrice, 'GBP'), shipping: convertFromCurrency(mainShipping, 'GBP'), total: mainTotal, isSellerPrice: false, moq: 1 };
+      return { price: mainTotal, shipping: 0, total: mainTotal, isSellerPrice: false, moq: 1 };
     }
     return lowest;
   };
@@ -3563,32 +3555,8 @@ _This quotation was generated from PoundlandWholesale.com_
                             fontWeight: '500'
                           }}>/Unit (DDP to Amazon Warehouse)</span>
                         )}
+                        {hasStock() && <ShippingTooltip />}
                       </div>
-                      
-                      {/* Price Breakdown - Only show if in stock */}
-                      {hasStock() && (() => {
-                        const breakdown = getLowestPriceBreakdown();
-                        
-                        // Always show breakdown with calculator icon and styling
-                        return (
-                          <div style={{
-                            fontSize: '0.8rem', 
-                            color: '#6b7280', 
-                            marginTop: '8px',
-                            marginBottom: '8px',
-                            padding: '4px 8px',
-                            background: 'rgba(107, 114, 128, 0.1)',
-                            borderRadius: '4px',
-                            border: '1px solid rgba(107, 114, 128, 0.2)'
-                          }}>
-                            <i className="fas fa-calculator" style={{ fontSize: '0.7rem', marginRight: '6px' }}></i>
-                            {breakdown.shipping > 0
-                              ? <>{fmtConverted(breakdown.price)} + <ShippingTooltip /></>
-                              : fmtConverted(breakdown.price)
-                            }
-                          </div>
-                        );
-                      })()}
                       
                       {/* Enhanced RRP and Save Section - Only show if in stock */}
                       {hasStock() && (
@@ -4011,33 +3979,7 @@ _This quotation was generated from PoundlandWholesale.com_
                           {fmtConverted(getStrikethroughPrice())}
                         </span>
                       )}
-                    </div>
-                    
-                    {/* Price Breakdown */}
-                    <div style={{
-                      fontSize: '0.7rem', 
-                      color: '#6b7280', 
-                      padding: '4px 6px',
-                      background: 'rgba(107, 114, 128, 0.08)',
-                      borderRadius: '4px',
-                      border: '1px solid rgba(107, 114, 128, 0.15)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
-                    }}>
-                      <div className="d-flex align-items-center">
-                        <i className="fas fa-calculator" style={{ fontSize: '0.6rem', marginRight: '6px', color: '#6b7280' }}></i>
-                        <span>Price Breakdown:</span>
-                      </div>
-                      <span style={{ fontWeight: '600', whiteSpace: 'nowrap' }}>
-                        {(() => {
-                          const breakdown = getLowestPriceBreakdown();
-                          if (breakdown.shipping > 0) {
-                            return <>{fmtConverted(breakdown.price)} + <ShippingTooltip /></>;
-                          }
-                          return fmtConverted(breakdown.price);
-                        })()}
-                      </span>
+                      <ShippingTooltip />
                     </div>
                     
                     {/* DDP Notice */}
@@ -4156,10 +4098,7 @@ _This quotation was generated from PoundlandWholesale.com_
                             border: '1px solid rgba(107, 114, 128, 0.2)'
                           }}>
                             <i className="fas fa-calculator" style={{ fontSize: '0.65rem', marginRight: '4px' }}></i>
-                            {breakdown.shipping > 0
-                              ? <>{fmtConverted(breakdown.price)} + <ShippingTooltip /></>
-                              : fmtConverted(breakdown.price)
-                            }
+                            {fmtConverted(breakdown.price)} + <ShippingTooltip />
                           </div>
                         );
                       })()}
@@ -4222,10 +4161,7 @@ _This quotation was generated from PoundlandWholesale.com_
                                 border: '1px solid rgba(107, 114, 128, 0.2)'
                               }}>
                                 <i className="fas fa-calculator" style={{ fontSize: '0.55rem', marginRight: '3px' }}></i>
-                                {breakdown.shipping > 0
-                                  ? <>{fmtConverted(breakdown.price)} + <ShippingTooltip /></>
-                                  : fmtConverted(breakdown.price)
-                                }
+                                {fmtConverted(breakdown.price)} + <ShippingTooltip />
                               </div>
                             );
                           })()}

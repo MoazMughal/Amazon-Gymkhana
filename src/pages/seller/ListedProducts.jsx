@@ -1301,7 +1301,33 @@ const ListedProducts = () => {
                               const se = product.sellers?.find(s => s.sellerId && (s.sellerId.toString() === sid || String(s.sellerId) === sid));
                               const d = se?.dimensions;
                               if (d && (d.length||d.width||d.height)) {
-                                return <div style={{ fontSize: '0.6rem', color: '#aaa' }}>{d.length}×{d.width}×{d.height}{se.weight?` ${se.weight}g`:''}</div>;
+                                return (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span style={{ fontSize: '0.6rem', color: '#aaa' }}>{d.length}×{d.width}×{d.height}{se.weight?` ${se.weight}g`:''}</span>
+                                    <button
+                                      title="Remove dimensions"
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (!confirm('Remove dimensions for this product?')) return;
+                                        setUpdatingProducts(prev => new Set(prev).add(product._id));
+                                        try {
+                                          const token = localStorage.getItem('sellerToken');
+                                          await fetch(getApiUrl(`sellers/update-inventory/${product._id}`), {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                            body: JSON.stringify({ dimensions: { length: 0, width: 0, height: 0 }, weight: 0 })
+                                          });
+                                          setDimCache(prev => { const n = { ...prev }; delete n[product._id]; return n; });
+                                          setProducts(prev => prev.map(p => p._id === product._id
+                                            ? { ...p, sellers: (p.sellers || []).map(s => s.sellerId && (s.sellerId.toString() === sid || String(s.sellerId) === sid) ? { ...s, dimensions: { length: 0, width: 0, height: 0 }, weight: 0 } : s) }
+                                            : p));
+                                        } catch { alert('❌ Failed to remove dimensions'); }
+                                        finally { setUpdatingProducts(prev => { const n = new Set(prev); n.delete(product._id); return n; }); }
+                                      }}
+                                      style={{ fontSize: '0.55rem', padding: '0 3px', background: 'none', border: '1px solid #fca5a5', borderRadius: '3px', color: '#dc2626', cursor: 'pointer', lineHeight: 1.4 }}
+                                    >✕</button>
+                                  </div>
+                                );
                               }
                               return null;
                             })()}

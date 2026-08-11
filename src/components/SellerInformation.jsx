@@ -255,12 +255,10 @@ const SellerInformation = ({
     const toRate = rates[currency] || rates['GBP'];
     const priceA = parseFloat(a.sellerPrice) || mainPrice;
     const priceB = parseFloat(b.sellerPrice) || mainPrice;
-    const shipA = parseFloat(a.sellerShipping) || 0;
-    const shipB = parseFloat(b.sellerShipping) || 0;
     const fromA = rates[a.priceCurrency || 'GBP'] || rates['GBP'];
     const fromB = rates[b.priceCurrency || 'GBP'] || rates['GBP'];
-    const ta = (priceA / fromA) * toRate + (shipA / rates['PKR']) * toRate;
-    const tb = (priceB / fromB) * toRate + (shipB / rates['PKR']) * toRate;
+    const ta = (priceA / fromA) * toRate;
+    const tb = (priceB / fromB) * toRate;
     return ta - tb;
   });
 
@@ -345,11 +343,10 @@ const SellerInformation = ({
           const toRate = rates[currency] || rates['GBP'];
           const pkrRate = rates['PKR'] || 1;
           const spConverted = (sp / fromRate) * toRate;
-          // Shipping always from PKR base
+          // Shipping always from PKR base — kept for tooltip info only, not added to price
           const ssConverted = (ss / pkrRate) * toRate;
-          // Show shipping for all currencies, not just GBP
-          const includeShipping = ss > 0;
-          const totalConverted = includeShipping ? spConverted + ssConverted : spConverted;
+          // Display price = seller price only (no shipping added)
+          const totalConverted = spConverted;
           const totalDisplay = `${currencySymbols[currency] || ''}${totalConverted.toFixed(2)}`;
           const moq = se.moq || 1;
           const qty = getQty(sid, moq);
@@ -404,7 +401,7 @@ const SellerInformation = ({
                 <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#1f2937' }}>
                   {se.username}
                   <span style={{ fontSize: '0.62rem', fontWeight: '400', color: '#6b7280', marginLeft: '4px' }}>
-                    ({includeShipping ? <>{spDisplay} + <ShippingTooltip /></> : spDisplay})
+                    ({spDisplay} <ShippingTooltip />)
                   </span>
                 </div>
                 <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#059669', whiteSpace: 'nowrap', marginLeft: '8px' }}>
