@@ -228,9 +228,9 @@ const AdminProducts = () => {
 
       console.log('📊 Product has profit data, updating calculations...');
 
-      // Calculate total product cost using lowest seller price (including shipping)
+      // Calculate product cost using lowest seller price only (no shipping)
       const priceInfo = getLowestPriceDisplay(productData);
-      const totalProductCost = priceInfo.total;
+      const totalProductCost = priceInfo.price; // price only, shipping excluded
       
       console.log('💰 Product cost calculation:', {
         adminPrice: parseFloat(productData.price) || 0,
@@ -1957,11 +1957,11 @@ const AdminProducts = () => {
       // Error fetching latest product data, using current data
     }
 
-    // Get the lowest price (including seller prices)
+    // Get the lowest price (price only, shipping excluded from cost)
     const priceInfo = getLowestPriceDisplay(product);
     // Ensure totalProductCost is never 0 when admin price exists
-    const adminFallback = parseFloat(product.price || 0) + parseFloat(product.shipping || 0);
-    const totalProductCost = priceInfo.total > 0 ? priceInfo.total : adminFallback;
+    const adminFallback = parseFloat(product.price || 0);
+    const totalProductCost = priceInfo.price > 0 ? priceInfo.price : adminFallback;
     const initialUnits = product.platformUnits || 200;
     setSelectedUnits(initialUnits);
 
@@ -5161,7 +5161,7 @@ const AdminProducts = () => {
                         onChange={(e) => {
                           const newPrice = parseFloat(e.target.value) || 0;
                           const currentShipping = parseFloat(profitEditProduct.shipping || 0);
-                          const newTotalCost = newPrice + currentShipping;
+                          const newTotalCost = newPrice; // price only, shipping excluded
                           
                           // Update the profit evaluation
                           const updatedProfitEvaluation = {
@@ -5170,7 +5170,7 @@ const AdminProducts = () => {
                             productCost: newTotalCost
                           };
                           
-                          // Recalculate net profit with new total cost
+                          // Recalculate net profit with price only
                           const balanceChange = updatedProfitEvaluation.balanceChange || 0;
                           const newNetProfit = parseFloat((balanceChange - newTotalCost).toFixed(2));
                           updatedProfitEvaluation.netProfit = newNetProfit;
@@ -5213,73 +5213,36 @@ const AdminProducts = () => {
                       <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>
                         Shipping Cost (£)
                         <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: '#666', marginLeft: '8px' }}>
-                          (Delivery cost)
+                          (Info only — not included in cost)
                         </span>
                       </label>
                       <input
                         type="number"
                         step="0.01"
-                        value={safeFormatNumber(profitEditProduct.shipping || 0)}
-                        onChange={(e) => {
-                          const newShipping = parseFloat(e.target.value) || 0;
-                          const currentPrice = parseFloat(profitEditProduct.price || 0);
-                          const newTotalCost = currentPrice + newShipping;
-                          
-                          // Update the profit evaluation
-                          const updatedProfitEvaluation = {
-                            ...profitEditProduct.profitEvaluation,
-                            productCost: newTotalCost
-                          };
-                          
-                          // Recalculate net profit with new total cost
-                          const balanceChange = updatedProfitEvaluation.balanceChange || 0;
-                          const newNetProfit = parseFloat((balanceChange - newTotalCost).toFixed(2));
-                          updatedProfitEvaluation.netProfit = newNetProfit;
-                          
-                          // Update the product
-                          const updatedProduct = {
-                            ...profitEditProduct,
-                            shipping: newShipping,
-                            profitEvaluation: updatedProfitEvaluation
-                          };
-                          
-                          // Update platform comparison profits and markup with new total cost
-                          const updatedPlatformComparison = profitEditProduct.platformComparison.map(platform => ({
-                            ...platform,
-                            profitFor200Units: parseFloat((newNetProfit * (platform.units || 200)).toFixed(2)),
-                            markup: calculateMarkupPercentage(platform.rrpPerUnit, newTotalCost)
-                          }));
-                          
-                          updatedProduct.platformComparison = updatedPlatformComparison;
-                          
-                          setProfitEditProduct(updatedProduct);
-                          
-                          // Set visual indicator that product cost was updated
-                          setProductCostUpdated(true);
-                          setTimeout(() => setProductCostUpdated(false), 3000);
-                        }}
+                        value={0}
+                        readOnly
                         style={{
                           width: '100%',
                           padding: '10px',
-                          border: '2px solid #007bff',
+                          border: '2px solid #dee2e6',
                           borderRadius: '6px',
                           fontSize: '0.9rem',
-                          backgroundColor: '#f8f9ff',
-                          transition: 'all 0.3s ease'
+                          backgroundColor: '#f8f9fa',
+                          color: '#6c757d',
+                          cursor: 'not-allowed'
                         }}
-                        placeholder="Enter shipping cost"
                       />
                     </div>
                     <div>
                       <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem', color: '#28a745' }}>
                         Total Product Cost (£)
                         <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: '#666', marginLeft: '8px' }}>
-                          (Price + Shipping = Auto-calculated)
+                          (Base price — shipping info only)
                         </span>
                       </label>
                       <input
                         type="text"
-                        value={`£${((parseFloat(profitEditProduct.price || 0) + parseFloat(profitEditProduct.shipping || 0)).toFixed(2))}`}
+                        value={`£${(parseFloat(profitEditProduct.price || 0)).toFixed(2)}`}
                         readOnly
                         style={{
                           width: '100%',

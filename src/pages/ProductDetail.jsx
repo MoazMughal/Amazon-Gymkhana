@@ -1207,8 +1207,7 @@ _This quotation was generated from PoundlandWholesale.com_
               // Use the saved product cost from admin panel (already in correct currency)
               let productCost = parseFloat(dbProduct.profitEvaluation.productCost) || 0;
 
-              // Override with seller's lowest price+shipping if sellers exist
-              // This ensures profit = balanceChange - actual seller cost
+              // Override with seller's lowest price (no shipping) if sellers exist
               if (dbProduct.sellers && dbProduct.sellers.length > 0) {
                 const _r = { PKR: 1, GBP: 0.00272, USD: 0.00353, AED: 0.01310 };
                 let lowestGBP = Infinity;
@@ -1217,9 +1216,8 @@ _This quotation was generated from PoundlandWholesale.com_
                   if (isNaN(sp) || sp <= 0) return;
                   const cur = (se.priceCurrency || 'GBP').toUpperCase();
                   const spGBP = sp * (_r['GBP'] / (_r[cur] || _r['GBP']));
-                  const ssGBP = (parseFloat(se.sellerShipping) || 0) * _r['GBP']; // PKR→GBP
-                  const total = spGBP + ssGBP;
-                  if (total < lowestGBP) lowestGBP = total;
+                  // Shipping excluded — only price used for cost
+                  if (spGBP < lowestGBP) lowestGBP = spGBP;
                 });
                 if (lowestGBP !== Infinity) productCost = parseFloat(lowestGBP.toFixed(2));
               }
@@ -2840,22 +2838,29 @@ _This quotation was generated from PoundlandWholesale.com_
       console.log('- selectedUnits:', selectedUnits);
     }
     
-    // Get product cost price in GBP for calculations (including shipping)
+    // Get product cost price in GBP for calculations (price only, no shipping)
     const getProductCostGBP = () => {
+      // Use lowest seller price if available
+      const countrySellers = getCountrySellers();
+      if (countrySellers.length > 0) {
+        const _r = { PKR: 1, GBP: 0.00272, USD: 0.00353, AED: 0.01310 };
+        let lowestGBP = Infinity;
+        countrySellers.forEach(se => {
+          const sp = parseFloat(se.sellerPrice);
+          if (isNaN(sp) || sp <= 0) return;
+          const cur = (se.priceCurrency || 'GBP').toUpperCase();
+          const spGBP = sp * (_r['GBP'] / (_r[cur] || _r['GBP']));
+          if (spGBP < lowestGBP) lowestGBP = spGBP;
+        });
+        if (lowestGBP !== Infinity) return lowestGBP;
+      }
+      // Fall back to admin price (no shipping)
       const costPriceRaw = parseFloat(product?.price?.replace(/[£₨$€]/g, '') || 0);
-      const shippingCost = parseFloat(product?.shipping) || 0;
-      const totalCostRaw = costPriceRaw + shippingCost;
       const isPKR = product?.price?.includes('₨') || product?.price?.includes('Rs');
       const isGBP = product?.price?.includes('£');
-      
-      if (isPKR) {
-        return totalCostRaw * 0.00272; // Convert PKR to GBP (price + shipping)
-      } else if (isGBP) {
-        return totalCostRaw; // Already in GBP (price + shipping)
-      } else {
-        // Assume PKR if no currency symbol
-        return totalCostRaw * 0.00272;
-      }
+      if (isPKR) return costPriceRaw * 0.00272;
+      if (isGBP) return costPriceRaw;
+      return costPriceRaw * 0.00272;
     };
     
     const productCostGBP = getProductCostGBP();
@@ -4254,24 +4259,28 @@ _This quotation was generated from PoundlandWholesale.com_
                               const platformData = calculatePlatformData();
                               console.log('🎯 PLATFORM DATA FOR DISPLAY:', platformData);
                               
-                              // Get product cost for display (including shipping)
+                              // Get product cost for display (price only, no shipping)
                               const getProductCostGBP = () => {
+                                const countrySellers = getCountrySellers();
+                                if (countrySellers.length > 0) {
+                                  const _r = { PKR: 1, GBP: 0.00272, USD: 0.00353, AED: 0.01310 };
+                                  let lowestGBP = Infinity;
+                                  countrySellers.forEach(se => {
+                                    const sp = parseFloat(se.sellerPrice);
+                                    if (isNaN(sp) || sp <= 0) return;
+                                    const cur = (se.priceCurrency || 'GBP').toUpperCase();
+                                    const spGBP = sp * (_r['GBP'] / (_r[cur] || _r['GBP']));
+                                    if (spGBP < lowestGBP) lowestGBP = spGBP;
+                                  });
+                                  if (lowestGBP !== Infinity) return lowestGBP;
+                                }
                                 const costPriceRaw = parseFloat(product?.price?.replace(/[£₨$€]/g, '') || 0);
-                                const shippingCost = parseFloat(product?.shipping) || 0;
-                                const totalCostRaw = costPriceRaw + shippingCost;
                                 const isPKR = product?.price?.includes('₨') || product?.price?.includes('Rs');
                                 const isGBP = product?.price?.includes('£');
-                                
-                                if (isPKR) {
-                                  return totalCostRaw * 0.00272; // Convert PKR to GBP (price + shipping)
-                                } else if (isGBP) {
-                                  return totalCostRaw; // Already in GBP (price + shipping)
-                                } else {
-                                  // Assume PKR if no currency symbol
-                                  return totalCostRaw * 0.00272;
-                                }
+                                if (isPKR) return costPriceRaw * 0.00272;
+                                if (isGBP) return costPriceRaw;
+                                return costPriceRaw * 0.00272;
                               };
-                              
                               const productCostGBP = getProductCostGBP();
                               
                               return platformData.map((platform, idx) => {
@@ -4539,7 +4548,7 @@ _This quotation was generated from PoundlandWholesale.com_
                               <td className="fw-bold py-2 px-2 text-end" style={{fontSize: '0.85rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', fontWeight: '800'}}>{convertProfitValue(product.evaluation.changeToBalance)}</td>
                             </tr>
                             <tr>
-                              <td className="fw-semibold py-2 px-2">Product Cost</td>
+                              <td className="fw-semibold py-2 px-2">Product Cost (Estimated DDP Price to Amazon warehouse)</td>
                               <td className="fw-bold py-2 px-2 text-end text-danger" style={{fontSize: '0.85rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', fontWeight: '800'}}>-{convertProfitValue(product.evaluation.productCost)}</td>
                             </tr>
                             <tr style={{background: '#e6f7ee'}}>
