@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { completeProductsData, getProductById } from '../data/completeProducts'
@@ -3787,28 +3787,41 @@ _This quotation was generated from PoundlandWholesale.com_
                             Verify
                           </button>
                         </div>
-                        <div style={{marginBottom: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '4px', flexWrap: 'wrap'}}>
-                          <span style={{color: '#565959', flexShrink: 0}}>💰 Profit/unit:</span>
-                          <span style={{color: '#059669', fontWeight: '800', fontSize: '0.72rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', whiteSpace: 'nowrap'}}>
-                            {formatPrice(safeNumber(product.profitCalculations.profitPerUnit))}
-                          </span>
-                        </div>
-                        <div style={{marginBottom: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '4px', flexWrap: 'wrap'}}>
-                          <span style={{color: '#565959', flexShrink: 0}}>📈 Profit/{Math.floor((product.platforms?.[0]?.units || product.platformUnits || product.dealUnits || 200) / 6)}:</span>
-                          <span style={{color: '#059669', fontWeight: '800', fontSize: '0.72rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', whiteSpace: 'nowrap'}}>
-                            {formatPrice(safeNumber(product.profitCalculations.profitPerUnit) * Math.floor((product.platforms?.[0]?.units || product.platformUnits || product.dealUnits || 200) / 6))}
-                          </span>
-                        </div>
-                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '4px', flexWrap: 'wrap'}}>
-                          <span style={{color: '#565959', flexShrink: 0}}>💰 Total cost/{Math.floor((product.platforms?.[0]?.units || product.platformUnits || product.dealUnits || 200) / 6)}:</span>
-                          <span style={{color: '#B12704', fontWeight: '800', fontSize: '0.72rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', whiteSpace: 'nowrap'}}>{(() => {
-                            const dealUnits = Math.floor((product.platforms?.[0]?.units || product.platformUnits || product.dealUnits || 200) / 6);
-                            // Total cost = price shown on main page (seller's lowest or admin) × deal units
-                            const breakdown = getLowestPriceBreakdown();
-                            const costPerUnit = breakdown.total > 0 ? breakdown.total : 0;
-                            return fmtConverted(costPerUnit * dealUnits);
-                          })()}</span>
-                        </div>
+
+                        {/* Profit/unit, Profit/dealUnits, Total cost/dealUnits — all use same dealUnits */}
+                        {/* buyerShipping is set from the FBA calculator input below — no duplicate input here */}
+                        {(() => {
+                          // dealUnits is saved as Math.floor(platformUnits / 6) from admin panel
+                          const dealUnits = product.dealUnits || Math.floor((product.platforms?.[0]?.units || product.platformUnits || 200) / 6);
+                          const profitPerUnit = parseFloat(String(product.profitCalculations?.profitPerUnit || 0).replace(/[^0-9.-]/g, '')) || 0;
+                          const netPerUnit = profitPerUnit - buyerShipping;
+                          const netTotal = netPerUnit * dealUnits;
+                          const breakdown = getLowestPriceBreakdown();
+                          const costPerUnit = breakdown.total > 0 ? breakdown.total : 0;
+                          const totalCost = (costPerUnit * dealUnits) + (buyerShipping * dealUnits);
+                          return (
+                            <>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                <span style={{ fontSize: '0.68rem', color: '#6b7280' }}>💰 Profit/unit:</span>
+                                <span style={{ color: netPerUnit < 0 ? '#dc2626' : '#28a745', fontWeight: '800', fontSize: '0.72rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', whiteSpace: 'nowrap' }}>
+                                  {fmtConverted(netPerUnit)}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                <span style={{ fontSize: '0.68rem', color: '#6b7280' }}>📈 Profit/{dealUnits}:</span>
+                                <span style={{ color: netTotal < 0 ? '#dc2626' : '#20c997', fontWeight: '800', fontSize: '0.72rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', whiteSpace: 'nowrap' }}>
+                                  {fmtConverted(netTotal)}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                <span style={{ fontSize: '0.68rem', color: '#6b7280' }}>💰 Total cost/{dealUnits}:</span>
+                                <span style={{ color: '#B12704', fontWeight: '800', fontSize: '0.72rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', whiteSpace: 'nowrap' }}>
+                                  {fmtConverted(totalCost)}
+                                </span>
+                              </div>
+                            </>
+                          );
+                        })()}
 
                         {/* ASIN Bulk Listing — inline inside profit box */}
                         {(() => {
@@ -4532,7 +4545,7 @@ _This quotation was generated from PoundlandWholesale.com_
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                   <span>Product Cost (Estimated DDP Price to Amazon warehouse)</span>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>+ My Shipping:</span>
+                                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>+ My Shipping: £</span>
                                     <input
                                       type="number"
                                       min="0"
@@ -4546,7 +4559,7 @@ _This quotation was generated from PoundlandWholesale.com_
                                         outline: 'none', textAlign: 'right'
                                       }}
                                     />
-                                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>£</span>
+                                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}></span>
                                   </div>
                                 </div>
                               </td>

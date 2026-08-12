@@ -38,6 +38,7 @@ const ForgotPasswordToken = lazy(() => import('./pages/ForgotPasswordToken'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const AuthLanding = lazy(() => import('./pages/auth/AuthLanding'))
 const RoleSelection = lazy(() => import('./pages/auth/RoleSelection'))
+const UnifiedLogin = lazy(() => import('./pages/auth/UnifiedLogin'))
 const BuyerLogin = lazy(() => import('./pages/auth/BuyerLogin'))
 const SupplierLogin = lazy(() => import('./pages/auth/SupplierLogin'))
 const BuyerRegister = lazy(() => import('./pages/auth/BuyerRegister'))
@@ -135,14 +136,14 @@ function App() {
           <Route path="/basket" element={<Basket />} />
           <Route path="/wishlist-queries" element={<WishlistQueries />} />
           <Route path="/about-us" element={<AboutUs />} />
-          {/* Legacy routes - redirect to new auth system */}
-          <Route path="/login" element={<RoleSelection />} />
+          {/* Legacy routes */}
+          <Route path="/login" element={<UnifiedLogin />} />
           <Route path="/register" element={<AuthLanding />} />
-          
-          {/* New Auth Routes */}
-          <Route path="/auth" element={<RoleSelection />} />
-          <Route path="/login/buyer" element={<BuyerLogin />} />
-          <Route path="/login/supplier" element={<SupplierLogin />} />
+
+          {/* Auth Routes */}
+          <Route path="/auth" element={<UnifiedLogin />} />
+          <Route path="/login/buyer" element={<UnifiedLogin />} />
+          <Route path="/login/supplier" element={<UnifiedLogin />} />
           <Route path="/register/buyer" element={<BuyerRegister />} />
           <Route path="/register/supplier" element={<SupplierRegister />} />
           <Route path="/join-now" element={<JoinNow />} />
@@ -245,7 +246,7 @@ function App() {
 
 // Routes that hide the global header/footer (auth/recovery pages)
 const BARE_ROUTES = [
-  '/login/buyer', '/login/supplier', '/manage',
+  '/login', '/login/buyer', '/login/supplier', '/manage',
   '/backend-management-portal', '/forgot-password-token',
   '/auth', '/register/buyer', '/register/supplier', '/join-now',
   '/reset-password', '/forgot-password'

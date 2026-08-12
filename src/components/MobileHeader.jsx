@@ -1084,7 +1084,7 @@ const MobileHeader = () => {
 
               {!userInfo ? (
                 <>
-                  <Link to="/auth" style={{
+                  <Link to="/login" style={{
                     fontSize: '9px',
                     color: '#fff',
                     textDecoration: 'none',
@@ -1373,11 +1373,8 @@ const MobileHeader = () => {
         <div className="mobile-menu-section">
           {!userInfo ? (
             <>
-              <Link to="/login/buyer" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
-                <i className="fas fa-user"></i> Buyer Login
-              </Link>
-              <Link to="/login/supplier" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
-                <i className="fas fa-store"></i> Supplier Login
+              <Link to="/login" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
+                <i className="fas fa-sign-in-alt"></i> Login
               </Link>
               <Link to="/register/buyer" className="mobile-menu-item" onClick={() => setShowMobileMenu(false)}>
                 <i className="fas fa-user-plus"></i> Register

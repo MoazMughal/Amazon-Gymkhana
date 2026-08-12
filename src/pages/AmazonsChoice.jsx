@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import ProductCardSkeleton from '../components/ProductCardSkeleton'
 import SearchBar from '../components/SearchBar'

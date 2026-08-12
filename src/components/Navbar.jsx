@@ -146,7 +146,7 @@ const Navbar = () => {
             {!isBuyerLoggedIn && !isAdminLoggedIn && !isSellerLoggedIn && (
               <div className="d-flex align-items-center gap-2">
                 <Link 
-                  to="/auth" 
+                  to="/login" 
                   className="btn btn-sm btn-outline-light"
                   style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
                 >
