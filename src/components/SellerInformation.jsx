@@ -9,14 +9,7 @@ import { getApiUrl } from '../utils/api';
 // Shipping rate tooltip
 const ShippingTooltip = () => {
   const [pos, setPos] = useState(null);
-  const rates = [
-    { flag: '🇵🇰', country: 'Pakistan', rate: 'Rs 1,600/kg' },
-    { flag: '🇬🇧', country: 'UK',       rate: '£4.35/kg'   },
-    { flag: '🇦🇪', country: 'UAE',       rate: 'AED 21.3/kg'},
-    { flag: '🇺🇸', country: 'USA',       rate: '$5.71/kg'   },
-    { flag: '🇨🇳', country: 'China',     rate: '¥41.2/kg'   },
-  ];
-  const TOOLTIP_W = 260;
+  const TOOLTIP_W = 300;
   const handleEnter = (e) => {
     const r = e.currentTarget.getBoundingClientRect();
     let left = r.left;
@@ -25,20 +18,46 @@ const ShippingTooltip = () => {
     setPos({ top: r.bottom + 6, left });
   };
   const tooltip = pos ? createPortal(
-    <div style={{ position: 'fixed', top: pos.top, left: pos.left, background: '#1e293b', color: '#fff', borderRadius: '10px', padding: '12px 16px', width: TOOLTIP_W, boxShadow: '0 8px 32px rgba(0,0,0,0.35)', zIndex: 99999, fontSize: '0.75rem', whiteSpace: 'nowrap', pointerEvents: 'none' }}>
+    <div style={{ position: 'fixed', top: pos.top, left: pos.left, background: '#1e293b', color: '#fff', borderRadius: '10px', padding: '12px 14px', width: TOOLTIP_W, boxShadow: '0 8px 32px rgba(0,0,0,0.45)', zIndex: 99999, pointerEvents: 'none' }}>
       <div style={{ position: 'absolute', bottom: '100%', left: '14px', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #1e293b' }} />
-      <div style={{ fontWeight: '700', marginBottom: '10px', color: '#93c5fd', fontSize: '0.8rem' }}>📦 Shipping Rates (per kg)</div>
-      {rates.map(r => (
-        <div key={r.country} style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginBottom: '5px' }}>
-          <span>{r.flag} {r.country}</span>
-          <span style={{ fontWeight: '700', color: '#34d399' }}>{r.rate}</span>
-        </div>
-      ))}
-      <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.2)', fontSize: '0.65rem', color: '#94a3b8' }}>Based on chargeable weight</div>
+      <div style={{ fontWeight: '800', marginBottom: '10px', color: '#93c5fd', fontSize: '0.78rem', textAlign: 'center' }}>
+        Shipping Rates / kg (By Sea / By Air)
+      </div>
+      <div style={{ marginBottom: '10px' }}>
+        <div style={{ fontWeight: '700', fontSize: '0.72rem', color: '#fbbf24', marginBottom: '5px', borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: '3px' }}>Pakistan (PK) to:</div>
+        {[
+          { to: 'UK (GB)',    rate: 'Rs 800-1,600/kg' },
+          { to: 'UAE (AE)',   rate: 'Rs 500-950/kg'   },
+          { to: 'USA (US)',   rate: 'Rs 900-1,400/kg' },
+          { to: 'China (CN)', rate: 'Rs 700-1,100/kg' },
+        ].map((r, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', fontSize: '0.7rem' }}>
+            <span style={{ color: '#cbd5e1' }}>{r.to}</span>
+            <span style={{ color: '#93c5fd', fontWeight: '600', whiteSpace: 'nowrap' }}>{r.rate}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginBottom: '8px' }}>
+        <div style={{ fontWeight: '700', fontSize: '0.72rem', color: '#fbbf24', marginBottom: '5px', borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: '3px' }}>China (CN) to:</div>
+        {[
+          { to: 'UK (GB)',       rate: '£2.50-4.00/kg' },
+          { to: 'Pakistan (PK)', rate: 'Rs 400-800/kg'  },
+          { to: 'UAE (AE)',      rate: 'AED 10-18/kg'   },
+          { to: 'USA (US)',      rate: '$3.50-5.50/kg'  },
+        ].map((r, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', fontSize: '0.7rem' }}>
+            <span style={{ color: '#cbd5e1' }}>{r.to}</span>
+            <span style={{ color: '#93c5fd', fontWeight: '600', whiteSpace: 'nowrap' }}>{r.rate}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.15)', fontSize: '0.58rem', color: '#94a3b8', textAlign: 'center' }}>
+        By Air - Based on chargeable weight (actual vs volumetric)
+      </div>
     </div>, document.body
   ) : null;
   return (
-    <><span onMouseEnter={handleEnter} onMouseLeave={() => setPos(null)} style={{ cursor: 'help', color: '#007bff', fontWeight: '600', borderBottom: '1px dashed #007bff' }}>🚚 shipping</span>{tooltip}</>
+    <><span onMouseEnter={handleEnter} onMouseLeave={() => setPos(null)} style={{ cursor: 'help', color: '#007bff', fontWeight: '600', borderBottom: '1px dashed #007bff' }}>🚚 +shipping</span>{tooltip}</>
   );
 };
 
@@ -400,12 +419,12 @@ const SellerInformation = ({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
                 <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#1f2937' }}>
                   {se.username}
-                  <span style={{ fontSize: '0.62rem', fontWeight: '400', color: '#6b7280', marginLeft: '4px' }}>
-                    ({spDisplay} <ShippingTooltip />)
-                  </span>
                 </div>
-                <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#059669', whiteSpace: 'nowrap', marginLeft: '8px' }}>
-                  {totalDisplay}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '8px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#059669', whiteSpace: 'nowrap' }}>
+                    {totalDisplay}
+                  </span>
+                  <ShippingTooltip />
                 </div>
               </div>
 

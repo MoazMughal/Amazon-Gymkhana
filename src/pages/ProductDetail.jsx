@@ -25,39 +25,59 @@ import { ProductDetailSkeleton } from '../components/SkeletonLoaders'
 // Shipping rate tooltip — renders via portal so it's never clipped by overflow containers
 const ShippingTooltip = () => {
   const [pos, setPos] = useState(null);
-  const rates = [
-    { flag: '🇵🇰', country: 'Pakistan', rate: 'Rs 1,600/kg' },
-    { flag: '🇬🇧', country: 'UK',       rate: '£4.35/kg'   },
-    { flag: '🇦🇪', country: 'UAE',       rate: 'AED 21.3/kg'},
-    { flag: '🇺🇸', country: 'USA',       rate: '$5.71/kg'   },
-    { flag: '🇨🇳', country: 'China',     rate: '¥41.2/kg'   },
+  const pakRoutes = [
+    { to: 'UK (GB)',    rate: 'Rs 800-1,600/kg'  },
+    { to: 'UAE (AE)',   rate: 'Rs 500-950/kg'    },
+    { to: 'USA (US)',   rate: 'Rs 900-1,400/kg'  },
+    { to: 'China (CN)', rate: 'Rs 700-1,100/kg'  },
   ];
-  const TOOLTIP_W = 260;
+  const cnRoutes = [
+    { to: 'UK (GB)',       rate: '£2.50-4.00/kg'   },
+    { to: 'Pakistan (PK)', rate: 'Rs 400-800/kg'   },
+    { to: 'UAE (AE)',      rate: 'AED 10-18/kg'    },
+    { to: 'USA (US)',      rate: '$3.50-5.50/kg'   },
+  ];
+  const TOOLTIP_W = 300;
   const handleEnter = (e) => {
     const r = e.currentTarget.getBoundingClientRect();
-    // Keep within viewport — align left by default, shift left if would overflow right
     let left = r.left;
     if (left + TOOLTIP_W > window.innerWidth - 8) left = window.innerWidth - TOOLTIP_W - 8;
     if (left < 8) left = 8;
     setPos({ top: r.bottom + 6, left });
   };
   const tooltip = pos ? createPortal(
-    <div style={{
-      position: 'fixed', top: pos.top, left: pos.left,
-      background: '#1e293b', color: '#fff', borderRadius: '10px', padding: '12px 16px',
-      width: TOOLTIP_W, boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
-      zIndex: 99999, fontSize: '0.75rem', whiteSpace: 'nowrap', pointerEvents: 'none'
-    }}>
+    <div style={{ position: 'fixed', top: pos.top, left: pos.left, background: '#1e293b', color: '#fff', borderRadius: '10px', padding: '12px 14px', width: TOOLTIP_W, boxShadow: '0 8px 32px rgba(0,0,0,0.45)', zIndex: 99999, pointerEvents: 'none' }}>
       <div style={{ position: 'absolute', bottom: '100%', left: '14px', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #1e293b' }} />
-      <div style={{ fontWeight: '700', marginBottom: '10px', color: '#93c5fd', fontSize: '0.8rem' }}>📦 Shipping Rates (per kg)</div>
-      {rates.map(r => (
-        <div key={r.country} style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginBottom: '5px' }}>
-          <span>{r.flag} {r.country}</span>
-          <span style={{ fontWeight: '700', color: '#34d399' }}>{r.rate}</span>
+      <div style={{ fontWeight: '800', marginBottom: '10px', color: '#93c5fd', fontSize: '0.78rem', textAlign: 'center' }}>
+        Shipping Rates / kg (By Sea / By Air)
+      </div>
+
+      <div style={{ marginBottom: '10px' }}>
+        <div style={{ fontWeight: '700', fontSize: '0.72rem', color: '#fbbf24', marginBottom: '5px', borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: '3px' }}>
+          Pakistan (PK) to:
         </div>
-      ))}
-      <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.2)', fontSize: '0.65rem', color: '#94a3b8' }}>
-        Based on chargeable weight (actual vs volumetric)
+        {pakRoutes.map((r, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', fontSize: '0.7rem' }}>
+            <span style={{ color: '#cbd5e1' }}>{r.to}</span>
+            <span style={{ color: '#93c5fd', fontWeight: '600', whiteSpace: 'nowrap' }}>{r.rate}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ marginBottom: '8px' }}>
+        <div style={{ fontWeight: '700', fontSize: '0.72rem', color: '#fbbf24', marginBottom: '5px', borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: '3px' }}>
+          China (CN) to:
+        </div>
+        {cnRoutes.map((r, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', fontSize: '0.7rem' }}>
+            <span style={{ color: '#cbd5e1' }}>{r.to}</span>
+            <span style={{ color: '#93c5fd', fontWeight: '600', whiteSpace: 'nowrap' }}>{r.rate}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.15)', fontSize: '0.58rem', color: '#94a3b8', textAlign: 'center' }}>
+        By Air • Based on chargeable weight (actual vs volumetric)
       </div>
     </div>,
     document.body
@@ -67,7 +87,7 @@ const ShippingTooltip = () => {
       <span
         onMouseEnter={handleEnter} onMouseLeave={() => setPos(null)}
         style={{ cursor: 'help', color: '#007bff', fontWeight: '600', borderBottom: '1px dashed #007bff', display: 'inline' }}>
-        🚚 shipping
+         +shipping 🚚
       </span>
       {tooltip}
     </>
@@ -169,6 +189,7 @@ const ProductDetail = () => {
   const [savingUnits, setSavingUnits] = useState(false) // Loading state for saving units
   const [quantity, setQuantity] = useState(1) // Set MOQ to 1
   const [showZoomModal, setShowZoomModal] = useState(false)
+  const [buyerShipping, setBuyerShipping] = useState(0) // buyer's own shipping cost input
   const [windowWidth, setWindowWidth] = useState(window.innerWidth)
 
   // Wishlist / demand modal state
@@ -3738,7 +3759,7 @@ _This quotation was generated from PoundlandWholesale.com_
                             flex: '1 1 120px',
                             minWidth: 0
                           }}>
-                            Amazon/Ebay Avg Monthly Sale Profit
+                            Amazon/Ebay Avg Monthly Sale and Profit
                           </span>
                           <button
                             onClick={() => {
@@ -3959,7 +3980,7 @@ _This quotation was generated from PoundlandWholesale.com_
                   }}>
                     {/* Main Price Display */}
                     <div className="d-flex align-items-center justify-content-between mb-2">
-                      <div className="d-flex align-items-baseline gap-1">
+                      <div className="d-flex align-items-center gap-1 flex-wrap">
                         <span className="fw-bold" style={{
                           fontSize: '1.1rem', 
                           color: '#B12704',
@@ -3973,6 +3994,7 @@ _This quotation was generated from PoundlandWholesale.com_
                           })()}
                         </span>
                         <span style={{fontSize: '0.65rem', color: '#565959', fontWeight: '500'}}>/Unit</span>
+                        <ShippingTooltip />
                       </div>
                       {hasLowerSellerPrice() && getStrikethroughPrice() && (
                         <span style={{
@@ -3984,7 +4006,6 @@ _This quotation was generated from PoundlandWholesale.com_
                           {fmtConverted(getStrikethroughPrice())}
                         </span>
                       )}
-                      <ShippingTooltip />
                     </div>
                     
                     {/* DDP Notice */}
@@ -4401,7 +4422,7 @@ _This quotation was generated from PoundlandWholesale.com_
                                 <div className="bg-white rounded p-2">
                                   <div className="text-muted mb-1" style={{fontSize: '0.7rem'}}>Profit per Unit</div>
                                   <div className="fw-bold text-success" style={{fontSize: '1rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', fontWeight: '800'}}>
-                                    {formatPrice(safeNumber(product.profitCalculations.profitPerUnit))}
+                                    {formatPrice(safeNumber(product.profitCalculations.profitPerUnit) - buyerShipping)}
                                   </div>
                                 </div>
                               </div>
@@ -4411,13 +4432,10 @@ _This quotation was generated from PoundlandWholesale.com_
                                   <div className="fw-bold text-primary" style={{fontSize: '1rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', fontWeight: '800'}}>
                                     {formatPrice((() => {
                                       const monthlyValue = product.evaluation?.monthlyProfit || product.profitCalculations?.monthlyProfit || (product.profitCalculations?.profitPerUnit * 30) || 0;
-                                      console.log('📊 Monthly Profit Display Debug:', {
-                                        evaluationMonthly: product.evaluation?.monthlyProfit,
-                                        calculationsMonthly: product.profitCalculations?.monthlyProfit,
-                                        fallbackCalculation: product.profitCalculations?.profitPerUnit * 30,
-                                        finalValue: monthlyValue
-                                      });
-                                      return safeNumber(monthlyValue);
+                                      const platformData = calculatePlatformData();
+                                      const units = (platformData && platformData.length > 0) ? (platformData[0].units || 1) : 1;
+                                      const shippingMonthly = buyerShipping > 0 ? buyerShipping * (units / 12) : 0;
+                                      return safeNumber(monthlyValue) - shippingMonthly;
                                     })())}
                                   </div>
                                 </div>
@@ -4427,63 +4445,25 @@ _This quotation was generated from PoundlandWholesale.com_
                                   <div className="text-muted mb-1" style={{fontSize: '0.7rem'}}>Yearly Profit</div>
                                   <div className="fw-bold text-warning" style={{fontSize: '1rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', fontWeight: '800'}}>
                                     {formatPrice((() => {
-                                      // PRIORITY 1: Auto-calculate yearly profit based on platform units
                                       const platformData = calculatePlatformData();
                                       const profitPerUnit = product.profitCalculations?.profitPerUnit || product.evaluation?.netProfit || 0;
                                       
-                                      console.log('📊 Yearly Profit Calculation Debug:', {
-                                        hasPlatformData: !!platformData,
-                                        platformDataLength: platformData?.length,
-                                        profitPerUnit: profitPerUnit,
-                                        platformData: platformData
-                                      });
-                                      
-                                      // If we have platform data with units, use it for calculation
+                                      let yearlyValue = 0;
                                       if (platformData && platformData.length > 0) {
-                                        // Use the first platform's units (they should all be the same due to auto-sync)
                                         const units = platformData[0].units || quantity || 1;
-                                        
-                                        if (profitPerUnit > 0 && units > 0) {
-                                          const yearlyProfit = profitPerUnit * units;
-                                          console.log('✅ Using Platform Units Calculation:', {
-                                            profitPerUnit: profitPerUnit,
-                                            units: units,
-                                            yearlyProfit: yearlyProfit,
-                                            formula: `${units} × ${profitPerUnit.toFixed(2)} = ${yearlyProfit.toFixed(2)}`
-                                          });
-                                          return safeNumber(yearlyProfit);
-                                        }
+                                        if (profitPerUnit > 0 && units > 0) yearlyValue = profitPerUnit * units;
                                       }
-                                      
-                                      // PRIORITY 2: Use saved yearly profit values
-                                      if (product.evaluation?.yearlyProfit && product.evaluation.yearlyProfit > 0) {
-                                        console.log('📊 Using Saved Evaluation Yearly Profit:', product.evaluation.yearlyProfit);
-                                        return safeNumber(product.evaluation.yearlyProfit);
-                                      }
-                                      
-                                      if (product.profitCalculations?.yearlyProfit && product.profitCalculations.yearlyProfit > 0) {
-                                        console.log('📊 Using Saved Calculations Yearly Profit:', product.profitCalculations.yearlyProfit);
-                                        return safeNumber(product.profitCalculations.yearlyProfit);
-                                      }
-                                      
-                                      // PRIORITY 3: Fallback calculation (365 days)
-                                      if (profitPerUnit > 0) {
-                                        const fallbackYearly = profitPerUnit * 365;
-                                        console.log('📊 Using Fallback Calculation (365 days):', {
-                                          profitPerUnit: profitPerUnit,
-                                          fallbackYearly: fallbackYearly,
-                                          formula: `${profitPerUnit.toFixed(2)} × 365 = ${fallbackYearly.toFixed(2)}`
-                                        });
-                                        return safeNumber(fallbackYearly);
-                                      }
-                                      
-                                      console.log('❌ No valid data for yearly profit calculation');
-                                      return 0;
+                                      if (!yearlyValue && product.evaluation?.yearlyProfit > 0) yearlyValue = product.evaluation.yearlyProfit;
+                                      if (!yearlyValue && product.profitCalculations?.yearlyProfit > 0) yearlyValue = product.profitCalculations.yearlyProfit;
+                                      if (!yearlyValue && profitPerUnit > 0) yearlyValue = profitPerUnit * 365;
+
+                                      const units = (platformData && platformData.length > 0) ? (platformData[0].units || 365) : 365;
+                                      const shippingYearly = buyerShipping > 0 ? buyerShipping * units : 0;
+                                      return safeNumber(yearlyValue) - shippingYearly;
                                     })())}
                                   </div>
                                 </div>
                               </div>
-
                             </div>
                           </div>
                         </div>
@@ -4548,12 +4528,51 @@ _This quotation was generated from PoundlandWholesale.com_
                               <td className="fw-bold py-2 px-2 text-end" style={{fontSize: '0.85rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', fontWeight: '800'}}>{convertProfitValue(product.evaluation.changeToBalance)}</td>
                             </tr>
                             <tr>
-                              <td className="fw-semibold py-2 px-2">Product Cost (Estimated DDP Price to Amazon warehouse)</td>
-                              <td className="fw-bold py-2 px-2 text-end text-danger" style={{fontSize: '0.85rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', fontWeight: '800'}}>-{convertProfitValue(product.evaluation.productCost)}</td>
+                              <td className="fw-semibold py-2 px-2">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                  <span>Product Cost (Estimated DDP Price to Amazon warehouse)</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>+ My Shipping:</span>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      placeholder="0.00"
+                                      value={buyerShipping || ''}
+                                      onChange={e => setBuyerShipping(parseFloat(e.target.value) || 0)}
+                                      style={{
+                                        width: '70px', padding: '2px 6px', fontSize: '0.78rem',
+                                        border: '1px solid #d1d5db', borderRadius: '4px',
+                                        outline: 'none', textAlign: 'right'
+                                      }}
+                                    />
+                                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>£</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="fw-bold py-2 px-2 text-end text-danger" style={{fontSize: '0.85rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', fontWeight: '800'}}>
+                                -{convertProfitValue(product.evaluation.productCost)}
+                                {buyerShipping > 0 && (
+                                  <span style={{ fontSize: '0.72rem', color: '#dc2626', display: 'block' }}>
+                                    + -{formatPrice(buyerShipping)} shipping
+                                  </span>
+                                )}
+                              </td>
                             </tr>
                             <tr style={{background: '#e6f7ee'}}>
                               <td className="fw-bold py-2 px-2" style={{fontSize: '0.85rem'}}>Net Profit</td>
-                              <td className="fw-bold py-2 px-2 text-end text-success" style={{fontSize: '1rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', fontWeight: '800'}}>{convertProfitValue(product.evaluation.netProfit)}</td>
+                              <td className="fw-bold py-2 px-2 text-end text-success" style={{fontSize: '1rem', fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', fontWeight: '800'}}>
+                                {(() => {
+                                  const base = convertProfitValue(product.evaluation.netProfit);
+                                  if (buyerShipping > 0) {
+                                    // parse the base net profit value and subtract shipping
+                                    const baseNum = parseFloat(String(product.evaluation.netProfit).replace(/[^0-9.-]/g, '')) || 0;
+                                    const net = baseNum - buyerShipping;
+                                    return formatPrice(net);
+                                  }
+                                  return base;
+                                })()}
+                              </td>
                             </tr>
                           </tbody>
                         </table>
