@@ -104,7 +104,10 @@ const CompactHeader = () => {
     { value: 'kitchen', label: 'Kitchen' },
     { value: 'automotive', label: 'Automotive' },
     { value: 'tape', label: 'Tape' },
-    { value: 'lampshade', label: 'Lampshades' }
+    { value: 'lampshade', label: 'Lampshades' },
+    { value: 'toys', label: 'Toys & Games' },
+    { value: 'fashion', label: 'Fashion' },
+    { value: 'beauty', label: 'Beauty' }
     // Note: Excel categories (UAE Products, UK Products, Amazon10) are intentionally excluded
   ]);
   const [hierarchy, setHierarchy] = useState({}); // { "Automotive": ["Car Bulb", "Car Accessories"] }
@@ -137,7 +140,19 @@ const CompactHeader = () => {
           );
           
           // Use categories from API (which already includes "All" at the beginning)
-          setCategories(visibleCategories);
+          // Append pinned extras only if not already present (case-insensitive label match)
+          const PINNED_EXTRAS = [
+            { value: 'Toys & Games', label: 'Toys & Games' },
+            { value: 'Fashion', label: 'Fashion' },
+            { value: 'Beauty & Personal Care', label: 'Beauty' },
+            { value: 'Sports & Outdoors', label: 'Sports' }
+          ]
+          const existingLabels = new Set(visibleCategories.map(c => c.label.toLowerCase()))
+          const merged = [
+            ...visibleCategories,
+            ...PINNED_EXTRAS.filter(p => !existingLabels.has(p.label.toLowerCase()) && !existingLabels.has(p.value.toLowerCase()))
+          ]
+          setCategories(merged);
         }
       } catch (error) {
         console.error('Error fetching categories for header:', error);
@@ -752,7 +767,7 @@ const CompactHeader = () => {
         whiteSpace: 'nowrap',
         position: 'relative'
       }}>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0', alignItems: 'center', justifyContent: 'space-evenly', width: '100%' }}>
           {categories.map(cat => (
             <CategoryItem
               key={cat.value}
@@ -806,7 +821,7 @@ const CategoryItem = ({ cat, hierarchy }) => {
           to={catUrl}
           style={{
             fontSize: '10px', color: '#111', textDecoration: 'none', fontWeight: '600',
-            padding: '4px 0', display: 'inline-flex', alignItems: 'center', gap: '3px',
+            padding: '4px 6px', display: 'inline-flex', alignItems: 'center', gap: '3px',
             whiteSpace: 'nowrap', borderBottom: '2px solid transparent'
           }}
           onMouseEnter={e => e.currentTarget.style.borderBottomColor = '#ff9900'}

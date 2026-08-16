@@ -4,17 +4,22 @@
   "description": "UK's Premier B2B Wholesale Marketplace",
   "icons": [
     {
-      "src": "/favicon-v3.png?v=3",
+      "src": "/browser-favicon-32x32.png?v=5",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/browser-favicon-32x32.png?v=5",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/favicon-v3.png?v=3",
+      "src": "/browser-favicon-32x32.png?v=5",
       "sizes": "512x512",
       "type": "image/png"
     }
   ],
-  "theme_color": "#667eea",
+  "theme_color": "#ff6600",
   "background_color": "#ffffff",
   "display": "standalone",
   "start_url": "/",

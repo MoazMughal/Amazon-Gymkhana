@@ -231,7 +231,18 @@ const MobileHeader = () => {
           
           // If we got categories from API, use them; otherwise keep defaults
           if (deduplicatedCategories.length > 1) { // More than just "All"
-            setCategories(deduplicatedCategories);
+            // Ensure pinned extras always appear
+            const PINNED_EXTRAS = [
+              { value: 'toys', label: 'Toys & Games' },
+              { value: 'fashion', label: 'Fashion' },
+              { value: 'beauty', label: 'Beauty' }
+            ]
+            const existingValues = new Set(deduplicatedCategories.map(c => c.value.toLowerCase()))
+            const merged = [
+              ...deduplicatedCategories,
+              ...PINNED_EXTRAS.filter(p => !existingValues.has(p.value.toLowerCase()))
+            ]
+            setCategories(merged);
           }
         }
       } catch (error) {

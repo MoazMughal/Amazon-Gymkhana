@@ -287,7 +287,13 @@ const UnifiedLogin = () => {
                   autoComplete="current-password"
                   style={{
                     flex: 1, border: 'none', outline: 'none', background: 'transparent',
-                    fontSize: '0.88rem', color: '#1f2937', padding: '0 0 0 0', height: '44px'
+                    fontSize: '0.88rem', color: '#1f2937', padding: '0 0 0 0', height: '44px',
+                    // Hide browser native password reveal button
+                    MsRevealPassword: 'none'
+                  }}
+                  onInput={e => {
+                    // Chrome/Edge native eye icon suppression
+                    e.target.style.setProperty('--webkit-credentials-auto-fill-button', 'none')
                   }}
                 />
                 <button
