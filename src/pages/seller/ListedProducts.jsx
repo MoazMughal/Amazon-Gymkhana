@@ -91,6 +91,8 @@ const ListedProducts = () => {
   const sellerId = seller?._id?.toString();
   // Track whether a page reset was triggered by search/category (prevents double fetch)
   const searchResetRef = useRef(false);
+  // Prevent blur from double-saving when Enter already triggered save
+  const skuSavingRef = useRef(false);
 
   useEffect(() => {
     if (!authResolved || loading) return;
@@ -1025,7 +1027,56 @@ const ListedProducts = () => {
                             {product.sku}
                           </span>
                         ) : (
-                          <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>—</span>
+                          editingCell === `${product._id}-sku` ? (
+                            <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+                              <input
+                                type="text"
+                                autoFocus
+                                placeholder="SKU"
+                                value={editValues[`${product._id}-sku`] || ''}
+                                onChange={e => setEditValues(prev => ({ ...prev, [`${product._id}-sku`]: e.target.value.toUpperCase() }))}
+                                onKeyDown={async e => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const sku = editValues[`${product._id}-sku`]?.trim();
+                                    if (!sku) { setEditingCell(null); return; }
+                                    skuSavingRef.current = true;
+                                    setEditingCell(null);
+                                    try {
+                                      const token = localStorage.getItem('sellerToken');
+                                      const res = await fetch(getApiUrl(`sellers/add-sku/${product._id}`), {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                        body: JSON.stringify({ sku })
+                                      });
+                                      const data = await res.json();
+                                      if (res.ok) {
+                                        setProducts(prev => prev.map(p => p._id === product._id ? { ...p, sku: data.sku } : p));
+                                      } else {
+                                        alert('❌ ' + (data.message || 'Failed to save SKU'));
+                                      }
+                                    } catch { alert('❌ Failed to save SKU'); }
+                                    finally { skuSavingRef.current = false; }
+                                  } else if (e.key === 'Escape') {
+                                    setEditingCell(null);
+                                  }
+                                }}
+                                onBlur={() => {
+                                  // Only close — don't save on blur (Enter handles save)
+                                  if (!skuSavingRef.current) setEditingCell(null);
+                                }}
+                                style={{ width: '70px', padding: '2px 4px', fontSize: '0.72rem', border: '1px solid #6366f1', borderRadius: '4px', fontFamily: 'monospace' }}
+                              />
+                            </div>
+                          ) : (
+                            <span
+                              onClick={() => { setEditingCell(`${product._id}-sku`); setEditValues(prev => ({ ...prev, [`${product._id}-sku`]: '' })); }}
+                              style={{ color: '#6366f1', fontSize: '0.72rem', cursor: 'pointer', textDecoration: 'underline', whiteSpace: 'nowrap' }}
+                              title="Click to add SKU"
+                            >
+                              + Add SKU
+                            </span>
+                          )
                         )}
                       </td>
                       <td

@@ -2013,6 +2013,45 @@ router.put('/update-moq/:productId', authenticateSeller, async (req, res) => {
   }
 });
 
+// Seller: add SKU to a product (only if SKU is currently empty)
+router.put('/add-sku/:productId', authenticateSeller, async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { sku } = req.body;
+
+    if (!sku || !sku.trim()) {
+      return res.status(400).json({ message: 'SKU cannot be empty' });
+    }
+
+    const Product = (await import('../models/Product.js')).default;
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    // Only allow if seller has this product listed
+    const isListed = product.sellers?.some(s => s.sellerId?.toString() === req.seller._id.toString())
+      || product.seller?.toString() === req.seller._id.toString();
+    if (!isListed) return res.status(403).json({ message: 'You have not listed this product' });
+
+    // Only allow if SKU is currently empty
+    if (product.sku && product.sku.trim() !== '') {
+      return res.status(400).json({ message: 'SKU already set and cannot be changed' });
+    }
+
+    const cleanSku = sku.trim().toUpperCase();
+    // Check uniqueness
+    const existing = await Product.findOne({ sku: cleanSku, _id: { $ne: productId } });
+    if (existing) return res.status(400).json({ message: 'This SKU is already used by another product' });
+
+    product.sku = cleanSku;
+    await product.save();
+
+    res.json({ success: true, sku: cleanSku });
+  } catch (err) {
+    console.error('Add SKU error:', err);
+    res.status(500).json({ message: 'Failed to add SKU' });
+  }
+});
+
 // Delete seller's listing (remove seller info from admin product)
 router.delete('/unlist-product/:productId', authenticateSeller, async (req, res) => {
   try {

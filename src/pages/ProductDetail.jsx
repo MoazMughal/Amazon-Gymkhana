@@ -842,7 +842,19 @@ _This quotation was generated from PoundlandWholesale.com_
           reviews: p.reviews || 0,
           category: p.category,
           brand: p.brand || '',
-          markup: `${Math.floor((p.price || 100) / 10 + 150)}%` // Calculate markup based on price
+          markup: (() => {
+            // Use real savings/profit data from admin panel if available
+            if (p.savings && parseFloat(p.savings) > 0) return `${Math.round(parseFloat(p.savings))}%`;
+            if (p.profitCalculations?.profitPerUnit && p.price) {
+              const ppu = parseFloat(p.profitCalculations.profitPerUnit);
+              const price = parseFloat(p.price);
+              if (ppu > 0 && price > 0) return `${Math.round((ppu / price) * 100)}%`;
+            }
+            // Fallback: vary badge by index using product name hash for consistency
+            const badges = ['Best Deal', 'Top Value', 'Hot Pick', 'Great Buy', 'Save Big', 'Low Price'];
+            const hash = (p.name || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+            return badges[hash % badges.length];
+          })()
         }));
 
       // Get most popular (mix products from all categories, no category preference)
@@ -873,7 +885,11 @@ _This quotation was generated from PoundlandWholesale.com_
           reviews: p.reviews || 0,
           category: p.category,
           brand: p.brand || '',
-          markup: 'Popular'
+          markup: (() => {
+            const badges = ['⭐ Popular', '🔥 Trending', '👍 Top Rated', '💎 Best Seller', '🚀 Hot Item', '✅ Verified'];
+            const hash = (p.name || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+            return badges[hash % badges.length];
+          })()
         }));
 
       setTopDealsFromDB(topDeals);
@@ -5147,7 +5163,11 @@ _This quotation was generated from PoundlandWholesale.com_
                       position: 'absolute',
                       top: '4px',
                       right: '4px',
-                      background: '#b91c1c',
+                      background: (() => {
+                        const colors = ['#b91c1c','#d97706','#7c3aed','#0369a1','#15803d','#c2410c'];
+                        const hash = (deal.name || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+                        return colors[hash % colors.length];
+                      })(),
                       color: 'white',
                       padding: windowWidth < 576 ? '2px 4px' : '3px 6px',
                       borderRadius: '4px',
@@ -5288,7 +5308,11 @@ _This quotation was generated from PoundlandWholesale.com_
                       position: 'absolute',
                       top: '4px',
                       right: '4px',
-                      background: '#b91c1c',
+                      background: (() => {
+                        const colors = ['#b91c1c','#d97706','#7c3aed','#0369a1','#15803d','#c2410c'];
+                        const hash = (popular.name || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+                        return colors[hash % colors.length];
+                      })(),
                       color: 'white',
                       padding: windowWidth < 576 ? '2px 4px' : '3px 6px',
                       borderRadius: '4px',
@@ -5297,7 +5321,7 @@ _This quotation was generated from PoundlandWholesale.com_
                       zIndex: 2,
                       border: '1px solid rgba(0,0,0,0.1)'
                     }}>
-                      <i className="fas fa-star me-1"></i>Popular
+                      {popular.markup}
                     </span>
                     <img 
                       src={popular.image} 

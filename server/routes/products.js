@@ -2901,8 +2901,8 @@ router.get('/', authenticateAdmin, async (req, res) => {
         });
       }
       
-      // Combine with existing query
-      query = { ...query, ...searchQuery };
+      // When searching, include all products regardless of approvalStatus so nothing is missed
+      query = { ...searchQuery };
     }
     
     if (category) {
