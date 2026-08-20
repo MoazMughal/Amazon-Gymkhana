@@ -4,6 +4,7 @@ import { useParams, useSearchParams, Link, useNavigate, useLocation } from 'reac
 import { completeProductsData, getProductById } from '../data/completeProducts'
 import { products } from '../data/allProducts'
 import { getImageUrl } from '../utils/imageImports'
+import { isCloudinaryUrl } from '../utils/cloudinary'
 import PaymentModal from '../components/PaymentModal'
 import PaymentUploadModal from '../components/PaymentUploadModal'
 import SellerInformation from '../components/SellerInformation'
@@ -311,6 +312,23 @@ const ProductDetail = () => {
 
   // Function to get proper image path
   const getImageSrc = (imagePath) => {
+    return getImageUrl(imagePath)
+  }
+
+  // Returns image URL with product name as the Save As filename (via Cloudinary fl_attachment)
+  const getImageWithName = (imagePath) => {
+    if (!imagePath) return getImageUrl(imagePath)
+    if (isCloudinaryUrl(imagePath)) {
+      const cleanName = (product?.name || 'product')
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '_')
+        .slice(0, 60)
+      // Inject fl_attachment into existing URL
+      if (imagePath.includes('/upload/')) {
+        return imagePath.replace('/upload/', `/upload/fl_attachment:${cleanName}/`)
+      }
+    }
     return getImageUrl(imagePath)
   }
 
@@ -3277,7 +3295,7 @@ _This quotation was generated from PoundlandWholesale.com_
                 onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)'}
                 >
                   <img 
-                    src={product.images && product.images[selectedImage] ? product.images[selectedImage] : product.image} 
+                    src={getImageWithName(product.images && product.images[selectedImage] ? product.images[selectedImage] : product.image)} 
                     alt={product.name} 
                     className="img-fluid main-product-image-full"
                     onClick={() => setShowZoomModal(true)}

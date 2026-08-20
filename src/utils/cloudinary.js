@@ -16,30 +16,30 @@ export const getOptimizedCloudinaryUrl = (imageUrl, options = {}) => {
   const {
     width = 400,
     height = 400,
-    crop = 'fit', // Changed from 'fill' to 'fit' to show full image without cropping
+    crop = 'fit',
     quality = 'auto',
     format = 'auto',
-    dpr = 'auto'
+    dpr = 'auto',
+    attachment = null // product name for "Save As" filename
   } = options;
 
   try {
-    // Split the URL at '/upload/'
     const parts = imageUrl.split('/upload/');
     if (parts.length !== 2) {
       return imageUrl;
     }
 
-    // Build transformation string
     const transformations = [
       `w_${width}`,
       `h_${height}`,
       `c_${crop}`,
       `q_${quality}`,
       `f_${format}`,
-      `dpr_${dpr}`
+      `dpr_${dpr}`,
+      // Add fl_attachment with cleaned product name so "Save As" uses the product name
+      ...(attachment ? [`fl_attachment:${attachment.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 60)}`] : [])
     ].join(',');
 
-    // Reconstruct URL with transformations
     return `${parts[0]}/upload/${transformations}/${parts[1]}`;
   } catch (error) {
     console.warn('Failed to optimize Cloudinary URL:', error);
