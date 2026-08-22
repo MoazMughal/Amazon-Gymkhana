@@ -113,7 +113,9 @@ const SellerProductsSimple = () => {
             productId: req.productId,
             rejectionReason: req.rejectionReason,
             images: req.images || [],
-            productImage: req.productImage
+            productImage: req.productImage,
+            sku: req.sku || req.productSku || null,
+            asin: req.asin || req.productAsin || null
           }))
           setProducts(transformed)
           setTotalPages(data.totalPages || 1)
@@ -637,6 +639,7 @@ const SellerProductsSimple = () => {
               <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
                 <th style={{ padding: '10px', textAlign: 'left', width: '70px' }}>IMAGE</th>
                 <th style={{ padding: '10px', textAlign: 'left' }}>PRODUCT</th>
+                <th style={{ padding: '10px', textAlign: 'left', width: '100px' }}>SKU</th>
                 <th style={{ padding: '10px', textAlign: 'left', width: '100px' }}>SELLER</th>
                 <th style={{ padding: '10px', textAlign: 'center', width: '120px' }}>COUNTRY</th>
                 <th style={{ padding: '10px', textAlign: 'right', width: '70px' }}>PRICE</th>
@@ -760,6 +763,7 @@ const SellerProductsSimple = () => {
                 )}
                 <th style={{ padding: '10px', textAlign: 'left', width: '70px' }}>IMAGE</th>
                 <th style={{ padding: '10px', textAlign: 'left' }}>PRODUCT</th>
+                <th style={{ padding: '10px', textAlign: 'left', width: '100px' }}>SKU</th>
                 <th style={{ padding: '10px', textAlign: 'left', width: '100px' }}>SELLER</th>
                 <th style={{ padding: '10px', textAlign: 'center', width: '120px' }}>COUNTRY</th>
                 <th style={{ padding: '10px', textAlign: 'right', width: '70px' }}>PRICE</th>
@@ -830,6 +834,14 @@ const SellerProductsSimple = () => {
                       <div style={{ fontSize: '11px', color: '#666' }}>
                         {new Date(product.createdAt).toLocaleDateString()}
                       </div>
+                    </td>
+                    <td style={{ padding: '10px', fontSize: '12px', color: '#495057' }}>
+                      {(product.sku || product.asin)
+                        ? <span style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '2px 6px', borderRadius: '4px', display: 'inline-block', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={product.sku || product.asin}>
+                            {product.sku || product.asin}
+                          </span>
+                        : <span style={{ color: '#bbb', fontSize: '11px' }}>—</span>
+                      }
                     </td>
                     <td style={{ padding: '10px', fontSize: '13px' }}>
                       {product.seller?.username || product.sellerUsername || product.seller || 'Unknown'}

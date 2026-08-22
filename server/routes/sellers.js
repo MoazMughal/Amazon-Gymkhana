@@ -1317,7 +1317,7 @@ router.get('/admin/listing-requests', authenticateAdmin, async (req, res) => {
     const paginatedProductIds = paginatedRequests.map(r => r.productId).filter(Boolean);
     
     const products = await Product.find({ _id: { $in: paginatedProductIds } })
-      .select('name images shipping price')
+      .select('name images shipping price sku asin')
       .lean()
       .maxTimeMS(10000);
     
@@ -1335,7 +1335,9 @@ router.get('/admin/listing-requests', authenticateAdmin, async (req, res) => {
         productName: request.productName || product?.name || 'Unknown Product',
         productImage: product?.images?.[0] || null,
         productShipping: product?.shipping || 0,
-        images: product?.images || []
+        images: product?.images || [],
+        sku: product?.sku || null,
+        asin: product?.asin || null
       };
     });
     

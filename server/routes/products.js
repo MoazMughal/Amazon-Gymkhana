@@ -4462,7 +4462,7 @@ router.get('/admin/all-seller-listings', authenticateAdmin, async (req, res) => 
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(parseInt(limit))
-          .select('name price stock category images createdAt seller')
+          .select('name price stock category images createdAt seller sku asin')
           .lean()
           .maxTimeMS(20000),
         
@@ -4474,7 +4474,7 @@ router.get('/admin/all-seller-listings', authenticateAdmin, async (req, res) => 
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(parseInt(limit))
-          .select('name price stock category images createdAt sellers')
+          .select('name price stock category images createdAt sellers sku asin')
           .lean()
           .maxTimeMS(20000)
       ]);
