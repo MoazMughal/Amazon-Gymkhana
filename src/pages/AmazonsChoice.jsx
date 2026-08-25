@@ -627,6 +627,7 @@ const AmazonsChoice = () => {
   const [selectedProducts, setSelectedProducts] = useState([])
   const [bulkModal, setBulkModal] = useState(false)
   const [bulkRows, setBulkRows] = useState({})
+  const [bulkChecked, setBulkChecked] = useState({}) // which items are checked inside the modal
   const [bulkSubmitting, setBulkSubmitting] = useState(false)
   const [bulkResults, setBulkResults] = useState(null)
   const [bulkCount, setBulkCount] = useState(0)
@@ -886,7 +887,13 @@ const AmazonsChoice = () => {
   }
 
   // Bulk selection handlers
+  const isAlreadyListed = (product) => {
+    if (!currentSeller || !product.sellers) return false
+    return product.sellers.some(s => s.sellerId?.toString() === currentSeller._id?.toString())
+  }
+
   const toggleSelectProduct = (product) => {
+    if (isAlreadyListed(product)) return
     setSelectedProducts(prev =>
       prev.find(p => p.id === product.id)
         ? prev.filter(p => p.id !== product.id)
@@ -895,26 +902,32 @@ const AmazonsChoice = () => {
   }
 
   const toggleSelectAll = () => {
-    if (selectedProducts.length === currentProducts.length) {
+    const selectable = currentProducts.filter(p => !isAlreadyListed(p))
+    const allSelected = selectable.length > 0 && selectable.every(p => selectedProducts.find(s => s.id === p.id))
+    if (allSelected) {
       setSelectedProducts([])
     } else {
-      setSelectedProducts([...currentProducts])
+      setSelectedProducts(selectable)
     }
   }
 
   const openBulkModal = () => {
     const rows = {}
+    const checked = {}
     selectedProducts.forEach(p => {
       const rawPrice = p.rawPrice || 0
       rows[p.id] = {
         price: rawPrice > 0 ? Math.max(0.01, rawPrice - 0.01).toFixed(2) : '0.01',
+        priceCurrency: 'GBP',
         shipping: '0.00',
         moq: '1',
         listingCountries: currency ? [currency] : [],
         notes: ''
       }
+      checked[p.id] = true
     })
     setBulkRows(rows)
+    setBulkChecked(checked)
     setBulkResults(null)
     setBulkModal(true)
   }
@@ -937,20 +950,22 @@ const AmazonsChoice = () => {
   }
 
   const handleBulkRequest = async () => {
-    if (selectedProducts.length === 0) return
+    const toSubmit = selectedProducts.filter(p => bulkChecked[p.id])
+    if (toSubmit.length === 0) { alert('Please check at least one product to submit.'); return }
     setBulkSubmitting(true)
     setBulkResults(null)
-    setBulkCount(selectedProducts.length)
+    setBulkCount(toSubmit.length)
     const token = localStorage.getItem('sellerToken')
 
     try {
-      const items = selectedProducts.map(product => {
+      const items = toSubmit.map(product => {
         const row = bulkRows[product.id] || {}
         return {
           adminProductId: product.id,
           productName: product.name,
           productPrice: product.rawPrice || 0,
           sellerPrice: parseFloat(row.price) || 0.01,
+          priceCurrency: row.priceCurrency || 'GBP',
           sellerShipping: parseFloat(row.shipping) || 0,
           moq: parseInt(row.moq) || 1,
           listingCountries: row.listingCountries || [],
@@ -1840,15 +1855,39 @@ const AmazonsChoice = () => {
             ) : (
               <div style={{ padding:'16px 18px', overflowY:'auto', flex:1 }}>
                 <p style={{ fontSize:'0.78rem', color:'#6b7280', marginBottom:'12px' }}>
-                  Edit price, shipping, MOQ and countries for each product individually.
+                  Check the products you want to submit, then edit price, MOQ and countries.
                 </p>
+                {/* Select/Deselect all inside modal */}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
+                  <span style={{ fontSize:'0.75rem', color:'#6b7280' }}>
+                    {Object.values(bulkChecked).filter(Boolean).length} of {selectedProducts.length} selected
+                  </span>
+                  <div style={{ display:'flex', gap:'8px' }}>
+                    <button type="button" onClick={() => setBulkChecked(Object.fromEntries(selectedProducts.map(p => [p.id, true])))}
+                      style={{ fontSize:'11px', padding:'3px 10px', borderRadius:'5px', border:'1px solid #ff6600', color:'#ff6600', background:'#fff', cursor:'pointer', fontWeight:'600' }}>
+                      Select All
+                    </button>
+                    <button type="button" onClick={() => setBulkChecked(Object.fromEntries(selectedProducts.map(p => [p.id, false])))}
+                      style={{ fontSize:'11px', padding:'3px 10px', borderRadius:'5px', border:'1px solid #e9ecef', color:'#6b7280', background:'#f8f9fa', cursor:'pointer', fontWeight:'600' }}>
+                      Deselect All
+                    </button>
+                  </div>
+                </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
                   {selectedProducts.map((product) => {
                     const row = bulkRows[product.id] || {}
+                    const isChecked = !!bulkChecked[product.id]
                     return (
-                      <div key={product.id} style={{ border:'1.5px solid #e9ecef', borderRadius:'10px', overflow:'hidden' }}>
-                        <div style={{ background:'#f8f9fa', padding:'8px 12px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:'1px solid #e9ecef' }}>
+                      <div key={product.id} style={{ border: isChecked ? '1.5px solid #ff6600' : '1.5px solid #e9ecef', borderRadius:'10px', overflow:'hidden', opacity: isChecked ? 1 : 0.5, transition:'all 0.15s' }}>
+                        <div style={{ background: isChecked ? '#fff5f0' : '#f8f9fa', padding:'8px 12px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:'1px solid #e9ecef' }}>
                           <div style={{ display:'flex', alignItems:'center', gap:'8px', minWidth:0 }}>
+                            {/* Checkbox */}
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => setBulkChecked(prev => ({ ...prev, [product.id]: !prev[product.id] }))}
+                              style={{ width:'16px', height:'16px', cursor:'pointer', accentColor:'#ff6600', flexShrink:0 }}
+                            />
                             {product.image && (
                               <img src={product.image} alt="" style={{ width:'28px', height:'28px', objectFit:'contain', borderRadius:'4px', flexShrink:0 }}
                                 onError={e => e.target.style.display='none'} />
@@ -1857,6 +1896,9 @@ const AmazonsChoice = () => {
                           </div>
                           <span style={{ fontSize:'0.72rem', color:'#28a745', fontWeight:'700', flexShrink:0, marginLeft:'8px' }}>RRP £{parseFloat(product.rawPrice||0).toFixed(2)}</span>
                         </div>
+                        {/* Only show fields when checked */}
+                        {isChecked && (
+                          <>
                         <div style={{ padding:'10px 12px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'8px' }}>
                           <div>
                             <label style={{ fontSize:'0.7rem', fontWeight:'700', color:'#6b7280', display:'block', marginBottom:'3px' }}>Your Price (£)</label>
@@ -1899,6 +1941,8 @@ const AmazonsChoice = () => {
                             onChange={e => updateBulkRow(product.id, 'notes', e.target.value)}
                             style={{ width:'100%', padding:'6px 8px', border:'1.5px solid #e9ecef', borderRadius:'6px', fontSize:'11px', color:'#6b7280' }} />
                         </div>
+                          </>
+                        )}
                       </div>
                     )
                   })}
@@ -1908,11 +1952,11 @@ const AmazonsChoice = () => {
                     style={{ flex:1, padding:'11px', background:'#f8f9fa', color:'#6b7280', border:'1.5px solid #e9ecef', borderRadius:'10px', fontWeight:'600', cursor:'pointer', fontSize:'13px' }}>
                     Cancel
                   </button>
-                  <button onClick={handleBulkRequest} disabled={bulkSubmitting}
-                    style={{ flex:2, padding:'11px', background: bulkSubmitting ? '#ccc' : 'linear-gradient(135deg,#ff6600,#ff8533)', color:'#fff', border:'none', borderRadius:'10px', fontWeight:'700', cursor: bulkSubmitting ? 'not-allowed' : 'pointer', fontSize:'13px', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px' }}>
+                  <button onClick={handleBulkRequest} disabled={bulkSubmitting || Object.values(bulkChecked).filter(Boolean).length === 0}
+                    style={{ flex:2, padding:'11px', background: (bulkSubmitting || Object.values(bulkChecked).filter(Boolean).length === 0) ? '#ccc' : 'linear-gradient(135deg,#ff6600,#ff8533)', color:'#fff', border:'none', borderRadius:'10px', fontWeight:'700', cursor: (bulkSubmitting || Object.values(bulkChecked).filter(Boolean).length === 0) ? 'not-allowed' : 'pointer', fontSize:'13px', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px' }}>
                     {bulkSubmitting
                       ? <><span className="spinner-border spinner-border-sm"></span> Submitting...</>
-                      : <><i className="fas fa-paper-plane"></i> Submit {selectedProducts.length} Requests</>}
+                      : <><i className="fas fa-paper-plane"></i> Submit {Object.values(bulkChecked).filter(Boolean).length} Request{Object.values(bulkChecked).filter(Boolean).length !== 1 ? 's' : ''}</>}
                   </button>
                 </div>
               </div>
@@ -2584,7 +2628,7 @@ const AmazonsChoice = () => {
             <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
               <label style={{ display:'flex', alignItems:'center', gap:'6px', cursor:'pointer', fontSize:'0.8rem', color:'#fff', fontWeight:'600', userSelect:'none' }}>
                 <input type="checkbox"
-                  checked={selectedProducts.length === currentProducts.length && currentProducts.length > 0}
+                  checked={currentProducts.filter(p => !isAlreadyListed(p)).length > 0 && currentProducts.filter(p => !isAlreadyListed(p)).every(p => selectedProducts.find(s => s.id === p.id))}
                   onChange={toggleSelectAll}
                   style={{ width:'16px', height:'16px', cursor:'pointer' }} />
                 Select All
